@@ -1,0 +1,94 @@
+/* styles/footer.module.css */
+
+.footer {
+  background-color: #4A3B31;
+  padding: 3rem 2rem;
+  margin-top: 4rem;
+  border-top: 1px solid #e7e7e7;
+}
+
+.footerContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.footerSection {
+  margin-bottom: 1.5rem;
+}
+
+.logoSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.footerLogo {
+  margin-bottom: 1rem;
+}
+
+.footerBrand {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+}
+
+.footerSectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.footerLinks {
+  list-style: none;
+  padding: 0;
+}
+
+.footerLinks li {
+  margin-bottom: 0.5rem;
+}
+
+.footerLinks a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footerLinks a:hover {
+  color: white;
+}
+
+.address {
+  font-style: normal;
+}
+
+.address p {
+  margin: 0.3rem 0;
+  color: white;
+}
+
+.footerBottom {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e7e7e7;
+  text-align: center;
+  color: white;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .footerContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .footerSection {
+    text-align: center;
+  }
+  
+  .logoSection {
+    align-items: center;
+  }
+}
