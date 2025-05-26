@@ -114,115 +114,113 @@ body {
 }
 
 
-/* Productos Section */
+/* Estilos generales de la sección */
 .productos {
-  padding: 3rem 1.5rem;
-  background: linear-gradient(to bottom, #faf8f5, #f4ece5);
+  padding: 2rem;
+  background-color: #f5f2eb;
+  color: #3e2c23;
+  text-align: center;
 }
 
 .productos-titulo {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 2.5rem;
-  color: #3e2c1c;
-  font-family: 'Georgia', serif;
-  position: relative;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
 }
 
-.productos-titulo::after {
-  content: "";
-  display: block;
-  width: 60px;
-  height: 4px;
-  background: #c19a6b;
-  margin: 1rem auto 0;
-  border-radius: 2px;
-}
-
+/* Grid adaptable */
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 2rem;
   justify-items: center;
 }
 
+/* Tarjeta del producto */
 .producto-card {
-  background: #fffdfb;
+  background-color: #fff8f1;
   border-radius: 1rem;
-  padding: 1rem 1.2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-  text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  max-width: 270px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
   width: 100%;
-  aspect-ratio: 3/4;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  max-width: 320px;
 }
 
 .producto-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-5px);
 }
 
-.producto-etiqueta {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: bold;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  color: white;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.natural   { background-color: #814c47; }
-.honey     { background-color: #d1aa32; }
-.lavado    { background-color: #7f9c86; }
-
-.producto-img img {
+/* Imagen del producto */
+.producto-img {
   width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
+  height: auto;
+  max-height: 200px;
+  object-fit: contain;
+  margin-bottom: 1rem;
 }
 
-.producto-info h3 {
-  margin: 0.5rem 0 0.25rem;
-  font-size: 1.1rem;
-  color: #3d2b1f;
+/* Etiqueta de tipo */
+.producto-etiqueta {
+  font-size: 0.9rem;
   font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.8rem;
+  display: inline-block;
+  text-transform: uppercase;
+  color: white;
+}
+
+/* Colores personalizados por tipo */
+.producto-etiqueta.natural {
+  background-color: #8d6e63;
+}
+
+.producto-etiqueta.honey {
+  background-color: #d4a373;
+}
+
+.producto-etiqueta.lavado {
+  background-color: #6a994e;
+}
+
+/* Información del producto */
+.producto-info {
+  text-align: left;
 }
 
 .producto-rating {
-  font-size: 1rem;
-  color: #f3a847;
+  font-size: 1.1rem;
+  color: #e6b800;
   margin-bottom: 0.5rem;
 }
 
-.producto-precio {
+.producto-rating span {
+  color: #6b5b4d;
+  font-size: 0.9rem;
+}
+
+.producto-nombre {
+  font-size: 1.3rem;
   font-weight: bold;
-  margin-bottom: 0.4rem;
-  color: #1e1e1e;
-  font-size: 1rem;
+  margin: 0.5rem 0;
+  color: #3e2c23;
 }
 
-.producto-notas {
-  font-size: 0.75rem;
-  color: #555;
-  margin-bottom: 0.3rem;
-  font-style: italic;
+.producto-precio {
+  font-size: 1.1rem;
+  color: #5c4033;
+  margin: 0.3rem 0;
 }
 
+.producto-notas,
 .producto-tueste {
-  font-size: 0.7rem;
-  color: #888;
+  font-size: 0.95rem;
+  color: #6b5b4d;
+  margin: 0.2rem 0;
 }
+
 
 /* Testimonios Section */
 .testimonios {

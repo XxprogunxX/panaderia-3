@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import "./styles.css";
 import { useState } from "react";
+import HelpPopup from "./components/bolita-de-ayuda/bolita";
 
 
 const productosPopulares = [
@@ -241,7 +242,7 @@ export default function Home() {
             <p>pedidos@elpandecadadia.com</p>
           </div>
         </div>
-       
+       <HelpPopup />
       </footer>
     </main>
   );

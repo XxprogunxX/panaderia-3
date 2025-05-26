@@ -17,9 +17,9 @@ export default function CafePage() {
     height={200}
     className="navbar-logo"
   />
-        <a href="#historia" className="nav-link">Historia</a>
+        <a href="/" className="nav-link">Inico</a>
         <a href="#productos" className="nav-link">Productos</a>
-        <a href="/" className="nav-link">Panaderia</a>
+        <a href="/productos" className="nav-link">Panaderia</a>
         <a href="#testimonios" className="nav-link">Testimonios</a>
       </div>
     </nav>
@@ -40,7 +40,7 @@ export default function CafePage() {
   <div className="productos-grid">
     <div className="producto-card">
       <div className="producto-etiqueta natural">ESPRESSO</div>
-      <Image src="/images/cafe-2.avif" alt="Espresso" width={180} height={180} className="producto-img" />
+      <Image src="/images/cafe.png" alt="Espresso" width={180} height={180} className="producto-img" />
       <div className="producto-info">
         <div className="producto-rating">★★★★★ <span>(12)</span></div>
         <h3 className="producto-nombre">Espresso</h3>
@@ -52,7 +52,7 @@ export default function CafePage() {
 
     <div className="producto-card">
       <div className="producto-etiqueta honey">AMERICANO</div>
-      <Image src="/images/cafe-2.avif" alt="Americano" width={180} height={180} className="producto-img" />
+      <Image src="/images/cafe.png" alt="Americano" width={180} height={180} className="producto-img" />
       <div className="producto-info">
         <div className="producto-rating">★★★★☆ <span>(9)</span></div>
         <h3 className="producto-nombre">Americano</h3>
@@ -64,7 +64,7 @@ export default function CafePage() {
 
     <div className="producto-card">
       <div className="producto-etiqueta lavado">CAPPUCCINO</div>
-      <Image src="/images/cafe-2.avif" alt="Cappuccino" width={180} height={180} className="producto-img" />
+      <Image src="/images/cafe.png" alt="Cappuccino" width={180} height={180} className="producto-img" />
       <div className="producto-info">
         <div className="producto-rating">★★★★★ <span>(17)</span></div>
         <h3 className="producto-nombre">Cappuccino</h3>
@@ -75,7 +75,7 @@ export default function CafePage() {
     </div>
      <div className="producto-card">
       <div className="producto-etiqueta lavado">CAPPUCCINO</div>
-      <Image src="/images/cafe-2.avif" alt="Cappuccino" width={180} height={180} className="producto-img" />
+      <Image src="/images/cafe.png" alt="Cappuccino" width={180} height={180} className="producto-img" />
       <div className="producto-info">
         <div className="producto-rating">★★★★★ <span>(17)</span></div>
         <h3 className="producto-nombre">Cappuccino</h3>
@@ -94,7 +94,7 @@ export default function CafePage() {
   <div className="info-cards-container">
     <article className="info-card left-image">
       <div className="info-image">
-        <Image src="/images/origen.jpg" alt="Origen del café" width={300} height={200} />
+        <Image src="/images/origen-del cafe.jpeg" alt="Origen del café" width={300} height={200}/>
       </div>
       <div className="info-text">
         <h3>Origen</h3>
@@ -115,13 +115,13 @@ export default function CafePage() {
         </p>
       </div>
       <div className="info-image">
-        <Image src="/images/tostado.jpg" alt="Proceso de tostado" width={300} height={200} />
+        <Image src="/images/tostado.jpeg" alt="Proceso de tostado" width={300} height={200} />
       </div>
     </article>
 
     <article className="info-card left-image">
       <div className="info-image">
-        <Image src="/images/variedades.jpg" alt="Variedades de café" width={300} height={200} />
+        <Image src="/images/variedades-cafe.jpg" alt="Variedades de café" width={300} height={200} />
       </div>
       <div className="info-text">
         <h3>Variedades</h3>
@@ -141,7 +141,7 @@ export default function CafePage() {
         </p>
       </div>
       <div className="info-image">
-        <Image src="/images/perfil-sabor.jpg" alt="Perfil de sabor" width={300} height={200} />
+        <Image src="/images/sabor cafe.jpeg" alt="Perfil de sabor" width={300} height={200} />
       </div>
     </article>
   </div>
