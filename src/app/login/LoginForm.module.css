@@ -21,6 +21,7 @@
   overflow: hidden;
   position: relative;
   width: 100%;
+  
 }
 
 .form__title {
@@ -171,7 +172,7 @@
 }
 
 .input {
-  background-color: #fff;
+  background-color: #ffffff36;
   border: none;
   padding: 0.9rem 0.9rem;
   margin: 0.5rem 0;
