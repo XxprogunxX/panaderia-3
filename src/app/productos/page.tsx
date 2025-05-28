@@ -25,6 +25,7 @@ export default function Productos() {
   const [carrito, setCarrito] = useState<ProductoConCantidad[]>([]);
   const [mostrarCarrito, setMostrarCarrito] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [cargandoPago, setCargandoPago] = useState(false);
 
   useEffect(() => {
     const obtenerProductos = async () => {
@@ -80,9 +81,48 @@ export default function Productos() {
 
   const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
 
-  // Función para saber si la imagen es externa (para usar <img> y evitar error next/image)
   const esImagenExterna = (url: string) => {
     return url.startsWith("http://") || url.startsWith("https://");
+  };
+
+  // Función para manejar el pago
+  const handlePagar = async () => {
+    if (carrito.length === 0) {
+      alert("Tu carrito está vacío");
+      return;
+    }
+
+    setCargandoPago(true);
+
+    // Preparar items para Mercado Pago
+    const itemsMP = carrito.map(({ nombre, cantidad, precio }) => ({
+      title: nombre,
+      quantity: cantidad,
+      unit_price: precio,
+    }));
+
+    try {
+      const respuesta = await fetch("http://localhost:5000/create_preference", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items: itemsMP }),
+      });
+
+      const data = await respuesta.json();
+
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert("Error al generar el pago");
+      }
+    } catch (error) {
+      console.error("Error en pago:", error);
+      alert("Error al comunicarse con el servidor de pagos");
+    } finally {
+      setCargandoPago(false);
+    }
   };
 
   return (
@@ -185,21 +225,31 @@ export default function Productos() {
             {carrito.length === 0 ? (
               <p>Tu carrito está vacío.</p>
             ) : (
-              <ul>
-                {carrito.map(({ nombre, precio, cantidad }) => (
-                  <li key={nombre} className="carrito-item">
-                    <span>{nombre} x {cantidad}</span>
-                    <span>${precio * cantidad} MXN</span>
-                    <button className="btn-eliminar" onClick={() => eliminarDelCarrito(nombre)}>
-                      Eliminar
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul>
+                  {carrito.map(({ nombre, precio, cantidad }) => (
+                    <li key={nombre} className="carrito-item">
+                      <span>{nombre} x {cantidad}</span>
+                      <span>${precio * cantidad} MXN</span>
+                      <button className="btn-eliminar" onClick={() => eliminarDelCarrito(nombre)}>
+                        Eliminar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="carrito-total">
+                  <strong>Total: </strong>${total} MXN
+                </div>
+
+                <button
+                  className="btn-pagar"
+                  onClick={handlePagar}
+                  disabled={cargandoPago}
+                >
+                  {cargandoPago ? "Redirigiendo..." : "Pagar"}
+                </button>
+              </>
             )}
-            <div className="carrito-total">
-              <strong>Total: </strong>${total} MXN
-            </div>
             <button className="btn-cerrar" onClick={toggleCarrito}>
               Cerrar
             </button>
