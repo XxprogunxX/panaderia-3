@@ -95,7 +95,7 @@ export default function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required 
           />
-          <a href="#" className={styles.link}>¿Olvidaste tu contraseña?</a>
+          <a href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</a>
           <button type="submit" className={styles.btn}>Ingresar</button>
         </form>
       </div>

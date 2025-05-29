@@ -137,7 +137,7 @@ export default function Productos() {
             <li><Link href="/">Inicio</Link></li>
             <li><Link href="/productos">Productos</Link></li>
             <li><Link href="/cafe">Cafe</Link></li>
-            <li><Link href="#nosotros">Nosotros</Link></li>
+            <li><Link href="/nosotros">Nosotros</Link></li>
             <li>
               <button onClick={toggleCarrito} className="btn-carrito-toggle">
                 <span className="icono-carrito">🛒</span>

@@ -6,6 +6,8 @@ import Link from "next/link";
 import "./styles.css";
 import { useState } from "react";
 import HelpPopup from "./components/bolita-de-ayuda/bolita";
+import { image } from "framer-motion/client";
+import { url } from "inspector";
 
 
 const productosPopulares = [
@@ -73,10 +75,10 @@ export default function Home() {
         </div>
         <nav className="nav">
           <ul>
-            <li><Link href="#">Inicio</Link></li>
+            <li><Link href="/">Inicio</Link></li>
             <li><Link href="/productos">Productos</Link></li>
             <li><Link href="/cafe">Cafe</Link></li>
-            <li><Link href="#nosotros">Nosotros</Link></li>
+            <li><Link href="/nosotros">Nosotros</Link></li>
             <li><Link href="/login">Login</Link></li>
             <li>
               <button onClick={toggleCarrito} className="btn-carrito-toggle">
@@ -209,7 +211,7 @@ export default function Home() {
             <h3>Navegación</h3>
             <ul>
               <li>
-                <Link href="#nosotros">Nosotros</Link>
+                <Link href="/nosotros">Nosotros</Link>
               </li>
               <li>
                 <Link href="/productos">Productos</Link>
