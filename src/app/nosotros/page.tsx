@@ -3,9 +3,40 @@
 import Image from "next/image";
 import Link from "next/link";
 import "./styles.css";
+// If your footer has specific styles imported like this, keep it
+// import footerStyles from "./footer.module.css"; // Uncomment if you use a CSS Modules file for the footer
 
+// Import the hooks
+import { useCarrito } from "../components/usecarrito"
+ // Adjust the path if necessary
+import { useMercadoPago } from "../components/useMercadopago"; // Adjust the path if necessary
 
 export default function NosotrosPage() {
+  // Use the useCarrito hook to get cart state and toggle function
+  const { carrito, toggleCarrito, mostrarCarrito, total } = useCarrito();
+
+  // Use the useMercadoPago hook to get loading state and payment function
+  const { cargandoPago, handlePagar } = useMercadoPago(); // <--- NEW
+
+  // Calculate the total number of items in the cart for the notification
+  const totalItemsEnCarrito = carrito.reduce((sum, p) => sum + p.cantidad, 0);
+
+  // Function to handle the payment, using the Mercado Pago hook
+  const iniciarPago = () => { // <--- NEW
+    if (carrito.length === 0) {
+      alert("Tu carrito está vacío");
+      return;
+    }
+
+    // Prepare items for Mercado Pago
+    const itemsMP = carrito.map(({ nombre, cantidad, precio }) => ({
+      title: nombre,
+      quantity: cantidad,
+      unit_price: precio,
+    }));
+    handlePagar(itemsMP); // Call the function from the useMercadoPago hook
+  };
+
   return (
     <main>
       <header className="header">
@@ -27,10 +58,15 @@ export default function NosotrosPage() {
             <li><Link href="/nosotros" className="active">Nosotros</Link></li>
             <li><Link href="/login">Login</Link></li>
             <li>
-              <Link href="/carrito" className="btn-carrito-toggle">
+              <button onClick={toggleCarrito} className="btn-carrito-toggle">
                 <span className="icono-carrito">🛒</span>
                 <span>Carrito</span>
-              </Link>
+                {totalItemsEnCarrito > 0 && (
+                  <span className="notificacion-carrito">
+                    {totalItemsEnCarrito}
+                  </span>
+                )}
+              </button>
             </li>
           </ul>
         </nav>
@@ -235,6 +271,48 @@ export default function NosotrosPage() {
           </div>
         </div>
       </section>
+
+      {/* Overlay del Carrito */}
+      {mostrarCarrito && (
+        <div className="carrito-overlay" onClick={toggleCarrito}>
+          <div className="carrito" onClick={(e) => e.stopPropagation()}>
+            <h2>Tu Carrito</h2>
+            {carrito.length === 0 ? (
+              <p>Tu carrito está vacío.</p>
+            ) : (
+              <>
+                <ul>
+                  {carrito.map(({ nombre, precio, cantidad }) => (
+                    <li key={nombre} className="carrito-item">
+                      <span>{nombre} x {cantidad}</span>
+                      <span>${precio * cantidad} MXN</span>
+                      {/* No incluimos botón de eliminar aquí, para que la gestión sea en Productos */}
+                    </li>
+                  ))}
+                </ul>
+                <div className="carrito-total">
+                  <strong>Total: </strong>${total} MXN
+                </div>
+                {/* Botón de Pagar usando la función iniciarPago */}
+                <button
+                  className="btn-pagar"
+                  onClick={iniciarPago} // <--- NEW: Calls the payment function
+                  disabled={cargandoPago || carrito.length === 0} // Disable if loading or cart is empty
+                >
+                  {cargandoPago ? "Redirigiendo a pago..." : "Pagar con Mercado Pago"}
+                </button>
+                {/* Opcionalmente, un enlace a productos para editar el carrito */}
+                <Link href="/productos" className="btn-editar-carrito">
+                   Editar Carrito
+                </Link>
+              </>
+            )}
+            <button className="btn-cerrar" onClick={toggleCarrito}>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       <footer className="footer">
         <div className="footer-container">

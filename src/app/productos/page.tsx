@@ -2,12 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import "../styles.css";
-import footerStyles from "../footer.module.css";
+import "../styles.css"; // Estilos generales
+import footerStyles from "../footer.module.css"; // Estilos específicos del footer
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 
+// Importa los hooks personalizados
+import { useCarrito } from "../components/usecarrito"
+ // Adjust the path if necessary
+import { useMercadoPago } from "../components/useMercadopago"; 
+
+// Define la interfaz Producto si no está globalmente accesible
 interface Producto {
   nombre: string;
   descripcion: string;
@@ -16,16 +22,13 @@ interface Producto {
   categoria: string;
 }
 
-interface ProductoConCantidad extends Producto {
-  cantidad: number;
-}
-
 export default function Productos() {
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [carrito, setCarrito] = useState<ProductoConCantidad[]>([]);
-  const [mostrarCarrito, setMostrarCarrito] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-  const [cargandoPago, setCargandoPago] = useState(false);
+
+  // Usa los hooks para manejar el estado del carrito y el proceso de pago
+  const { carrito, agregarAlCarrito, eliminarDelCarrito, mostrarCarrito, toggleCarrito, total } = useCarrito(); // <--- Usa useCarrito
+  const { cargandoPago, handlePagar } = useMercadoPago();                                                       // <--- Usa useMercadoPago
 
   useEffect(() => {
     const obtenerProductos = async () => {
@@ -51,79 +54,22 @@ export default function Productos() {
 
   const categoriasUnicas = [...new Set(productos.map((p) => p.categoria))];
 
-  // Filtrar productos que coincidan con la búsqueda
   const productosFiltrados = productos.filter(
     (p) =>
       p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const agregarAlCarrito = (producto: Producto) => {
-    setCarrito((prev) => {
-      const existe = prev.find((p) => p.nombre === producto.nombre);
-      if (existe) {
-        return prev.map((p) =>
-          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
-        );
-      } else {
-        return [...prev, { ...producto, cantidad: 1 }];
-      }
-    });
-  };
-
-  const eliminarDelCarrito = (nombre: string) => {
-    setCarrito((prev) => prev.filter((p) => p.nombre !== nombre));
-  };
-
-  const toggleCarrito = () => {
-    setMostrarCarrito(!mostrarCarrito);
-  };
-
-  const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-
   const esImagenExterna = (url: string) => {
     return url.startsWith("http://") || url.startsWith("https://");
   };
 
-  // Función para manejar el pago
-  const handlePagar = async () => {
-    if (carrito.length === 0) {
-      alert("Tu carrito está vacío");
-      return;
-    }
-
-    setCargandoPago(true);
-
-    // Preparar items para Mercado Pago
-    const itemsMP = carrito.map(({ nombre, cantidad, precio }) => ({
-      title: nombre,
-      quantity: cantidad,
-      unit_price: precio,
-    }));
-
-    try {
-      const respuesta = await fetch("http://localhost:5000/create_preference", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ items: itemsMP }),
-      });
-
-      const data = await respuesta.json();
-
-      if (data.init_point) {
-        window.location.href = data.init_point;
-      } else {
-        alert("Error al generar el pago");
-      }
-    } catch (error) {
-      console.error("Error en pago:", error);
-      alert("Error al comunicarse con el servidor de pagos");
-    } finally {
-      setCargandoPago(false);
-    }
-  };
+  // Prepara los ítems del carrito para Mercado Pago
+  const itemsParaPago = carrito.map(({ nombre, cantidad, precio }) => ({
+    title: nombre,
+    quantity: cantidad,
+    unit_price: precio,
+  }));
 
   return (
     <main>
@@ -243,8 +189,8 @@ export default function Productos() {
 
                 <button
                   className="btn-pagar"
-                  onClick={handlePagar}
-                  disabled={cargandoPago}
+                  onClick={() => handlePagar(itemsParaPago)} // <--- Llama a handlePagar del hook
+                  disabled={cargandoPago || carrito.length === 0}
                 >
                   {cargandoPago ? "Redirigiendo..." : "Pagar"}
                 </button>
