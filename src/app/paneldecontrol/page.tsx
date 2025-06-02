@@ -193,12 +193,16 @@ const PanelControl = () => {
     }
 
     if (parseFloat(nuevoProducto.precio) <= 0) {
-      setError("El precio debe ser mayor que 0");
+      setError("El precio debe ser mayor que 4");
       return;
     }
 
     if (!nuevoProducto.categoria) {
       setError("Por favor selecciona una categoría");
+      return;
+    }
+     if (!edicionId && !nuevoProducto.imagen) {
+     setError("Por favor selecciona una imagen para el producto");
       return;
     }
 
@@ -399,7 +403,7 @@ const PanelControl = () => {
                     onChange={(e) => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
                     required
                     step="0.01"
-                    min="0.01"
+                    min="4.00" // Precio mínimo de 4.00 MXN
                   />
                 </div>
 
@@ -429,7 +433,7 @@ const PanelControl = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Imagen {!edicionId && '(Opcional)'}</label>
+                  <label>Imagen {!edicionId }</label>
                   <input
                     type="file"
                     accept="image/jpeg, image/png, image/webp"
