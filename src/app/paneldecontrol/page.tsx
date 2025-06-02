@@ -206,8 +206,8 @@ const PanelControl = () => {
       return;
     }
 
-    if (parseFloat(nuevoProducto.precio) <= 0) {
-      setError("El precio debe ser mayor que 0");
+    if (parseFloat(nuevoProducto.precio) <= 4) {
+      setError("El precio debe ser mayor que 4 MXN");
       return;
     }
 
@@ -215,7 +215,11 @@ const PanelControl = () => {
       setError("Por favor selecciona una categoría");
       return;
     }
-
+      // Validar imagen obligatoria solo al agregar (no editar)
+     if (!edicionId && !nuevoProducto.imagen) {
+     setError("Por favor selecciona una imagen para el producto");
+      return;
+    }
     setCargando(true);
     try {
       let imagenUrl = nuevoProducto.imagenUrl || "";
@@ -385,7 +389,7 @@ const PanelControl = () => {
             onClick={() => setActiveTab("estadisticas")}
             className={activeTab === "estadisticas" ? "active" : ""}
           >
-            Estadísticas
+            ++++++++++
           </button>
         </nav>
 
@@ -413,7 +417,7 @@ const PanelControl = () => {
                     onChange={(e) => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
                     required
                     step="0.01"
-                    min="0.01"
+                    min="4"
                   />
                 </div>
 
@@ -443,7 +447,7 @@ const PanelControl = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Imagen {!edicionId && '(Opcional)'}</label>
+                  <label>Imagen {!edicionId && ''}</label>
                   <input
                     type="file"
                     accept="image/jpeg, image/png, image/webp"
