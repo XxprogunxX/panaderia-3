@@ -111,7 +111,7 @@ export default function NosotrosPage() {
           </div>
           <div className="historia-imagen">
             <Image
-              src="/images/panaderia-antigua.jpg"
+              src="/images/pan-wl.jpeg"
               alt="Nuestra panadería en los años 90"
               width={600}
               height={400}
@@ -130,7 +130,7 @@ export default function NosotrosPage() {
           <div className="miembro-equipo">
             <div className="miembro-imagen">
               <Image
-                src="/images/maestro-panadero.jpg"
+                src="/images/maestro panadero.avif"
                 alt="Maestro panadero"
                 width={300}
                 height={300}
@@ -145,7 +145,7 @@ export default function NosotrosPage() {
           <div className="miembro-equipo">
             <div className="miembro-imagen">
               <Image
-                src="/images/repostera.jpg"
+                src="/images/repostera.avif"
                 alt="Repostera"
                 width={300}
                 height={300}
@@ -160,7 +160,7 @@ export default function NosotrosPage() {
           <div className="miembro-equipo">
             <div className="miembro-imagen">
               <Image
-                src="/images/atencion-cliente.jpg"
+                src="/images/clientes.jpeg"
                 alt="Atención a clientes"
                 width={300}
                 height={300}
@@ -247,30 +247,45 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="visitanos-section">
-        <div className="visitanos-container">
-          <div className="visitanos-info">
-            <h2>Visítanos</h2>
-            <p>Estamos en el corazón de Tehuacán</p>
-            <div className="visitanos-datos">
-              <p>📍 Calle del Sabor 123, Col. La Hogaza, Tehuacán, Puebla</p>
-              <p>🕒 Horario: Lunes a Sábado 6:00 am - 9:00 pm</p>
-              <p>📞 Teléfono: 238 123 4567</p>
-              <p>📧 Email: contacto@elpandecadadia.com</p>
-            </div>
-            <button className="btn-mapa">Ver en mapa</button>
-          </div>
-          <div className="visitanos-imagen">
-            <Image
-              src="/images/local-panaderia.jpg"
-              alt="Nuestro local"
-              width={600}
-              height={400}
-              className="local-img"
-            />
-          </div>
-        </div>
-      </section>
+     <section className="visitanos-section">
+  <div className="visitanos-container">
+    <div className="visitanos-info">
+      <h2>Visítanos</h2>
+      <p>Estamos en el corazón de Tehuacán</p>
+      <div className="visitanos-datos">
+        <p>📍 Calle del Sabor 123, Col. La Hogaza, Tehuacán, Puebla</p>
+        <p>🕒 Horario: Lunes a Sábado 6:00 am - 9:00 pm</p>
+        <p>📞 Teléfono: 238 123 4567</p>
+        <p>📧 Email: contacto@elpandecadadia.com</p>
+      </div>
+      {/*
+        El botón ahora abrirá la misma dirección de Google Maps.
+      */}
+      <a
+        href="https://maps.app.goo.gl/oHYyx4NLNiQiBNdQA" 
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-mapa"
+      >
+        Ver en mapa
+      </a>
+    </div>
+    <div className="visitanos-imagen">
+      {/* El iframe ya tiene la URL actualizada */}
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3784.4383601596455!2d-97.37770572534913!3d18.463792770907173!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85c5bdb557c4b3d9%3A0xd3391c3e9cc7b23b!2sNINDO%20CAF%C3%89!5e0!3m2!1ses!2smx!4v1748828396037!5m2!1ses!2smx"
+        width="600"
+        height="450"
+        style={{ border: 0 }}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="local-img"
+        title="Ubicación de nuestra panadería en Google Maps"
+      ></iframe>
+    </div>
+  </div>
+</section>
+
 
       {/* Overlay del Carrito */}
       {mostrarCarrito && (

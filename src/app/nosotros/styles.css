@@ -100,7 +100,10 @@ body {
   justify-content: center;
   align-items: center;
   padding: 6rem 2rem;
-  background: linear-gradient(135deg, #FDF3E7 0%, #EAD8B8 100%);
+  background-image: url('/public/images/wallpaper-no.jpg'); /* Keep your current path or update based on testing */
+  background-size: cover; /* Ensures the image covers the entire element */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
   text-align: center;
 }
 
@@ -758,7 +761,7 @@ body {
 }
 
 .nosotros-hero {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/images/panaderia-hero.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/images/wallpaper-no.jpg');
   background-size: cover;
   background-position: center;
   height: 60vh;
