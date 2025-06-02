@@ -192,7 +192,7 @@ const PanelControl = () => {
       return;
     }
 
-    if (parseFloat(nuevoProducto.precio) <= 0) {
+    if (parseFloat(nuevoProducto.precio) < 4) {
       setError("El precio debe ser mayor que 4");
       return;
     }
