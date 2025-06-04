@@ -10,6 +10,7 @@ import { image } from "framer-motion/client";
 import { url } from "inspector";
 import { db } from "./firebaseConfig";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import OfertasCarousel from "./components/OfertasCarousel";
 
 interface Producto {
   nombre: string;
@@ -183,6 +184,8 @@ const Home = () => {
 
 
       </section>
+
+      <OfertasCarousel />
 
       <section id="productos" className="productos-main">
         <div className="productos-hero">

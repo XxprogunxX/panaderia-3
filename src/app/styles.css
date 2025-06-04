@@ -1036,3 +1036,208 @@ body {
   font-weight: 500;
 }
 
+/* Estilos para el carrusel de ofertas */
+.ofertas-carousel-container {
+  margin: 2rem auto;
+  padding: 0 1rem;
+  max-width: 1200px;
+}
+
+.ofertas-carousel {
+  position: relative;
+  background: #1a1a1a;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  max-width: 800px;
+  aspect-ratio: 4/3;
+}
+
+.oferta-slide {
+  position: relative;
+  aspect-ratio: 4/3;
+}
+
+.oferta-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.oferta-imagen-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.oferta-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.7)
+  );
+  z-index: 1;
+}
+
+.oferta-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2.5rem;
+  color: white;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.oferta-info-content {
+  max-width: 600px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  padding: 1.8rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.oferta-info h3 {
+  font-size: 1.8rem;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.oferta-info p {
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1.5;
+}
+
+.oferta-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.oferta-fecha {
+  font-size: 0.85rem !important;
+  opacity: 0.9;
+  font-style: italic;
+  color: #fff;
+}
+
+/* Personalización de los controles del carrusel */
+.slick-prev,
+.slick-next {
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.slick-prev {
+  left: 10px;
+}
+
+.slick-next {
+  right: 10px;
+}
+
+.slick-prev:hover,
+.slick-next:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1);
+}
+
+.slick-prev:before,
+.slick-next:before {
+  font-size: 20px;
+  opacity: 1;
+  color: white;
+}
+
+.slick-dots {
+  bottom: 15px;
+  z-index: 10;
+  padding: 0 1rem;
+}
+
+.slick-dots li {
+  margin: 0 3px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .ofertas-carousel {
+    max-width: 600px;
+  }
+  
+  .oferta-info-content {
+    padding: 1.2rem;
+  }
+
+  .oferta-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+  }
+  
+  .oferta-info p {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ofertas-carousel {
+    max-width: 100%;
+    aspect-ratio: 3/2;
+  }
+  
+  .oferta-slide {
+    aspect-ratio: 3/2;
+  }
+
+  .oferta-info {
+    padding: 1rem;
+  }
+
+  .oferta-info-content {
+    padding: 1rem;
+  }
+
+  .oferta-info h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .oferta-info p {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .oferta-badge {
+    padding: 0.3rem 0.6rem;
+  }
+
+  .oferta-fecha {
+    font-size: 0.75rem !important;
+  }
+}
+

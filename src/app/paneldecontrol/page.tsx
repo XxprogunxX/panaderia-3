@@ -60,13 +60,25 @@ type Usuario = {
   providerData: any[];
 };
 
+type Oferta = {
+  id?: string;
+  titulo: string;
+  descripcion: string;
+  imagen: File | null;
+  imagenUrl?: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activa: boolean;
+};
+
 const PanelControl = () => {
   // Estados
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas">("productos");
+  const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "ofertas">("productos");
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [nuevoProducto, setNuevoProducto] = useState<Producto>({
     nombre: "",
     precio: "",
@@ -80,6 +92,14 @@ const PanelControl = () => {
   const [error, setError] = useState<string | null>(null);
   const [pedidosCargando, setPedidosCargando] = useState<{ [key: string]: boolean }>({});
   const [guiasTemporales, setGuiasTemporales] = useState<{ [key: string]: string }>({});
+  const [nuevaOferta, setNuevaOferta] = useState<Oferta>({
+    titulo: "",
+    descripcion: "",
+    imagen: null,
+    fechaInicio: "",
+    fechaFin: "",
+    activa: true
+  });
 
   const cargarUsuarios = async () => {
     try {
@@ -114,7 +134,7 @@ const PanelControl = () => {
     setCargando(true);
     setError(null);
     try {
-      await Promise.all([cargarProductos(), cargarCategorias()]);
+      await Promise.all([cargarProductos(), cargarCategorias(), cargarOfertas()]);
     } catch (error) {
       console.error("Error cargando datos:", error);
       setError("Error al cargar los datos iniciales");
@@ -180,6 +200,31 @@ const PanelControl = () => {
     } catch (error) {
       console.error("Error cargando pedidos:", error);
       setError("Error al cargar los pedidos");
+    }
+  };
+
+  // Cargar ofertas desde Firestore
+  const cargarOfertas = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "ofertas"));
+      const lista: Oferta[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        lista.push({
+          id: doc.id,
+          titulo: data.titulo,
+          descripcion: data.descripcion,
+          imagen: null,
+          imagenUrl: data.imagen,
+          fechaInicio: data.fechaInicio,
+          fechaFin: data.fechaFin,
+          activa: data.activa
+        });
+      });
+      setOfertas(lista);
+    } catch (error) {
+      console.error("Error cargando ofertas:", error);
+      throw new Error("No se pudieron cargar las ofertas");
     }
   };
 
@@ -511,6 +556,134 @@ const PanelControl = () => {
     }
   };
 
+  // Agregar nueva oferta
+  const agregarOferta = async () => {
+    if (!nuevaOferta.titulo || !nuevaOferta.fechaInicio || !nuevaOferta.fechaFin) {
+      setError("Por favor complete los campos obligatorios");
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+
+    try {
+      let imagenUrl = "";
+      if (nuevaOferta.imagen) {
+        imagenUrl = await subirImagen(nuevaOferta.imagen);
+      }
+
+      const ofertaData = {
+        titulo: nuevaOferta.titulo,
+        descripcion: nuevaOferta.descripcion,
+        imagen: imagenUrl,
+        fechaInicio: nuevaOferta.fechaInicio,
+        fechaFin: nuevaOferta.fechaFin,
+        activa: nuevaOferta.activa
+      };
+
+      await addDoc(collection(db, "ofertas"), ofertaData);
+      
+      setNuevaOferta({
+        titulo: "",
+        descripcion: "",
+        imagen: null,
+        fechaInicio: "",
+        fechaFin: "",
+        activa: true
+      });
+
+      await cargarOfertas();
+    } catch (error) {
+      console.error("Error agregando oferta:", error);
+      setError("Error al agregar la oferta");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Eliminar oferta
+  const eliminarOferta = async (id: string, imagenUrl?: string) => {
+    if (!window.confirm("¿Está seguro de que desea eliminar esta oferta?")) {
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+
+    try {
+      await deleteDoc(doc(db, "ofertas", id));
+      
+      if (imagenUrl) {
+        const imagePath = imagenUrl.split('/').pop();
+        if (imagePath) {
+          await supabase.storage.from('productos').remove([`productos/${imagePath}`]);
+        }
+      }
+
+      await cargarOfertas();
+    } catch (error) {
+      console.error("Error eliminando oferta:", error);
+      setError("Error al eliminar la oferta");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Editar oferta
+  const editarOferta = (oferta: Oferta) => {
+    setNuevaOferta({
+      ...oferta,
+      imagen: null
+    });
+    setEdicionId(oferta.id);
+  };
+
+  // Actualizar oferta
+  const actualizarOferta = async () => {
+    if (!edicionId || !nuevaOferta.titulo || !nuevaOferta.fechaInicio || !nuevaOferta.fechaFin) {
+      setError("Por favor complete los campos obligatorios");
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+
+    try {
+      let imagenUrl = nuevaOferta.imagenUrl;
+      if (nuevaOferta.imagen) {
+        imagenUrl = await subirImagen(nuevaOferta.imagen);
+      }
+
+      const ofertaData = {
+        titulo: nuevaOferta.titulo,
+        descripcion: nuevaOferta.descripcion,
+        imagen: imagenUrl,
+        fechaInicio: nuevaOferta.fechaInicio,
+        fechaFin: nuevaOferta.fechaFin,
+        activa: nuevaOferta.activa
+      };
+
+      await updateDoc(doc(db, "ofertas", edicionId), ofertaData);
+      
+      setNuevaOferta({
+        titulo: "",
+        descripcion: "",
+        imagen: null,
+        fechaInicio: "",
+        fechaFin: "",
+        activa: true
+      });
+      setEdicionId(null);
+
+      await cargarOfertas();
+    } catch (error) {
+      console.error("Error actualizando oferta:", error);
+      setError("Error al actualizar la oferta");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   if (cargando) {
     return (
       <div className="cargando-overlay">
@@ -548,6 +721,12 @@ const PanelControl = () => {
           className={activeTab === "estadisticas" ? "active" : ""}
         >
           Pedidos
+        </button>
+        <button
+          onClick={() => setActiveTab("ofertas")}
+          className={activeTab === "ofertas" ? "active" : ""}
+        >
+          Ofertas
         </button>
       </nav>
 
@@ -948,6 +1127,113 @@ const PanelControl = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "ofertas" && (
+            <div className="ofertas-tab">
+              <h2>Gestión de Ofertas</h2>
+              
+              <div className="form-oferta">
+                <div className="form-group">
+                  <label>Título de la Oferta *</label>
+                  <input
+                    type="text"
+                    value={nuevaOferta.titulo}
+                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, titulo: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Descripción</label>
+                  <textarea
+                    value={nuevaOferta.descripcion}
+                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, descripcion: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Imagen</label>
+                  <input
+                    type="file"
+                    accept="image/jpeg, image/png, image/webp"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setNuevaOferta({ ...nuevaOferta, imagen: e.target.files[0] });
+                      }
+                    }}
+                  />
+                  {nuevaOferta.imagen && (
+                    <div className="imagen-preview">
+                      <span>Nueva imagen seleccionada: {nuevaOferta.imagen.name}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>Fecha de Inicio *</label>
+                  <input
+                    type="datetime-local"
+                    value={nuevaOferta.fechaInicio}
+                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, fechaInicio: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Fecha de Fin *</label>
+                  <input
+                    type="datetime-local"
+                    value={nuevaOferta.fechaFin}
+                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, fechaFin: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Activa</label>
+                  <input
+                    type="checkbox"
+                    checked={nuevaOferta.activa}
+                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, activa: e.target.checked })}
+                  />
+                </div>
+                <button 
+                  onClick={() => edicionId ? actualizarOferta() : agregarOferta()}
+                  className="btn-primary"
+                  disabled={cargando}
+                >
+                  {edicionId ? "Actualizar Oferta" : "Agregar Oferta"}
+                </button>
+              </div>
+
+              <div className="ofertas-list">
+                <h3>Lista de Ofertas ({ofertas.length})</h3>
+                {ofertas.length === 0 ? (
+                  <p>No hay ofertas registradas</p>
+                ) : (
+                  <ul className="ofertas-grid">
+                    {ofertas.map((oferta) => (
+                      <li key={oferta.id} className="oferta-item">
+                        <span>{oferta.titulo}</span>
+                        <div className="oferta-acciones">
+                          <button 
+                            className="btn-editar" 
+                            onClick={() => editarOferta(oferta)} 
+                            disabled={cargando}
+                          >
+                            Editar
+                          </button>
+                          <button 
+                            className="btn-eliminar" 
+                            onClick={() => eliminarOferta(oferta.id, oferta.imagenUrl)} 
+                            disabled={cargando}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           )}

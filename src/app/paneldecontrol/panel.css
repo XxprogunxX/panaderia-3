@@ -1065,3 +1065,132 @@ h2 {
   background-color: #e71d36;
   color: #fff;
 }
+
+/* Estilos para la sección de ofertas */
+.ofertas-tab {
+  padding: 1rem;
+}
+
+.form-oferta {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.form-oferta .form-group {
+  margin-bottom: 1rem;
+}
+
+.form-oferta label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-oferta input[type="text"],
+.form-oferta input[type="datetime-local"],
+.form-oferta textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-oferta input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.form-oferta textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.ofertas-list {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ofertas-list h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.ofertas-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.oferta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.oferta-item:last-child {
+  border-bottom: none;
+}
+
+.oferta-acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.oferta-acciones button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.oferta-acciones .btn-editar {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.oferta-acciones .btn-editar:hover {
+  background-color: #357abd;
+}
+
+.oferta-acciones .btn-eliminar {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.oferta-acciones .btn-eliminar:hover {
+  background-color: #c0392b;
+}
+
+.imagen-preview {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .form-oferta,
+  .ofertas-list {
+    padding: 1rem;
+  }
+
+  .oferta-item {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .oferta-acciones {
+    width: 100%;
+    justify-content: center;
+  }
+}
