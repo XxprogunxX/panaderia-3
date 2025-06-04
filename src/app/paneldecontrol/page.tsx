@@ -28,6 +28,29 @@ type Categoria = {
   nombre: string;
 };
 
+type Pedido = {
+  id: string;
+  productos: {
+    nombre: string;
+    cantidad: number;
+    precio: number;
+  }[];
+  total: number;
+  estado: 'pendiente' | 'completado' | 'cancelado';
+  fechaCreacion: string;
+  datosEnvio: {
+    nombre: string;
+    email: string;
+    telefono: string;
+    direccion: string;
+    codigoPostal: string;
+    ciudad: string;
+    estado: string;
+    instrucciones?: string;
+  };
+  numeroGuia?: string;
+};
+
 type Usuario = {
   uid: string;
   email: string | null;
@@ -43,6 +66,7 @@ const PanelControl = () => {
   const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas">("productos");
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [nuevoProducto, setNuevoProducto] = useState<Producto>({
     nombre: "",
     precio: "",
@@ -54,6 +78,8 @@ const PanelControl = () => {
   const [edicionId, setEdicionId] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pedidosCargando, setPedidosCargando] = useState<{ [key: string]: boolean }>({});
+  const [guiasTemporales, setGuiasTemporales] = useState<{ [key: string]: string }>({});
 
   const cargarUsuarios = async () => {
     try {
@@ -81,6 +107,7 @@ const PanelControl = () => {
   useEffect(() => {
     cargarDatosIniciales();
     cargarUsuarios();
+    cargarPedidos();
   }, []);
 
   const cargarDatosIniciales = async () => {
@@ -138,6 +165,24 @@ const PanelControl = () => {
     }
   };
 
+  // Cargar pedidos desde Firestore
+  const cargarPedidos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "pedidos"));
+      const lista: Pedido[] = [];
+      querySnapshot.forEach((doc) => {
+        lista.push({
+          id: doc.id,
+          ...doc.data()
+        } as Pedido);
+      });
+      setPedidos(lista);
+    } catch (error) {
+      console.error("Error cargando pedidos:", error);
+      setError("Error al cargar los pedidos");
+    }
+  };
+
   // Subir imagen a Supabase Storage
   const subirImagen = async (file: File): Promise<string> => {
     try {
@@ -192,7 +237,7 @@ const PanelControl = () => {
       return;
     }
 
-    if (parseFloat(nuevoProducto.precio) <= 0) {
+    if (parseFloat(nuevoProducto.precio) < 4) {
       setError("El precio debe ser mayor que 4");
       return;
     }
@@ -324,6 +369,148 @@ const PanelControl = () => {
     }
   };
 
+  // Función para calcular estadísticas
+  const calcularEstadisticas = () => {
+    // Filtramos los pedidos cancelados
+    const pedidosActivos = pedidos.filter(p => p.estado !== 'cancelado');
+    
+    const ventasTotales = pedidosActivos.reduce((total, pedido) => total + pedido.total, 0);
+    const totalPedidos = pedidosActivos.length;
+    const pedidosCompletados = pedidosActivos.filter(p => p.estado === 'completado').length;
+    const pedidosPendientes = pedidosActivos.filter(p => p.estado === 'pendiente').length;
+    
+    // Productos más vendidos con más detalles (excluyendo pedidos cancelados)
+    const productosVendidos = pedidosActivos.reduce((acc, pedido) => {
+      pedido.productos.forEach(prod => {
+        if (!acc[prod.nombre]) {
+          acc[prod.nombre] = {
+            nombre: prod.nombre,
+            cantidadTotal: 0,
+            ventasTotal: 0,
+            vecesComprado: 0,
+            ultimaCompra: pedido.fechaCreacion
+          };
+        }
+        acc[prod.nombre].cantidadTotal += prod.cantidad;
+        acc[prod.nombre].ventasTotal += prod.cantidad * prod.precio;
+        acc[prod.nombre].vecesComprado += 1;
+        // Actualizar fecha si es más reciente
+        if (new Date(pedido.fechaCreacion) > new Date(acc[prod.nombre].ultimaCompra)) {
+          acc[prod.nombre].ultimaCompra = pedido.fechaCreacion;
+        }
+      });
+      return acc;
+    }, {} as { [key: string]: {
+      nombre: string;
+      cantidadTotal: number;
+      ventasTotal: number;
+      vecesComprado: number;
+      ultimaCompra: string;
+    }});
+
+    const productosMasVendidos = Object.values(productosVendidos)
+      .sort((a, b) => b.cantidadTotal - a.cantidadTotal)
+      .slice(0, 5);
+
+    return {
+      ventasTotales,
+      totalPedidos,
+      pedidosCompletados,
+      pedidosPendientes,
+      productosMasVendidos
+    };
+  };
+
+  // Función para actualizar el estado de un pedido
+  const actualizarEstadoPedido = async (pedidoId: string, nuevoEstado: 'pendiente' | 'completado' | 'cancelado') => {
+    try {
+      setPedidosCargando(prev => ({ ...prev, [pedidoId]: true }));
+      
+      if (nuevoEstado === 'cancelado') {
+        // Si el pedido se cancela, lo eliminamos de Firestore
+        await deleteDoc(doc(db, "pedidos", pedidoId));
+        // Actualizamos el estado local eliminando el pedido
+        setPedidos(prev => prev.filter(p => p.id !== pedidoId));
+      } else {
+        // Si no se cancela, actualizamos su estado normalmente
+        await updateDoc(doc(db, "pedidos", pedidoId), {
+          estado: nuevoEstado,
+          fechaActualizacion: new Date().toISOString()
+        });
+        // Actualizamos el estado local del pedido
+        setPedidos(prev => prev.map(p => 
+          p.id === pedidoId 
+            ? { ...p, estado: nuevoEstado } 
+            : p
+        ));
+      }
+    } catch (error) {
+      console.error("Error actualizando pedido:", error);
+      setError("Error al actualizar el estado del pedido");
+    } finally {
+      setPedidosCargando(prev => ({ ...prev, [pedidoId]: false }));
+    }
+  };
+
+  const enviarMensajeWhatsApp = (pedido: Pedido) => {
+    const mensaje = pedido.numeroGuia 
+      ? `¡Hola ${pedido.datosEnvio.nombre}! Tu pedido ha sido enviado. Número de guía: ${pedido.numeroGuia}`
+      : `¡Hola ${pedido.datosEnvio.nombre}! Tu pedido ha sido confirmado y está siendo procesado.`;
+    
+    const telefono = pedido.datosEnvio.telefono.replace(/[^0-9]/g, '');
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    window.open(`https://wa.me/${telefono}?text=${mensajeCodificado}`, '_blank');
+  };
+
+  const actualizarNumeroGuia = async (pedidoId: string, numeroGuia: string) => {
+    try {
+      setPedidosCargando(prev => ({ ...prev, [pedidoId]: true }));
+      await updateDoc(doc(db, "pedidos", pedidoId), {
+        numeroGuia,
+        fechaActualizacion: new Date().toISOString()
+      });
+      // Actualizar solo el pedido modificado en el estado local
+      setPedidos(prev => prev.map(p => 
+        p.id === pedidoId 
+          ? { ...p, numeroGuia } 
+          : p
+      ));
+      // Limpiar el estado temporal de la guía
+      setGuiasTemporales(prev => {
+        const newState = { ...prev };
+        delete newState[pedidoId];
+        return newState;
+      });
+    } catch (error) {
+      console.error("Error actualizando número de guía:", error);
+      setError("Error al actualizar el número de guía");
+    } finally {
+      setPedidosCargando(prev => ({ ...prev, [pedidoId]: false }));
+    }
+  };
+
+  const handleGuiaChange = (pedidoId: string, valor: string) => {
+    setGuiasTemporales(prev => ({
+      ...prev,
+      [pedidoId]: valor
+    }));
+  };
+
+  const handleGuiaKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, pedidoId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const numeroGuia = guiasTemporales[pedidoId]?.trim() || '';
+      actualizarNumeroGuia(pedidoId, numeroGuia);
+    }
+  };
+
+  const handleGuiaBlur = (pedidoId: string) => {
+    const numeroGuia = guiasTemporales[pedidoId]?.trim() || '';
+    if (numeroGuia !== pedidos.find(p => p.id === pedidoId)?.numeroGuia) {
+      actualizarNumeroGuia(pedidoId, numeroGuia);
+    }
+  };
+
   if (cargando) {
     return (
       <div className="cargando-overlay">
@@ -360,7 +547,7 @@ const PanelControl = () => {
           onClick={() => setActiveTab("estadisticas")}
           className={activeTab === "estadisticas" ? "active" : ""}
         >
-          Estadísticas
+          Pedidos
         </button>
       </nav>
 
@@ -621,8 +808,146 @@ const PanelControl = () => {
           {activeTab === "estadisticas" && (
             <div className="estadisticas-tab">
               <h2>Estadísticas de Ventas</h2>
-              <div className="coming-soon">
-                <p>Esta sección estará disponible pronto</p>
+              
+              <div className="estadisticas-grid">
+                {(() => {
+                  const stats = calcularEstadisticas();
+                  return (
+                    <>
+                      <div className="stat-card">
+                        <h3>Ventas Totales</h3>
+                        <p className="stat-value">${stats.ventasTotales.toFixed(2)} MXN</p>
+                      </div>
+                      <div className="stat-card">
+                        <h3>Total de Pedidos</h3>
+                        <p className="stat-value">{stats.totalPedidos}</p>
+                      </div>
+                      <div className="stat-card">
+                        <h3>Pedidos Completados</h3>
+                        <p className="stat-value">{stats.pedidosCompletados}</p>
+                      </div>
+                      <div className="stat-card">
+                        <h3>Pedidos Pendientes</h3>
+                        <p className="stat-value">{stats.pedidosPendientes}</p>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+
+              <div className="productos-populares">
+                <h3>Productos Más Vendidos</h3>
+                <div className="productos-populares-grid">
+                  {calcularEstadisticas().productosMasVendidos.map((producto) => (
+                    <div key={producto.nombre} className="producto-popular-card">
+                      <div className="producto-popular-header">
+                        <h4>{producto.nombre}</h4>
+                        <span className="badge-ventas">Top Ventas</span>
+                      </div>
+                      <div className="producto-popular-stats">
+                        <div className="stat-item">
+                          <span className="stat-label">Unidades Vendidas</span>
+                          <span className="stat-value">{producto.cantidadTotal}</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-label">Veces Comprado</span>
+                          <span className="stat-value">{producto.vecesComprado}</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-label">Total Ventas</span>
+                          <span className="stat-value">${producto.ventasTotal.toFixed(2)}</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-label">Última Compra</span>
+                          <span className="stat-value">
+                            {new Date(producto.ultimaCompra).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pedidos-lista">
+                <h3>Lista de Pedidos</h3>
+                <div className="pedidos-grid">
+                  {pedidos.map((pedido) => (
+                    <div key={pedido.id} className="pedido-card">
+                      <div className="pedido-header">
+                        <span className={`estado-pedido ${pedido.estado}`}>
+                          {pedido.estado.toUpperCase()}
+                        </span>
+                        <span className="fecha-pedido">
+                          {new Date(pedido.fechaCreacion).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      <div className="datos-cliente">
+                        <h4>Datos del Cliente</h4>
+                        <p><strong>Nombre:</strong> {pedido.datosEnvio.nombre}</p>
+                        <p><strong>Email:</strong> {pedido.datosEnvio.email}</p>
+                        <p><strong>Teléfono:</strong> {pedido.datosEnvio.telefono}</p>
+                        <p><strong>Dirección:</strong> {pedido.datosEnvio.direccion}</p>
+                        <p><strong>Ciudad:</strong> {pedido.datosEnvio.ciudad}, {pedido.datosEnvio.estado}</p>
+                        <p><strong>CP:</strong> {pedido.datosEnvio.codigoPostal}</p>
+                        {pedido.datosEnvio.instrucciones && (
+                          <p><strong>Instrucciones:</strong> {pedido.datosEnvio.instrucciones}</p>
+                        )}
+                      </div>
+
+                      <div className="pedido-productos">
+                        <h4>Productos</h4>
+                        {pedido.productos.map((prod, idx) => (
+                          <div key={idx} className="pedido-producto-item">
+                            <span>{prod.nombre} x {prod.cantidad}</span>
+                            <span>${(prod.precio * prod.cantidad).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pedido-footer">
+                        <p className="pedido-total">Total: ${pedido.total.toFixed(2)}</p>
+                        
+                        <div className="pedido-acciones">
+                          <div className="numero-guia-input">
+                            <input
+                              type="text"
+                              placeholder="Número de guía"
+                              value={guiasTemporales[pedido.id] ?? pedido.numeroGuia ?? ''}
+                              onChange={(e) => handleGuiaChange(pedido.id, e.target.value)}
+                              onBlur={() => handleGuiaBlur(pedido.id)}
+                              onKeyPress={(e) => handleGuiaKeyPress(e, pedido.id)}
+                              disabled={pedidosCargando[pedido.id]}
+                            />
+                            {pedidosCargando[pedido.id] && (
+                              <span className="guia-loading">
+                                <div className="spinner-small"></div>
+                              </span>
+                            )}
+                          </div>
+
+                          <select
+                            value={pedido.estado}
+                            onChange={(e) => actualizarEstadoPedido(pedido.id, e.target.value as 'pendiente' | 'completado' | 'cancelado')}
+                            className="estado-selector"
+                          >
+                            <option value="pendiente">Pendiente</option>
+                            <option value="completado">Completado</option>
+                            <option value="cancelado">Cancelado</option>
+                          </select>
+
+                          <button 
+                            className="btn-whatsapp"
+                            onClick={() => enviarMensajeWhatsApp(pedido)}
+                          >
+                            Enviar WhatsApp
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

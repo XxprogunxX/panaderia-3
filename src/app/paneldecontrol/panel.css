@@ -612,3 +612,456 @@ h2 {
     gap: 10px;
   }
 }
+
+/* Estadísticas */
+.estadisticas-tab {
+  padding: 20px;
+}
+
+.estadisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background-color: var(--text-light);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card h3 {
+  color: var(--text-dark);
+  font-size: 1.1em;
+  margin-bottom: 15px;
+}
+
+.stat-value {
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* Productos Populares Mejorados */
+.productos-populares {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.productos-populares h3 {
+  color: #6e4b32;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border-bottom: 2px solid #c68e4d;
+  padding-bottom: 0.8rem;
+}
+
+.productos-populares-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.producto-popular-card {
+  background-color: #faf6f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e0d5c7;
+}
+
+.producto-popular-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.producto-popular-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid #e0d5c7;
+}
+
+.producto-popular-header h4 {
+  color: #6e4b32;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.badge-ventas {
+  background-color: #c68e4d;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.producto-popular-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stat-label {
+  color: #8b7355;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #6e4b32;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Animación para los productos populares */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.producto-popular-card {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.producto-popular-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.producto-popular-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.producto-popular-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.producto-popular-card:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+@media (max-width: 768px) {
+  .productos-populares {
+    padding: 1.5rem;
+  }
+
+  .productos-populares h3 {
+    font-size: 1.5rem;
+  }
+
+  .producto-popular-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pedidos-lista {
+  background-color: var(--text-light);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.pedidos-lista h3 {
+  color: var(--text-dark);
+  margin-bottom: 20px;
+  font-size: 1.3em;
+}
+
+.pedidos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.pedido-card {
+  background-color: var(--background-dark);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pedido-header {
+  padding: 15px;
+  background-color: var(--background-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.estado-pedido {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.estado-pedido.pendiente {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.estado-pedido.completado {
+  background-color: #4caf50;
+  color: white;
+}
+
+.estado-pedido.cancelado {
+  background-color: #f44336;
+  color: white;
+}
+
+.fecha-pedido {
+  color: var(--text-dark);
+  font-size: 0.9em;
+}
+
+.pedido-productos {
+  padding: 15px;
+}
+
+.pedido-producto-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pedido-producto-item:last-child {
+  border-bottom: none;
+}
+
+.pedido-footer {
+  padding: 15px;
+  background-color: var(--background-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pedido-total {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.estado-selector {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background-color: var(--text-light);
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.estado-selector:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Datos del Cliente */
+.datos-cliente {
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.datos-cliente h4 {
+  color: #6e4b32;
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #c68e4d;
+  padding-bottom: 0.4rem;
+}
+
+.datos-cliente p {
+  margin: 0.5rem 0;
+  color: #604e42;
+  font-size: 0.95rem;
+}
+
+.datos-cliente strong {
+  color: #9a3b3b;
+  margin-right: 0.5rem;
+}
+
+/* Número de Guía Input */
+.numero-guia-input {
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.numero-guia-input input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #e0d5c7;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.numero-guia-input input:focus {
+  outline: none;
+  border-color: #c68e4d;
+}
+
+.numero-guia-input input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.guia-loading {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #c68e4d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Botón de WhatsApp */
+.btn-whatsapp {
+  background-color: #25D366;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-whatsapp:hover {
+  background-color: #128C7E;
+  transform: translateY(-2px);
+}
+
+.btn-whatsapp::before {
+  content: "📱";
+  font-size: 1.2rem;
+}
+
+/* Mejoras en el diseño de pedidos */
+.pedido-card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0d5c7;
+}
+
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f4e8d4;
+}
+
+.pedido-productos {
+  margin: 1rem 0;
+}
+
+.pedido-productos h4 {
+  color: #6e4b32;
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #c68e4d;
+  padding-bottom: 0.4rem;
+}
+
+.pedido-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #f4e8d4;
+}
+
+@media (min-width: 768px) {
+  .pedido-acciones {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .numero-guia-input {
+    margin-bottom: 0;
+    flex: 1;
+  }
+
+  .estado-selector {
+    width: auto;
+  }
+}
+
+/* Estados de pedido */
+.estado-pedido {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.estado-pedido.pendiente {
+  background-color: #ffd166;
+  color: #805e00;
+}
+
+.estado-pedido.completado {
+  background-color: #2ec4b6;
+  color: #fff;
+}
+
+.estado-pedido.cancelado {
+  background-color: #e71d36;
+  color: #fff;
+}

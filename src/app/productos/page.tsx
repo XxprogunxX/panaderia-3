@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import "../styles.css"; // Estilos generales
 import footerStyles from "../footer.module.css"; // Estilos específicos del footer
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { useCarrito } from "../components/usecarrito"
  // Adjust the path if necessary
 import { useMercadoPago } from "../components/useMercadopago"; 
+import FormularioEnvio from "../components/FormularioEnvio";
 
 // Define la interfaz Producto si no está globalmente accesible
 interface Producto {
@@ -23,8 +25,10 @@ interface Producto {
 }
 
 export default function Productos() {
+  const router = useRouter();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   // Usa los hooks para manejar el estado del carrito y el proceso de pago
   const { carrito, agregarAlCarrito, eliminarDelCarrito, mostrarCarrito, toggleCarrito, total } = useCarrito(); // <--- Usa useCarrito
@@ -70,6 +74,14 @@ export default function Productos() {
     quantity: cantidad,
     unit_price: precio,
   }));
+
+  const toggleFormulario = () => {
+    setMostrarFormulario(!mostrarFormulario);
+  };
+
+  const irACheckout = () => {
+    router.push('/checkout');
+  };
 
   return (
     <main>
@@ -126,28 +138,33 @@ export default function Productos() {
                 <div className="productos-grid">
                   {productosPorCategoria.map((producto) => (
                     <div key={producto.nombre} className="producto-card">
-                      {esImagenExterna(producto.imagen) ? (
-                        <img
-                          src={producto.imagen}
-                          alt={producto.nombre}
-                          width={400}
-                          height={300}
-                          style={{ objectFit: "cover" }}
-                        />
-                      ) : (
-                        <Image
-                          src={producto.imagen}
-                          alt={producto.nombre}
-                          width={400}
-                          height={300}
-                          style={{ objectFit: "cover" }}
-                        />
-                      )}
+                      <div className="producto-imagen-container">
+                        {esImagenExterna(producto.imagen) ? (
+                          <img
+                            src={producto.imagen}
+                            alt={producto.nombre}
+                            className="producto-imagen"
+                            style={{ objectFit: "cover" }}
+                          />
+                        ) : (
+                          <Image
+                            src={producto.imagen}
+                            alt={producto.nombre}
+                            fill
+                            className="producto-imagen"
+                            style={{ objectFit: "cover" }}
+                            priority
+                          />
+                        )}
+                      </div>
                       <div className="producto-card-content">
                         <h3>{producto.nombre}</h3>
                         <p className="descripcion">{producto.descripcion}</p>
                         <p className="precio">${producto.precio} MXN</p>
-                        <button className="btn-pedir" onClick={() => agregarAlCarrito(producto)}>
+                        <button 
+                          className="btn-pedir" 
+                          onClick={() => agregarAlCarrito(producto)}
+                        >
                           Añadir al carrito
                         </button>
                       </div>
@@ -186,13 +203,12 @@ export default function Productos() {
                 <div className="carrito-total">
                   <strong>Total: </strong>${total} MXN
                 </div>
-
                 <button
                   className="btn-pagar"
-                  onClick={() => handlePagar(itemsParaPago)} // <--- Llama a handlePagar del hook
-                  disabled={cargandoPago || carrito.length === 0}
+                  onClick={irACheckout}
+                  disabled={carrito.length === 0}
                 >
-                  {cargandoPago ? "Redirigiendo..." : "Pagar"}
+                  Proceder al pago
                 </button>
               </>
             )}

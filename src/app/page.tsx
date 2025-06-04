@@ -4,38 +4,91 @@
 import Image from "next/image";
 import Link from "next/link";
 import "./styles.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HelpPopup from "./components/bolita-de-ayuda/bolita";
 import { image } from "framer-motion/client";
 import { url } from "inspector";
+import { db } from "./firebaseConfig";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
+interface Producto {
+  nombre: string;
+  cantidadTotal: number;
+  imagen: string;
+  precio: number;
+  descripcion: string;
+}
 
-const productosPopulares = [
-  {
-    nombre: "Pan de muerto",
-    descripcion: "Tradicional con toque de azahar",
-    imagen: "/images/pan_de_muerto.jpg",
-    precio: 25,
-  },
-  {
-    nombre: "Concha",
-    descripcion: "De vainilla, esponjosa y dulce",
-    imagen: "/images/concha.jpg",
-    precio: 10,
-  },
-  {
-    nombre: "Bollo integral",
-    descripcion: "Con granos naturales",
-    imagen: "/images/pan_integral.jpg",
-    precio: 12,
-  },
-];
+interface ProductoPedido {
+  nombre: string;
+  cantidad: number;
+  precio: number;
+}
 
-export default function Home() {
+interface VentasProductos {
+  [key: string]: Producto;
+}
+
+const Home = () => {
+  const [productosPopulares, setProductosPopulares] = useState<Producto[]>([]);
   const [carrito, setCarrito] = useState<
     { nombre: string; precio: number; cantidad: number }[]
   >([]);
   const [mostrarCarrito, setMostrarCarrito] = useState(false);
+
+  // Función para cargar los productos más vendidos
+  useEffect(() => {
+    const cargarProductosPopulares = async () => {
+      try {
+        const pedidosRef = collection(db, "pedidos");
+        const pedidosSnap = await getDocs(pedidosRef);
+        
+        // Crear un mapa para contar las ventas de cada producto
+        const ventasProductos: VentasProductos = {};
+        
+        pedidosSnap.forEach((doc) => {
+          const pedido = doc.data();
+          pedido.productos.forEach((prod: ProductoPedido) => {
+            if (!ventasProductos[prod.nombre]) {
+              ventasProductos[prod.nombre] = {
+                nombre: prod.nombre,
+                cantidadTotal: 0,
+                imagen: "",
+                precio: prod.precio,
+                descripcion: ""
+              };
+            }
+            ventasProductos[prod.nombre].cantidadTotal += prod.cantidad;
+          });
+        });
+
+        // Convertir a array y ordenar por cantidad
+        const productosOrdenados = Object.values(ventasProductos)
+          .sort((a, b) => b.cantidadTotal - a.cantidadTotal)
+          .slice(0, 3);
+
+        // Obtener información adicional de los productos
+        const productosRef = collection(db, "productos");
+        const productosSnap = await getDocs(productosRef);
+        
+        productosSnap.forEach((doc) => {
+          const producto = doc.data();
+          const productoPopular = productosOrdenados.find(p => p.nombre === producto.product);
+          if (productoPopular) {
+            productoPopular.imagen = producto.pic;
+            productoPopular.descripcion = producto.description;
+            productoPopular.precio = producto.price;
+          }
+        });
+
+        setProductosPopulares(productosOrdenados);
+      } catch (error) {
+        console.error("Error al cargar productos populares:", error);
+      }
+    };
+
+    cargarProductosPopulares();
+  }, []);
 
   function agregarAlCarrito(producto: { nombre: string; precio: number }) {
     setCarrito((prev) => {
@@ -133,18 +186,25 @@ export default function Home() {
 
       <section id="productos" className="productos-main">
         <div className="productos-hero">
-          <h1>Productos Populares</h1>
-          <p>Conoce los favoritos de nuestros clientes</p>
+          <h1>Nuestros Productos Destacados</h1>
+          <p>Descubre el sabor de nuestra panadería</p>
         </div>
         <div className="productos-grid">
           {productosPopulares.map((producto, index) => (
             <div key={index} className="producto-card">
-              <Image
-                src={producto.imagen}
-                alt={producto.nombre}
-                width={400}
-                height={300}
-              />
+              {producto.imagen && (
+                <div className="producto-imagen-container">
+                  <Image
+                    src={producto.imagen}
+                    alt={producto.nombre}
+                    width={400}
+                    height={300}
+                    style={{ objectFit: 'cover' }}
+                    className="producto-imagen"
+                    priority={index < 3}
+                  />
+                </div>
+              )}
               <div className="producto-card-content">
                 <h3>{producto.nombre}</h3>
                 <p className="descripcion">{producto.descripcion}</p>
@@ -225,7 +285,7 @@ export default function Home() {
             <h3>Síguenos</h3>
             <ul>
               <li>
-                <a href="https://facebook.com" target="_blank">
+                <a href="https://facebook.com/NINDOCAFE" target="_blank">
                   Facebook
                 </a>
               </li>
@@ -249,3 +309,5 @@ export default function Home() {
     </main>
   );
 }
+
+export default Home;
