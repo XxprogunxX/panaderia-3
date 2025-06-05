@@ -160,7 +160,9 @@ const Home = () => {
           <p>
             Desde hace más de 30 años, horneamos con pasión panes que conectan generaciones. Cada pieza cuenta una historia de tradición y sabor.
           </p>
-          <button>Explora nuestro catálogo</button>
+          <Link href="/productos">
+            <button>Explora nuestro catálogo</button>
+          </Link>
           <h2 className="hashtag">#SABORQUESECOMPARTE</h2>
         </div>
 

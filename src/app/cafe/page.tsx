@@ -16,9 +16,9 @@ export default function CafePage() {
 
             {/* Links de navegación y (opcionalmente) el icono de búsqueda (parte derecha de la navbar) */}
             <div className="navbar-links-container"> {/* Renombrado para claridad */}
-              <a href="/" className="nav-link">Inicio</a> {/* Corregí el enlace a "Inicio" */}
-              <a href="#productos" className="nav-link">Productos</a>
-              <a href="/panaderia" className="nav-link">Panadería</a> {/* Asumo que tienes una página /panaderia */}
+              <a href="/cafe" className="nav-link">Inicio</a> {/* Corregí el enlace a "Inicio" */}
+              <a href="/cafeproductos" className="nav-link">Productos</a>
+              <a href="/" className="nav-link">Panadería</a> {/* Asumo que tienes una página /panaderia */}
               <a href="#testimonios" className="nav-link">Testimonios</a>
 
               <Image

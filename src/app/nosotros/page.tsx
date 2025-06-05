@@ -34,7 +34,15 @@ export default function NosotrosPage() {
       quantity: cantidad,
       unit_price: precio,
     }));
-    handlePagar(itemsMP); // Call the function from the useMercadoPago hook
+    handlePagar(itemsMP, {
+      nombre: "",
+      email: "",
+      telefono: "",
+      direccion: "",
+      codigoPostal: "",
+      ciudad: "",
+      estado: ""
+    }); // Pass an empty object or the required shipping data as the second argument
   };
 
   return (

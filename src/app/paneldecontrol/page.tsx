@@ -4,7 +4,7 @@ import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import  "./panel.css"; // Importa el archivo CSS
+import "./panel.css"; // Importa el archivo CSS
 
 // Configura Supabase
 const supabase = createClient(
@@ -28,29 +28,6 @@ type Categoria = {
   nombre: string;
 };
 
-type Pedido = {
-  id: string;
-  productos: {
-    nombre: string;
-    cantidad: number;
-    precio: number;
-  }[];
-  total: number;
-  estado: 'pendiente' | 'completado' | 'cancelado';
-  fechaCreacion: string;
-  datosEnvio: {
-    nombre: string;
-    email: string;
-    telefono: string;
-    direccion: string;
-    codigoPostal: string;
-    ciudad: string;
-    estado: string;
-    instrucciones?: string;
-  };
-  numeroGuia?: string;
-};
-
 type Usuario = {
   uid: string;
   email: string | null;
@@ -60,25 +37,27 @@ type Usuario = {
   providerData: any[];
 };
 
-type Oferta = {
+type Cafe = {
   id?: string;
-  titulo: string;
+  nombre: string;
+  precio: string;
   descripcion: string;
   imagen: File | null;
   imagenUrl?: string;
-  fechaInicio: string;
-  fechaFin: string;
-  activa: boolean;
+  origen: string;
+  intensidad: number;
+  tipo: string;
+  notas: string;
+  tueste: string;
 };
 
 const PanelControl = () => {
   // Estados
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "ofertas">("productos");
+  const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "cafes">("productos");
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [ofertas, setOfertas] = useState<Oferta[]>([]);
+  const [cafes, setCafes] = useState<Cafe[]>([]);
   const [nuevoProducto, setNuevoProducto] = useState<Producto>({
     nombre: "",
     precio: "",
@@ -86,21 +65,24 @@ const PanelControl = () => {
     descripcion: "",
     imagen: null
   });
-  const [nuevaCategoria, setNuevaCategoria] = useState({ nombre: "" });
-  const [edicionId, setEdicionId] = useState<string | null>(null);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pedidosCargando, setPedidosCargando] = useState<{ [key: string]: boolean }>({});
-  const [guiasTemporales, setGuiasTemporales] = useState<{ [key: string]: string }>({});
-  const [nuevaOferta, setNuevaOferta] = useState<Oferta>({
-    titulo: "",
+  const [nuevoCafe, setNuevoCafe] = useState<Cafe>({
+    nombre: "",
+    precio: "",
     descripcion: "",
     imagen: null,
-    fechaInicio: "",
-    fechaFin: "",
-    activa: true
+    origen: "",
+    intensidad: 3,
+    tipo: "Arábica",
+    notas: "",
+    tueste: "Medio"
   });
+  const [nuevaCategoria, setNuevaCategoria] = useState({ nombre: "" });
+  const [edicionId, setEdicionId] = useState<string | null>(null);
+  const [edicionCafeId, setEdicionCafeId] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Función para cargar usuarios
   const cargarUsuarios = async () => {
     try {
       const auth = getAuth();
@@ -127,22 +109,20 @@ const PanelControl = () => {
   useEffect(() => {
     cargarDatosIniciales();
     cargarUsuarios();
-    cargarPedidos();
   }, []);
 
-  const cargarDatosIniciales = async () => {
-    setCargando(true);
-    setError(null);
-    try {
-      await Promise.all([cargarProductos(), cargarCategorias(), cargarOfertas()]);
-    } catch (error) {
-      console.error("Error cargando datos:", error);
-      setError("Error al cargar los datos iniciales");
-    } finally {
-      setCargando(false);
-    }
-  };
-
+const cargarDatosIniciales = async () => {
+  setCargando(true);
+  setError(null);
+  try {
+    await Promise.all([cargarProductos(), cargarCategorias(), cargarCafes()]);
+  } catch (error) {
+    console.error("Error cargando datos:", error);
+    setError(`Error al cargar los datos iniciales: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    setCargando(false);
+  }
+};
   // Cargar productos desde Firestore
   const cargarProductos = async () => {
     try {
@@ -167,6 +147,34 @@ const PanelControl = () => {
     }
   };
 
+  // Cargar cafés desde Firestore
+  const cargarCafes = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "cafes"));
+    const lista: Cafe[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      lista.push({
+        id: doc.id,
+        nombre: data.nombre || "",
+        precio: data.precio ? data.precio.toString() : "",
+        descripcion: data.descripcion || "",
+        imagen: null,
+        imagenUrl: data.imagenUrl || "",
+        origen: data.origen || "",
+        intensidad: data.intensidad ?? 3,
+        tipo: data.tipo || "",
+        notas: data.notas || "",
+        tueste: data.tueste || ""
+      });
+    });
+    setCafes(lista);
+  } catch (error) {
+    console.error("Error cargando cafés:", error);
+    throw new Error("No se pudieron cargar los cafés");
+  }
+};
+
   // Cargar categorías desde Firestore
   const cargarCategorias = async () => {
     try {
@@ -182,49 +190,6 @@ const PanelControl = () => {
     } catch (error) {
       console.error("Error cargando categorías:", error);
       throw new Error("No se pudieron cargar las categorías");
-    }
-  };
-
-  // Cargar pedidos desde Firestore
-  const cargarPedidos = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "pedidos"));
-      const lista: Pedido[] = [];
-      querySnapshot.forEach((doc) => {
-        lista.push({
-          id: doc.id,
-          ...doc.data()
-        } as Pedido);
-      });
-      setPedidos(lista);
-    } catch (error) {
-      console.error("Error cargando pedidos:", error);
-      setError("Error al cargar los pedidos");
-    }
-  };
-
-  // Cargar ofertas desde Firestore
-  const cargarOfertas = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "ofertas"));
-      const lista: Oferta[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        lista.push({
-          id: doc.id,
-          titulo: data.titulo,
-          descripcion: data.descripcion,
-          imagen: null,
-          imagenUrl: data.imagen,
-          fechaInicio: data.fechaInicio,
-          fechaFin: data.fechaFin,
-          activa: data.activa
-        });
-      });
-      setOfertas(lista);
-    } catch (error) {
-      console.error("Error cargando ofertas:", error);
-      throw new Error("No se pudieron cargar las ofertas");
     }
   };
 
@@ -291,8 +256,8 @@ const PanelControl = () => {
       setError("Por favor selecciona una categoría");
       return;
     }
-     if (!edicionId && !nuevoProducto.imagen) {
-     setError("Por favor selecciona una imagen para el producto");
+    if (!edicionId && !nuevoProducto.imagen) {
+      setError("Por favor selecciona una imagen para el producto");
       return;
     }
 
@@ -342,6 +307,85 @@ const PanelControl = () => {
     }
   };
 
+  // Manejar envío de formulario de café
+  const manejarSubmitCafe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    
+    if (!nuevoCafe.nombre?.trim()) {
+      setError("Por favor ingresa un nombre válido para el café");
+      return;
+    }
+
+    if (!nuevoCafe.precio || isNaN(parseFloat(nuevoCafe.precio))) {
+      setError("Por favor ingresa un precio válido");
+      return;
+    }
+
+    if (parseFloat(nuevoCafe.precio) < 4) {
+      setError("El precio debe ser mayor que 4");
+      return;
+    }
+
+    if (!edicionCafeId && !nuevoCafe.imagen) {
+      setError("Por favor selecciona una imagen para el café");
+      return;
+    }
+
+    setCargando(true);
+    try {
+      let imagenUrl = nuevoCafe.imagenUrl || "";
+      
+      if (nuevoCafe.imagen) {
+        try {
+          imagenUrl = await subirImagen(nuevoCafe.imagen);
+        } catch (error) {
+          throw new Error(`No se pudo subir la imagen: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
+      const cafeData = {
+        nombre: nuevoCafe.nombre.trim(),
+        precio: parseFloat(nuevoCafe.precio),
+        descripcion: nuevoCafe.descripcion.trim(),
+        imagenUrl: imagenUrl,
+        origen: nuevoCafe.origen,
+        intensidad: nuevoCafe.intensidad,
+        tipo: nuevoCafe.tipo,
+        notas: nuevoCafe.notas,
+        tueste: nuevoCafe.tueste,
+        updatedAt: new Date().toISOString(),
+        ...(!edicionCafeId && { createdAt: new Date().toISOString() })
+      };
+
+      if (edicionCafeId) {
+        await updateDoc(doc(db, "cafes", edicionCafeId), cafeData);
+      } else {
+        await addDoc(collection(db, "cafes"), cafeData);
+      }
+
+      setNuevoCafe({
+        nombre: "",
+        precio: "",
+        descripcion: "",
+        imagen: null,
+        origen: "",
+        intensidad: 3,
+        tipo: "Arábica",
+        notas: "",
+        tueste: "Medio"
+      });
+      setEdicionCafeId(null);
+      
+      await cargarCafes();
+    } catch (error) {
+      console.error("Error al guardar café:", error);
+      setError(`Error al guardar café: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   // Editar producto
   const editarProducto = (producto: Producto) => {
     setNuevoProducto({
@@ -353,6 +397,25 @@ const PanelControl = () => {
       imagenUrl: producto.imagenUrl
     });
     setEdicionId(producto.id || null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Editar café
+  const editarCafe = (cafe: Cafe) => {
+    setNuevoCafe({
+      nombre: cafe.nombre,
+      precio: cafe.precio,
+      descripcion: cafe.descripcion,
+      imagen: null,
+      imagenUrl: cafe.imagenUrl,
+      origen: cafe.origen,
+      intensidad: cafe.intensidad,
+      tipo: cafe.tipo,
+      notas: cafe.notas,
+      tueste: cafe.tueste
+    });
+    setEdicionCafeId(cafe.id || null);
     setError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -390,6 +453,39 @@ const PanelControl = () => {
     }
   };
 
+  // Eliminar café (con imagen en Supabase)
+  const eliminarCafe = async (id: string, imagenUrl?: string) => {
+    if (!confirm("¿Estás seguro de eliminar este café permanentemente?")) {
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+    try {
+      if (imagenUrl) {
+        const pathStart = imagenUrl.indexOf('productos/');
+        if (pathStart !== -1) {
+          const filePath = imagenUrl.substring(pathStart);
+          const { error: deleteError } = await supabase.storage
+            .from('imagenes-productos')
+            .remove([filePath]);
+            
+          if (deleteError) {
+            console.error("Error al eliminar imagen:", deleteError);
+          }
+        }
+      }
+
+      await deleteDoc(doc(db, "cafes", id));
+      await cargarCafes();
+    } catch (error) {
+      console.error("Error al eliminar café:", error);
+      setError(`Error al eliminar café: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   // Agregar nueva categoría
   const agregarCategoria = async () => {
     if (!nuevaCategoria.nombre.trim()) {
@@ -414,276 +510,6 @@ const PanelControl = () => {
     }
   };
 
-  // Función para calcular estadísticas
-  const calcularEstadisticas = () => {
-    // Filtramos los pedidos cancelados
-    const pedidosActivos = pedidos.filter(p => p.estado !== 'cancelado');
-    
-    const ventasTotales = pedidosActivos.reduce((total, pedido) => total + pedido.total, 0);
-    const totalPedidos = pedidosActivos.length;
-    const pedidosCompletados = pedidosActivos.filter(p => p.estado === 'completado').length;
-    const pedidosPendientes = pedidosActivos.filter(p => p.estado === 'pendiente').length;
-    
-    // Productos más vendidos con más detalles (excluyendo pedidos cancelados)
-    const productosVendidos = pedidosActivos.reduce((acc, pedido) => {
-      pedido.productos.forEach(prod => {
-        if (!acc[prod.nombre]) {
-          acc[prod.nombre] = {
-            nombre: prod.nombre,
-            cantidadTotal: 0,
-            ventasTotal: 0,
-            vecesComprado: 0,
-            ultimaCompra: pedido.fechaCreacion
-          };
-        }
-        acc[prod.nombre].cantidadTotal += prod.cantidad;
-        acc[prod.nombre].ventasTotal += prod.cantidad * prod.precio;
-        acc[prod.nombre].vecesComprado += 1;
-        // Actualizar fecha si es más reciente
-        if (new Date(pedido.fechaCreacion) > new Date(acc[prod.nombre].ultimaCompra)) {
-          acc[prod.nombre].ultimaCompra = pedido.fechaCreacion;
-        }
-      });
-      return acc;
-    }, {} as { [key: string]: {
-      nombre: string;
-      cantidadTotal: number;
-      ventasTotal: number;
-      vecesComprado: number;
-      ultimaCompra: string;
-    }});
-
-    const productosMasVendidos = Object.values(productosVendidos)
-      .sort((a, b) => b.cantidadTotal - a.cantidadTotal)
-      .slice(0, 5);
-
-    return {
-      ventasTotales,
-      totalPedidos,
-      pedidosCompletados,
-      pedidosPendientes,
-      productosMasVendidos
-    };
-  };
-
-  // Función para actualizar el estado de un pedido
-  const actualizarEstadoPedido = async (pedidoId: string, nuevoEstado: 'pendiente' | 'completado' | 'cancelado') => {
-    try {
-      setPedidosCargando(prev => ({ ...prev, [pedidoId]: true }));
-      
-      if (nuevoEstado === 'cancelado') {
-        // Si el pedido se cancela, lo eliminamos de Firestore
-        await deleteDoc(doc(db, "pedidos", pedidoId));
-        // Actualizamos el estado local eliminando el pedido
-        setPedidos(prev => prev.filter(p => p.id !== pedidoId));
-      } else {
-        // Si no se cancela, actualizamos su estado normalmente
-        await updateDoc(doc(db, "pedidos", pedidoId), {
-          estado: nuevoEstado,
-          fechaActualizacion: new Date().toISOString()
-        });
-        // Actualizamos el estado local del pedido
-        setPedidos(prev => prev.map(p => 
-          p.id === pedidoId 
-            ? { ...p, estado: nuevoEstado } 
-            : p
-        ));
-      }
-    } catch (error) {
-      console.error("Error actualizando pedido:", error);
-      setError("Error al actualizar el estado del pedido");
-    } finally {
-      setPedidosCargando(prev => ({ ...prev, [pedidoId]: false }));
-    }
-  };
-
-  const enviarMensajeWhatsApp = (pedido: Pedido) => {
-    const mensaje = pedido.numeroGuia 
-      ? `¡Hola ${pedido.datosEnvio.nombre}! Tu pedido ha sido enviado. Número de guía: ${pedido.numeroGuia}`
-      : `¡Hola ${pedido.datosEnvio.nombre}! Tu pedido ha sido confirmado y está siendo procesado.`;
-    
-    const telefono = pedido.datosEnvio.telefono.replace(/[^0-9]/g, '');
-    const mensajeCodificado = encodeURIComponent(mensaje);
-    window.open(`https://wa.me/${telefono}?text=${mensajeCodificado}`, '_blank');
-  };
-
-  const actualizarNumeroGuia = async (pedidoId: string, numeroGuia: string) => {
-    try {
-      setPedidosCargando(prev => ({ ...prev, [pedidoId]: true }));
-      await updateDoc(doc(db, "pedidos", pedidoId), {
-        numeroGuia,
-        fechaActualizacion: new Date().toISOString()
-      });
-      // Actualizar solo el pedido modificado en el estado local
-      setPedidos(prev => prev.map(p => 
-        p.id === pedidoId 
-          ? { ...p, numeroGuia } 
-          : p
-      ));
-      // Limpiar el estado temporal de la guía
-      setGuiasTemporales(prev => {
-        const newState = { ...prev };
-        delete newState[pedidoId];
-        return newState;
-      });
-    } catch (error) {
-      console.error("Error actualizando número de guía:", error);
-      setError("Error al actualizar el número de guía");
-    } finally {
-      setPedidosCargando(prev => ({ ...prev, [pedidoId]: false }));
-    }
-  };
-
-  const handleGuiaChange = (pedidoId: string, valor: string) => {
-    setGuiasTemporales(prev => ({
-      ...prev,
-      [pedidoId]: valor
-    }));
-  };
-
-  const handleGuiaKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, pedidoId: string) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const numeroGuia = guiasTemporales[pedidoId]?.trim() || '';
-      actualizarNumeroGuia(pedidoId, numeroGuia);
-    }
-  };
-
-  const handleGuiaBlur = (pedidoId: string) => {
-    const numeroGuia = guiasTemporales[pedidoId]?.trim() || '';
-    if (numeroGuia !== pedidos.find(p => p.id === pedidoId)?.numeroGuia) {
-      actualizarNumeroGuia(pedidoId, numeroGuia);
-    }
-  };
-
-  // Agregar nueva oferta
-  const agregarOferta = async () => {
-    if (!nuevaOferta.titulo || !nuevaOferta.fechaInicio || !nuevaOferta.fechaFin) {
-      setError("Por favor complete los campos obligatorios");
-      return;
-    }
-
-    setCargando(true);
-    setError(null);
-
-    try {
-      let imagenUrl = "";
-      if (nuevaOferta.imagen) {
-        imagenUrl = await subirImagen(nuevaOferta.imagen);
-      }
-
-      const ofertaData = {
-        titulo: nuevaOferta.titulo,
-        descripcion: nuevaOferta.descripcion,
-        imagen: imagenUrl,
-        fechaInicio: nuevaOferta.fechaInicio,
-        fechaFin: nuevaOferta.fechaFin,
-        activa: nuevaOferta.activa
-      };
-
-      await addDoc(collection(db, "ofertas"), ofertaData);
-      
-      setNuevaOferta({
-        titulo: "",
-        descripcion: "",
-        imagen: null,
-        fechaInicio: "",
-        fechaFin: "",
-        activa: true
-      });
-
-      await cargarOfertas();
-    } catch (error) {
-      console.error("Error agregando oferta:", error);
-      setError("Error al agregar la oferta");
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  // Eliminar oferta
-  const eliminarOferta = async (id: string, imagenUrl?: string) => {
-    if (!window.confirm("¿Está seguro de que desea eliminar esta oferta?")) {
-      return;
-    }
-
-    setCargando(true);
-    setError(null);
-
-    try {
-      await deleteDoc(doc(db, "ofertas", id));
-      
-      if (imagenUrl) {
-        const imagePath = imagenUrl.split('/').pop();
-        if (imagePath) {
-          await supabase.storage.from('productos').remove([`productos/${imagePath}`]);
-        }
-      }
-
-      await cargarOfertas();
-    } catch (error) {
-      console.error("Error eliminando oferta:", error);
-      setError("Error al eliminar la oferta");
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  // Editar oferta
-  const editarOferta = (oferta: Oferta) => {
-    setNuevaOferta({
-      ...oferta,
-      imagen: null
-    });
-    setEdicionId(oferta.id);
-  };
-
-  // Actualizar oferta
-  const actualizarOferta = async () => {
-    if (!edicionId || !nuevaOferta.titulo || !nuevaOferta.fechaInicio || !nuevaOferta.fechaFin) {
-      setError("Por favor complete los campos obligatorios");
-      return;
-    }
-
-    setCargando(true);
-    setError(null);
-
-    try {
-      let imagenUrl = nuevaOferta.imagenUrl;
-      if (nuevaOferta.imagen) {
-        imagenUrl = await subirImagen(nuevaOferta.imagen);
-      }
-
-      const ofertaData = {
-        titulo: nuevaOferta.titulo,
-        descripcion: nuevaOferta.descripcion,
-        imagen: imagenUrl,
-        fechaInicio: nuevaOferta.fechaInicio,
-        fechaFin: nuevaOferta.fechaFin,
-        activa: nuevaOferta.activa
-      };
-
-      await updateDoc(doc(db, "ofertas", edicionId), ofertaData);
-      
-      setNuevaOferta({
-        titulo: "",
-        descripcion: "",
-        imagen: null,
-        fechaInicio: "",
-        fechaFin: "",
-        activa: true
-      });
-      setEdicionId(null);
-
-      await cargarOfertas();
-    } catch (error) {
-      console.error("Error actualizando oferta:", error);
-      setError("Error al actualizar la oferta");
-    } finally {
-      setCargando(false);
-    }
-  };
-
   if (cargando) {
     return (
       <div className="cargando-overlay">
@@ -697,7 +523,7 @@ const PanelControl = () => {
 
   return (
     <div className="container">
-      <nav className="tabs"> {/* Aquí se coloca la barra lateral */}
+      <nav className="tabs">
         <button
           onClick={() => setActiveTab("productos")}
           className={activeTab === "productos" ? "active" : ""}
@@ -717,20 +543,14 @@ const PanelControl = () => {
           Usuarios
         </button>
         <button
-          onClick={() => setActiveTab("estadisticas")}
-          className={activeTab === "estadisticas" ? "active" : ""}
+          className={activeTab === "cafes" ? "active" : ""}
+          onClick={() => setActiveTab("cafes")}
         >
-          Pedidos
-        </button>
-        <button
-          onClick={() => setActiveTab("ofertas")}
-          className={activeTab === "ofertas" ? "active" : ""}
-        >
-          Ofertas
+          Cafés
         </button>
       </nav>
 
-      <div className="panel-control"> {/* Este es el contenido principal */}
+      <div className="panel-control">
         <header className="panel-header">
           <h1>Panel de Control</h1>
           <p>Administra tus productos y categorías</p>
@@ -769,7 +589,7 @@ const PanelControl = () => {
                     onChange={(e) => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
                     required
                     step="0.01"
-                    min="4.00" // Precio mínimo de 4.00 MXN
+                    min="4.00"
                   />
                 </div>
 
@@ -799,7 +619,7 @@ const PanelControl = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Imagen {!edicionId }</label>
+                  <label>Imagen {!edicionId && "*"}</label>
                   <input
                     type="file"
                     accept="image/jpeg, image/png, image/webp"
@@ -902,6 +722,209 @@ const PanelControl = () => {
             </div>
           )}
 
+          {activeTab === "cafes" && (
+            <div className="cafes-tab">
+              <h2>Gestión de Cafés</h2>
+              
+              <form onSubmit={manejarSubmitCafe} className="form">
+                <div className="form-group">
+                  <label>Nombre del Café *</label>
+                  <input
+                    type="text"
+                    value={nuevoCafe.nombre}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, nombre: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Precio (MXN) *</label>
+                  <input
+                    type="number"
+                    value={nuevoCafe.precio}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, precio: e.target.value })}
+                    required
+                    step="0.01"
+                    min="4.00"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Descripción</label>
+                  <textarea
+                    value={nuevoCafe.descripcion}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, descripcion: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Origen</label>
+                  <input
+                    type="text"
+                    value={nuevoCafe.origen}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, origen: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Intensidad (1-10)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={nuevoCafe.intensidad}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, intensidad: parseInt(e.target.value) || 3 })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Tipo</label>
+                  <select
+                    value={nuevoCafe.tipo}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, tipo: e.target.value })}
+                  >
+                    <option value="Arábica">Arábica</option>
+                    <option value="Robusta">Robusta</option>
+                    <option value="Mezcla">Mezcla</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Notas de cata</label>
+                  <input
+                    type="text"
+                    value={nuevoCafe.notas}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, notas: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Tueste</label>
+                  <select
+                    value={nuevoCafe.tueste}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, tueste: e.target.value })}
+                  >
+                    <option value="Ligero">Ligero</option>
+                    <option value="Medio">Medio</option>
+                    <option value="Oscuro">Oscuro</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Imagen {!edicionCafeId && "*"}</label>
+                  <input
+                    type="file"
+                    accept="image/jpeg, image/png, image/webp"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setNuevoCafe({ ...nuevoCafe, imagen: e.target.files[0] });
+                      }
+                    }}
+                  />
+                  {nuevoCafe.imagenUrl && (
+                    <div className="imagen-preview">
+                      <img 
+                        src={nuevoCafe.imagenUrl} 
+                        alt="Preview" 
+                        width="100"
+                      />
+                      <span>Imagen actual</span>
+                    </div>
+                  )}
+                  {nuevoCafe.imagen && (
+                    <div className="imagen-preview">
+                      <span>Nueva imagen seleccionada: {nuevoCafe.imagen.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-actions">
+                  <button type="submit" className="btn-primary" disabled={cargando}>
+                    {edicionCafeId ? "Actualizar Café" : "Agregar Café"}
+                  </button>
+                  {edicionCafeId && (
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => {
+                        setEdicionCafeId(null);
+                        setNuevoCafe({
+                          nombre: "",
+                          precio: "",
+                          descripcion: "",
+                          imagen: null,
+                          origen: "",
+                          intensidad: 3,
+                          tipo: "Arábica",
+                          notas: "",
+                          tueste: "Medio"
+                        });
+                      }}
+                      disabled={cargando}
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              <div className="cafes-list">
+                <h3>Lista de Cafés ({cafes.length})</h3>
+                {cafes.length === 0 ? (
+                  <p>No hay cafés registrados</p>
+                ) : (
+                  <div className="productos-grid">
+                    {cafes.map((cafe) => (
+                      <div key={cafe.id} className="producto-card">
+                        {cafe.imagenUrl && (
+                          <div className="producto-imagen">
+                            <img
+                              src={cafe.imagenUrl}
+                              alt={cafe.nombre}
+                              width="200"
+                              height="200"
+                            />
+                          </div>
+                        )}
+                        <div className="producto-info">
+                          <h4>{cafe.nombre}</h4>
+                          <p className="precio">${parseFloat(cafe.precio).toFixed(2)} MXN</p>
+                          <p className="origen"><strong>Origen:</strong> {cafe.origen}</p>
+                          <p className="tipo"><strong>Tipo:</strong> {cafe.tipo}</p>
+                          <p className="intensidad"><strong>Intensidad:</strong> {cafe.intensidad}/10</p>
+                          <p className="tueste"><strong>Tueste:</strong> {cafe.tueste}</p>
+                          {cafe.descripcion && (
+                            <p className="descripcion"><strong>Descripción:</strong> {cafe.descripcion}</p>
+                          )}
+                          {cafe.notas && (
+                            <p className="notas"><strong>Notas:</strong> {cafe.notas}</p>
+                          )}
+                        </div>
+                        <div className="producto-acciones">
+                          <button 
+                            onClick={() => editarCafe(cafe)}
+                            className="btn-editar"
+                            disabled={cargando}
+                          >
+                            Editar
+                          </button>
+                          <button 
+                            onClick={() => cafe.id && eliminarCafe(cafe.id, cafe.imagenUrl)}
+                            className="btn-eliminar"
+                            disabled={cargando}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {activeTab === "categorias" && (
             <div className="categorias-tab">
               <h2>Gestión de Categorías</h2>
@@ -986,261 +1009,14 @@ const PanelControl = () => {
 
           {activeTab === "estadisticas" && (
             <div className="estadisticas-tab">
-              <h2>Estadísticas de Ventas</h2>
-              
-              <div className="estadisticas-grid">
-                {(() => {
-                  const stats = calcularEstadisticas();
-                  return (
-                    <>
-                      <div className="stat-card">
-                        <h3>Ventas Totales</h3>
-                        <p className="stat-value">${stats.ventasTotales.toFixed(2)} MXN</p>
-                      </div>
-                      <div className="stat-card">
-                        <h3>Total de Pedidos</h3>
-                        <p className="stat-value">{stats.totalPedidos}</p>
-                      </div>
-                      <div className="stat-card">
-                        <h3>Pedidos Completados</h3>
-                        <p className="stat-value">{stats.pedidosCompletados}</p>
-                      </div>
-                      <div className="stat-card">
-                        <h3>Pedidos Pendientes</h3>
-                        <p className="stat-value">{stats.pedidosPendientes}</p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-
-              <div className="productos-populares">
-                <h3>Productos Más Vendidos</h3>
-                <div className="productos-populares-grid">
-                  {calcularEstadisticas().productosMasVendidos.map((producto) => (
-                    <div key={producto.nombre} className="producto-popular-card">
-                      <div className="producto-popular-header">
-                        <h4>{producto.nombre}</h4>
-                        <span className="badge-ventas">Top Ventas</span>
-                      </div>
-                      <div className="producto-popular-stats">
-                        <div className="stat-item">
-                          <span className="stat-label">Unidades Vendidas</span>
-                          <span className="stat-value">{producto.cantidadTotal}</span>
-                        </div>
-                        <div className="stat-item">
-                          <span className="stat-label">Veces Comprado</span>
-                          <span className="stat-value">{producto.vecesComprado}</span>
-                        </div>
-                        <div className="stat-item">
-                          <span className="stat-label">Total Ventas</span>
-                          <span className="stat-value">${producto.ventasTotal.toFixed(2)}</span>
-                        </div>
-                        <div className="stat-item">
-                          <span className="stat-label">Última Compra</span>
-                          <span className="stat-value">
-                            {new Date(producto.ultimaCompra).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pedidos-lista">
-                <h3>Lista de Pedidos</h3>
-                <div className="pedidos-grid">
-                  {pedidos.map((pedido) => (
-                    <div key={pedido.id} className="pedido-card">
-                      <div className="pedido-header">
-                        <span className={`estado-pedido ${pedido.estado}`}>
-                          {pedido.estado.toUpperCase()}
-                        </span>
-                        <span className="fecha-pedido">
-                          {new Date(pedido.fechaCreacion).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      <div className="datos-cliente">
-                        <h4>Datos del Cliente</h4>
-                        <p><strong>Nombre:</strong> {pedido.datosEnvio.nombre}</p>
-                        <p><strong>Email:</strong> {pedido.datosEnvio.email}</p>
-                        <p><strong>Teléfono:</strong> {pedido.datosEnvio.telefono}</p>
-                        <p><strong>Dirección:</strong> {pedido.datosEnvio.direccion}</p>
-                        <p><strong>Ciudad:</strong> {pedido.datosEnvio.ciudad}, {pedido.datosEnvio.estado}</p>
-                        <p><strong>CP:</strong> {pedido.datosEnvio.codigoPostal}</p>
-                        {pedido.datosEnvio.instrucciones && (
-                          <p><strong>Instrucciones:</strong> {pedido.datosEnvio.instrucciones}</p>
-                        )}
-                      </div>
-
-                      <div className="pedido-productos">
-                        <h4>Productos</h4>
-                        {pedido.productos.map((prod, idx) => (
-                          <div key={idx} className="pedido-producto-item">
-                            <span>{prod.nombre} x {prod.cantidad}</span>
-                            <span>${(prod.precio * prod.cantidad).toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="pedido-footer">
-                        <p className="pedido-total">Total: ${pedido.total.toFixed(2)}</p>
-                        
-                        <div className="pedido-acciones">
-                          <div className="numero-guia-input">
-                            <input
-                              type="text"
-                              placeholder="Número de guía"
-                              value={guiasTemporales[pedido.id] ?? pedido.numeroGuia ?? ''}
-                              onChange={(e) => handleGuiaChange(pedido.id, e.target.value)}
-                              onBlur={() => handleGuiaBlur(pedido.id)}
-                              onKeyPress={(e) => handleGuiaKeyPress(e, pedido.id)}
-                              disabled={pedidosCargando[pedido.id]}
-                            />
-                            {pedidosCargando[pedido.id] && (
-                              <span className="guia-loading">
-                                <div className="spinner-small"></div>
-                              </span>
-                            )}
-                          </div>
-
-                          <select
-                            value={pedido.estado}
-                            onChange={(e) => actualizarEstadoPedido(pedido.id, e.target.value as 'pendiente' | 'completado' | 'cancelado')}
-                            className="estado-selector"
-                          >
-                            <option value="pendiente">Pendiente</option>
-                            <option value="completado">Completado</option>
-                            <option value="cancelado">Cancelado</option>
-                          </select>
-
-                          <button 
-                            className="btn-whatsapp"
-                            onClick={() => enviarMensajeWhatsApp(pedido)}
-                          >
-                            Enviar WhatsApp
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "ofertas" && (
-            <div className="ofertas-tab">
-              <h2>Gestión de Ofertas</h2>
-              
-              <div className="form-oferta">
-                <div className="form-group">
-                  <label>Título de la Oferta *</label>
-                  <input
-                    type="text"
-                    value={nuevaOferta.titulo}
-                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, titulo: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Descripción</label>
-                  <textarea
-                    value={nuevaOferta.descripcion}
-                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, descripcion: e.target.value })}
-                    rows={3}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Imagen</label>
-                  <input
-                    type="file"
-                    accept="image/jpeg, image/png, image/webp"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setNuevaOferta({ ...nuevaOferta, imagen: e.target.files[0] });
-                      }
-                    }}
-                  />
-                  {nuevaOferta.imagen && (
-                    <div className="imagen-preview">
-                      <span>Nueva imagen seleccionada: {nuevaOferta.imagen.name}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Fecha de Inicio *</label>
-                  <input
-                    type="datetime-local"
-                    value={nuevaOferta.fechaInicio}
-                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, fechaInicio: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Fecha de Fin *</label>
-                  <input
-                    type="datetime-local"
-                    value={nuevaOferta.fechaFin}
-                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, fechaFin: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Activa</label>
-                  <input
-                    type="checkbox"
-                    checked={nuevaOferta.activa}
-                    onChange={(e) => setNuevaOferta({ ...nuevaOferta, activa: e.target.checked })}
-                  />
-                </div>
-                <button 
-                  onClick={() => edicionId ? actualizarOferta() : agregarOferta()}
-                  className="btn-primary"
-                  disabled={cargando}
-                >
-                  {edicionId ? "Actualizar Oferta" : "Agregar Oferta"}
-                </button>
-              </div>
-
-              <div className="ofertas-list">
-                <h3>Lista de Ofertas ({ofertas.length})</h3>
-                {ofertas.length === 0 ? (
-                  <p>No hay ofertas registradas</p>
-                ) : (
-                  <ul className="ofertas-grid">
-                    {ofertas.map((oferta) => (
-                      <li key={oferta.id} className="oferta-item">
-                        <span>{oferta.titulo}</span>
-                        <div className="oferta-acciones">
-                          <button 
-                            className="btn-editar" 
-                            onClick={() => editarOferta(oferta)} 
-                            disabled={cargando}
-                          >
-                            Editar
-                          </button>
-                          <button 
-                            className="btn-eliminar" 
-                            onClick={() => eliminarOferta(oferta.id, oferta.imagenUrl)} 
-                            disabled={cargando}
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <h2>Estadísticas</h2>
+              <div className="estadisticas-contenido">
+                <p>Aquí irán las estadísticas del negocio</p>
               </div>
             </div>
           )}
         </main>
       </div>
-
-      
     </div>
   );
 };
