@@ -217,7 +217,7 @@ export default function NosotrosPage() {
           <div className="testimonios-grid">
             <div className="testimonio-card">
               <div className="testimonio-texto">
-                "El mejor pan de muerto que he probado en mi vida. Sabe exactamente como el que hacía mi abuela"
+                &quot;El mejor pan de muerto que he probado en mi vida. Sabe exactamente como el que hacía mi abuela&quot;
               </div>
               <div className="testimonio-autor">
                 <Image
@@ -235,7 +235,7 @@ export default function NosotrosPage() {
             </div>
             <div className="testimonio-card">
               <div className="testimonio-texto">
-                "No hay mejor manera de empezar el día que con un café y una concha recién horneada"
+                &quot;No hay mejor manera de empezar el día que con un café y una concha recién horneada&quot;
               </div>
               <div className="testimonio-autor">
                 <Image

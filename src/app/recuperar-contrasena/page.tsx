@@ -12,7 +12,7 @@ export default function PasswordReset() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -21,17 +21,21 @@ export default function PasswordReset() {
     try {
       await sendPasswordResetEmail(auth, email);
       setSuccess('Se ha enviado un correo para restablecer tu contraseña');
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Error al enviar el correo';
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'Usuario no encontrado';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Correo electrónico inválido';
-          break;
-        default:
-          errorMessage = error.message;
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        switch ((error as { code?: string }).code) {
+          case 'auth/user-not-found':
+            errorMessage = 'Usuario no encontrado';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Correo electrónico inválido';
+            break;
+          default:
+            errorMessage = (error as { message?: string }).message || errorMessage;
+        }
+      } else {
+        errorMessage = String(error);
       }
       setError(errorMessage);
     } finally {
@@ -77,7 +81,7 @@ export default function PasswordReset() {
           placeholder="Email" 
           className={styles.input} 
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           required 
         />
         <button 

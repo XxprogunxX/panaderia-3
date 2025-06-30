@@ -34,7 +34,7 @@ type Usuario = {
   displayName: string | null;
   photoURL: string | null;
   emailVerified: boolean;
-  providerData: any[];
+  providerData: unknown[];
   createdAt?: string;
   updatedAt?: string;
   lastLogin?: string;
@@ -53,6 +53,12 @@ type Cafe = {
   notas: string;
   tueste: string;
 };
+
+// Definir tipo para los documentos agrupados por UID
+interface UsuarioDocumento {
+  id: string;
+  data: any;
+}
 
 const PanelControl = () => {
   // Estados
@@ -150,7 +156,7 @@ const PanelControl = () => {
   const limpiarUsuariosDuplicados = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
-      const usuariosPorUid = new Map<string, any[]>();
+      const usuariosPorUid = new Map<string, UsuarioDocumento[]>();
       
       // Agrupar documentos por UID
       querySnapshot.forEach((doc) => {
@@ -174,8 +180,8 @@ const PanelControl = () => {
           
           // Mantener el primero (más reciente) y eliminar el resto
           const [mantener, ...eliminar] = documentos;
-          for (const doc of eliminar) {
-            await deleteDoc(doc(db, "usuarios", doc.id));
+          for (const docElim of eliminar) {
+            await deleteDoc(doc(db, "usuarios", docElim.id));
           }
         }
       }
@@ -1389,7 +1395,13 @@ const cargarDatosIniciales = async () => {
                             <p><strong>Email:</strong> {usuario.email || 'No proporcionado'}</p>
                             <p><strong>ID:</strong> {usuario.uid}</p>
                             <p><strong>Verificado:</strong> {usuario.emailVerified ? 'Sí' : 'No'}</p>
-                            <p><strong>Proveedor:</strong> {usuario.providerData[0]?.providerId || 'Desconocido'}</p>
+                            <p><strong>Proveedor:</strong> {(() => {
+                              const provider = usuario.providerData[0];
+                              if (provider && typeof provider === 'object' && 'providerId' in provider) {
+                                return (provider as { providerId?: string }).providerId || 'Desconocido';
+                              }
+                              return 'Desconocido';
+                            })()}</p>
                           </div>
                         </div>
                         <div className="usuario-acciones">

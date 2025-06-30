@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import styles from './LoginForm.module.css';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const [rightPanelActive, setRightPanelActive] = useState(false);
@@ -13,27 +14,39 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       // Aquí puedes agregar el username a tu base de datos si es necesario
       router.push('/');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      let errorMessage = 'Error al registrar';
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as { message?: string }).message || errorMessage;
+      } else {
+        errorMessage = String(error);
+      }
+      setError(errorMessage);
       console.error('Error al registrar:', error);
     }
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/paneldecontrol');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      let errorMessage = 'Error al iniciar sesión';
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as { message?: string }).message || errorMessage;
+      } else {
+        errorMessage = String(error);
+      }
+      setError(errorMessage);
       console.error('Error al iniciar sesión:', error);
     }
   };
@@ -52,7 +65,7 @@ export default function LoginForm() {
             placeholder="Usuario" 
             className={styles.input} 
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
             required 
           />
           <input 
@@ -60,7 +73,7 @@ export default function LoginForm() {
             placeholder="Email" 
             className={styles.input} 
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required 
           />
           <input 
@@ -68,7 +81,7 @@ export default function LoginForm() {
             placeholder="Contraseña" 
             className={styles.input} 
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required 
           />
           <button type="submit" className={styles.btn}>Registrarse</button>
@@ -84,7 +97,7 @@ export default function LoginForm() {
             placeholder="Email" 
             className={styles.input} 
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required 
           />
           <input 
@@ -92,10 +105,10 @@ export default function LoginForm() {
             placeholder="Contraseña" 
             className={styles.input} 
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required 
           />
-          <a href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</a>
+          <Link href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</Link>
           <button type="submit" className={styles.btn}>Ingresar</button>
         </form>
       </div>
