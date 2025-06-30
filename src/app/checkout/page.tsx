@@ -69,8 +69,8 @@ export default function Checkout() {
           src="https://sdk.mercadopago.com/js/v2"
           strategy="afterInteractive"
           onLoad={() => {
-            if (window.MercadoPago) {
-              window.mercadoPagoInstance = new window.MercadoPago(mpPublicKey, { locale: "es-MX" });
+            if ((window as any).MercadoPago) {
+              (window as any).mercadoPagoInstance = new (window as any).MercadoPago(mpPublicKey, { locale: "es-MX" });
               // Ahora puedes usar window.mercadoPagoInstance para inicializar Bricks, etc.
             }
           }}
