@@ -146,7 +146,7 @@ export default function NosotrosPage() {
               <div className="miembro-info">
                 <h3>Don Javier Martínez</h3>
                 <p>Fundador y Maestro Panadero</p>
-                <p className="miembro-desc">"La paciencia y el amor son los ingredientes secretos"</p>
+                <p className="miembro-desc">&quot;La paciencia y el amor son los ingredientes secretos&quot;</p>
               </div>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function NosotrosPage() {
               <div className="miembro-info">
                 <h3>Ana López</h3>
                 <p>Jefa de Repostería</p>
-                <p className="miembro-desc">"Cada postre cuenta una historia dulce"</p>
+                <p className="miembro-desc">&quot;Cada postre cuenta una historia dulce&quot;</p>
               </div>
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function NosotrosPage() {
               <div className="miembro-info">
                 <h3>Carlos Ramírez</h3>
                 <p>Atención al Cliente</p>
-                <p className="miembro-desc">"Me encanta recomendar el pan perfecto para cada persona"</p>
+                <p className="miembro-desc">&quot;Me encanta recomendar el pan perfecto para cada persona&quot;</p>
               </div>
             </div>
           </div>
