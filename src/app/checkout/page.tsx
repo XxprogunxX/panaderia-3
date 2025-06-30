@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCarrito } from '../components/usecarrito';
+import { useMercadoPago } from '../components/useMercadopago';
 import "../styles.css";
+import FormularioEnvio from '../components/FormularioEnvio';
 
 interface DatosEnvio {
   nombre: string;
@@ -20,16 +22,7 @@ export default function Checkout() {
   const router = useRouter();
   const { carrito, total } = useCarrito();
   const [isLoading, setIsLoading] = useState(true);
-  const [datos, setDatos] = useState<DatosEnvio>({
-    nombre: '',
-    email: '',
-    telefono: '',
-    direccion: '',
-    codigoPostal: '',
-    ciudad: '',
-    estado: '',
-    instrucciones: ''
-  });
+  const { cargandoPago, handlePagar } = useMercadoPago();
 
   useEffect(() => {
     // Verificar el carrito después de la hidratación
@@ -40,17 +33,14 @@ export default function Checkout() {
     }
   }, [carrito, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // itemsParaPago no se usa en el nuevo código
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setDatos(prev => ({
-      ...prev,
-      [name]: value
+  const handleSubmit = async (datosEnvio: DatosEnvio) => {
+    // Transforma el carrito al formato que Mercado Pago espera
+    const itemsParaPago = carrito.map(({ nombre, cantidad, precio }) => ({
+      title: nombre,
+      quantity: cantidad,
+      unit_price: precio,
     }));
+    await handlePagar(itemsParaPago, datosEnvio);
   };
 
   // Mostrar un estado de carga consistente
@@ -87,121 +77,8 @@ export default function Checkout() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="formulario-envio">
-          <h2>Datos de Envío</h2>
-          
-          <div className="form-group">
-            <label htmlFor="nombre">Nombre completo *</label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={datos.nombre}
-              onChange={handleChange}
-              required
-              placeholder="Ej: Juan Pérez"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">Correo electrónico *</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={datos.email}
-              onChange={handleChange}
-              required
-              placeholder="Ej: juan@ejemplo.com"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="telefono">Teléfono *</label>
-            <input
-              type="tel"
-              id="telefono"
-              name="telefono"
-              value={datos.telefono}
-              onChange={handleChange}
-              required
-              placeholder="Ej: 555-123-4567"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="direccion">Dirección de entrega *</label>
-            <input
-              type="text"
-              id="direccion"
-              name="direccion"
-              value={datos.direccion}
-              onChange={handleChange}
-              required
-              placeholder="Ej: Calle Principal #123"
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="codigoPostal">Código Postal *</label>
-              <input
-                type="text"
-                id="codigoPostal"
-                name="codigoPostal"
-                value={datos.codigoPostal}
-                onChange={handleChange}
-                required
-                placeholder="Ej: 12345"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="ciudad">Ciudad *</label>
-              <input
-                type="text"
-                id="ciudad"
-                name="ciudad"
-                value={datos.ciudad}
-                onChange={handleChange}
-                required
-                placeholder="Ej: Ciudad de México"
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="estado">Estado *</label>
-            <input
-              type="text"
-              id="estado"
-              name="estado"
-              value={datos.estado}
-              onChange={handleChange}
-              required
-              placeholder="Ej: CDMX"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="instrucciones">Instrucciones de entrega (opcional)</label>
-            <textarea
-              id="instrucciones"
-              name="instrucciones"
-              value={datos.instrucciones}
-              onChange={handleChange}
-              placeholder="Ej: Tocar el timbre, dejar con el portero, etc."
-              rows={3}
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn-continuar"
-          >
-            Continuar al pago
-          </button>
-        </form>
+        <h2>Datos de Envío</h2>
+        <FormularioEnvio onSubmit={handleSubmit} isLoading={cargandoPago} />
       </div>
     </div>
   );
