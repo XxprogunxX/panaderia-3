@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCarrito } from '../components/usecarrito';
-import { useMercadoPago } from '../components/useMercadopago';
 import "../styles.css";
 
 interface DatosEnvio {
@@ -20,7 +19,6 @@ interface DatosEnvio {
 export default function Checkout() {
   const router = useRouter();
   const { carrito, total } = useCarrito();
-  const { cargandoPago, handlePagar } = useMercadoPago();
   const [isLoading, setIsLoading] = useState(true);
   const [datos, setDatos] = useState<DatosEnvio>({
     nombre: '',
@@ -44,12 +42,7 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const itemsParaPago = carrito.map(({ nombre, cantidad, precio }) => ({
-      title: nombre,
-      quantity: cantidad,
-      unit_price: precio,
-    }));
-    await handlePagar(itemsParaPago, datos);
+    // itemsParaPago no se usa en el nuevo código
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -205,9 +198,8 @@ export default function Checkout() {
           <button 
             type="submit" 
             className="btn-continuar"
-            disabled={cargandoPago}
           >
-            {cargandoPago ? "Procesando..." : "Continuar al pago"}
+            Continuar al pago
           </button>
         </form>
       </div>

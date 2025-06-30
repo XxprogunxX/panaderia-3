@@ -121,17 +121,21 @@ export default function Cafe() {
               <div key={cafe.id} className="cafe-card">
                 <div className="cafe-imagen-container">
                   {esImagenExterna(cafe.imagenUrl) ? (
-                    <img
+                    <Image
                       src={cafe.imagenUrl}
                       alt={cafe.nombre}
+                      width={180}
+                      height={180}
                       className="cafe-imagen"
                       style={{ objectFit: "cover" }}
+                      priority
                     />
                   ) : (
                     <Image
                       src={cafe.imagenUrl}
                       alt={cafe.nombre}
-                      fill
+                      width={180}
+                      height={180}
                       className="cafe-imagen"
                       style={{ objectFit: "cover" }}
                       priority
