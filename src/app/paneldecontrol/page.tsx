@@ -54,6 +54,26 @@ type Cafe = {
   tueste: string;
 };
 
+// Agrego tipo Pedido
+type Pedido = {
+  id: string;
+  productos: { nombre: string; cantidad: number; precio: number }[];
+  total: number;
+  estado: string;
+  fechaCreacion: string;
+  datosEnvio: {
+    nombre: string;
+    email: string;
+    telefono: string;
+    direccion: string;
+    codigoPostal: string;
+    ciudad: string;
+    estado: string;
+    instrucciones?: string;
+  };
+  guiaEnvio?: string;
+};
+
 // Definir tipo para los documentos agrupados por UID
 interface UsuarioDocumento {
   id: string;
@@ -63,7 +83,7 @@ interface UsuarioDocumento {
 const PanelControl = () => {
   // Estados
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "cafes">("productos");
+  const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "cafes" | "pedidos">("productos");
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [cafes, setCafes] = useState<Cafe[]>([]);
@@ -93,6 +113,10 @@ const PanelControl = () => {
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Estado para pedidos
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [editandoGuiaId, setEditandoGuiaId] = useState<string | null>(null);
+  const [nuevaGuia, setNuevaGuia] = useState<string>("");
 
   // Componente para mostrar imagen con placeholder
   const ImagenConPlaceholder = ({ src, alt }: { src?: string; alt: string }) => {
@@ -832,6 +856,69 @@ const cargarDatosIniciales = async () => {
     }
   };
 
+  // Función para cargar pedidos
+  const cargarPedidos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "pedidos"));
+      const lista: Pedido[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        lista.push({
+          id: doc.id,
+          productos: data.productos || [],
+          total: data.total || 0,
+          estado: data.estado || 'pendiente',
+          fechaCreacion: data.fechaCreacion || '',
+          datosEnvio: data.datosEnvio || {},
+          guiaEnvio: data.guiaEnvio || ''
+        });
+      });
+      setPedidos(lista.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
+    } catch (error) {
+      console.error("Error cargando pedidos:", error);
+      setError("Error al cargar los pedidos");
+    }
+  };
+
+  // Función para marcar como pagado
+  const marcarComoPagado = async (pedidoId: string) => {
+    setCargando(true);
+    setError(null);
+    try {
+      await updateDoc(doc(db, "pedidos", pedidoId), { estado: "pagado" });
+      await cargarPedidos();
+    } catch (error) {
+      setError("Error al marcar como pagado");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Función para guardar guía de envío
+  const guardarGuiaEnvio = async (pedidoId: string) => {
+    if (!nuevaGuia.trim()) {
+      setError("Por favor ingresa la guía de envío");
+      return;
+    }
+    setCargando(true);
+    setError(null);
+    try {
+      await updateDoc(doc(db, "pedidos", pedidoId), { guiaEnvio: nuevaGuia });
+      setEditandoGuiaId(null);
+      setNuevaGuia("");
+      await cargarPedidos();
+    } catch (error) {
+      setError("Error al guardar la guía de envío");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Cargar pedidos al iniciar
+  useEffect(() => {
+    cargarPedidos();
+  }, []);
+
   if (cargando) {
     return (
       <div className="cargando-overlay">
@@ -869,6 +956,12 @@ const cargarDatosIniciales = async () => {
           onClick={() => setActiveTab("cafes")}
         >
           Cafés
+        </button>
+        <button
+          className={activeTab === "pedidos" ? "active" : ""}
+          onClick={() => setActiveTab("pedidos")}
+        >
+          Pedidos
         </button>
       </nav>
 
@@ -1426,6 +1519,98 @@ const cargarDatosIniciales = async () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "pedidos" && (
+            <div className="pedidos-tab">
+              <h2>Gestión de Pedidos</h2>
+              <div className="pedidos-lista">
+                <h3>Lista de Pedidos ({pedidos.length})</h3>
+                {pedidos.length === 0 ? (
+                  <p>No hay pedidos registrados</p>
+                ) : (
+                  <div className="pedidos-grid">
+                    {pedidos.map((pedido) => (
+                      <div key={pedido.id} className="pedido-card">
+                        <div className="pedido-header">
+                          <span className={`estado-pedido ${pedido.estado === 'pagado' ? 'completado' : pedido.estado === 'pendiente' ? 'pendiente' : 'cancelado'}`}>{pedido.estado === 'pagado' ? 'Pagado' : pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}</span>
+                          <span className="fecha-pedido">{new Date(pedido.fechaCreacion).toLocaleString()}</span>
+                        </div>
+                        <div className="pedido-productos">
+                          <h4>Productos</h4>
+                          {pedido.productos.map((prod, idx) => (
+                            <div key={idx} className="pedido-producto-item">
+                              <span>{prod.nombre} x {prod.cantidad}</span>
+                              <span>${prod.precio} c/u</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="pedido-footer">
+                          <div className="pedido-total">
+                            Total: ${pedido.total.toFixed(2)} MXN
+                          </div>
+                        </div>
+                        <div className="datos-cliente">
+                          <h4>Datos del Cliente</h4>
+                          <p><strong>Nombre:</strong> {pedido.datosEnvio?.nombre}</p>
+                          <p><strong>Email:</strong> {pedido.datosEnvio?.email}</p>
+                          <p><strong>Teléfono:</strong> {pedido.datosEnvio?.telefono}</p>
+                          <p><strong>Dirección:</strong> {pedido.datosEnvio?.direccion}, {pedido.datosEnvio?.ciudad}, {pedido.datosEnvio?.estado}, CP {pedido.datosEnvio?.codigoPostal}</p>
+                          {pedido.datosEnvio?.instrucciones && <p><strong>Instrucciones:</strong> {pedido.datosEnvio.instrucciones}</p>}
+                        </div>
+                        <div className="pedido-acciones">
+                          {pedido.estado !== "pagado" && (
+                            <button onClick={() => marcarComoPagado(pedido.id)} className="btn-primary" disabled={cargando}>
+                              <span role="img" aria-label="Pagado">✔️</span> Marcar como pagado
+                            </button>
+                          )}
+                          {pedido.estado === "pagado" && (
+                            <span className="badge-pagado estado-pedido completado">Pagado</span>
+                          )}
+                          {editandoGuiaId === pedido.id ? (
+                            <div className="numero-guia-input">
+                              <input
+                                type="text"
+                                value={nuevaGuia}
+                                onChange={e => setNuevaGuia(e.target.value)}
+                                placeholder="Guía de envío"
+                                autoFocus
+                              />
+                              <button onClick={() => guardarGuiaEnvio(pedido.id)} className="btn-primary" disabled={cargando}>
+                                <span role="img" aria-label="Guardar">💾</span> Guardar
+                              </button>
+                              <button onClick={() => { setEditandoGuiaId(null); setNuevaGuia(""); }} className="btn-secondary" disabled={cargando}>
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="numero-guia-input">
+                              <span><strong>Guía de envío:</strong> {pedido.guiaEnvio || 'No asignada'}</span>
+                              <button onClick={() => { setEditandoGuiaId(pedido.id); setNuevaGuia(pedido.guiaEnvio || ""); }} className="btn-editar" disabled={cargando}>
+                                {pedido.guiaEnvio ? 'Editar' : 'Agregar'}
+                              </button>
+                              {pedido.guiaEnvio && pedido.datosEnvio?.telefono && (
+                                <a
+                                  href={`https://wa.me/52${pedido.datosEnvio.telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${pedido.datosEnvio.nombre}, tu pedido ha sido enviado. Tu guía de envío es: ${pedido.guiaEnvio}`)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn-whatsapp"
+                                >
+                                  <svg width="22" height="22" viewBox="0 0 32 32" style={{ marginRight: 8, verticalAlign: 'middle' }}>
+                                    <path fill="#fff" d="M16 3C9.373 3 4 8.373 4 15c0 2.65.87 5.1 2.36 7.1L4 29l7.18-2.31C13.1 27.13 14.53 27.5 16 27.5c6.627 0 12-5.373 12-12S22.627 3 16 3zm0 22c-1.3 0-2.57-.25-3.75-.74l-.27-.11-4.27 1.37 1.37-4.27-.11-.27C6.25 17.57 6 16.3 6 15c0-5.52 4.48-10 10-10s10 4.48 10 10-4.48 10-10 10zm5.07-7.75c-.28-.14-1.65-.81-1.9-.9-.25-.09-.43-.14-.61.14-.18.28-.7.9-.86 1.08-.16.18-.32.2-.6.07-.28-.14-1.18-.44-2.25-1.4-.83-.74-1.39-1.65-1.55-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.34.42-.51.14-.17.18-.29.28-.48.09-.19.05-.36-.02-.5-.07-.14-.61-1.47-.84-2.01-.22-.53-.45-.46-.61-.47-.16-.01-.36-.01-.56-.01-.19 0-.5.07-.76.36-.26.29-1 1-.99 2.43.01 1.43 1.03 2.81 1.18 3.01.15.2 2.03 3.1 4.93 4.23.69.28 1.23.45 1.65.58.69.22 1.32.19 1.81.12.55-.08 1.65-.67 1.88-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.19-.53-.33z"/>
+                                  </svg>
+                                  Enviar por WhatsApp
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
