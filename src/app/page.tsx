@@ -7,7 +7,7 @@ import "./styles.css";
 import { useState, useEffect } from "react";
 import HelpPopup from "./components/bolita-de-ayuda/bolita";
 import { db } from "./firebaseConfig";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import OfertasCarousel from "./components/OfertasCarousel";
 
 interface Producto {

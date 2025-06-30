@@ -14,7 +14,6 @@ import { collection, getDocs } from "firebase/firestore";
 import { useCarrito } from "../components/usecarrito"
  // Adjust the path if necessary
 import { useMercadoPago } from "../components/useMercadopago"; 
-import FormularioEnvio from "../components/FormularioEnvio";
 
 // Define la interfaz Producto si no está globalmente accesible
 interface Producto {
@@ -33,7 +32,7 @@ export default function Productos() {
 
   // Usa los hooks para manejar el estado del carrito y el proceso de pago
   const { carrito, agregarAlCarrito, eliminarDelCarrito, mostrarCarrito, toggleCarrito, total } = useCarrito(); // <--- Usa useCarrito
-  const { cargandoPago, handlePagar } = useMercadoPago();                                                       // <--- Usa useMercadoPago
+  const { /*cargandoPago, handlePagar*/ } = useMercadoPago();                                                       // <--- Usa useMercadoPago
 
   useEffect(() => {
     const obtenerProductos = async () => {
@@ -67,17 +66,6 @@ export default function Productos() {
 
   const esImagenExterna = (url: string) => {
     return url.startsWith("http://") || url.startsWith("https://");
-  };
-
-  // Prepara los ítems del carrito para Mercado Pago
-  const itemsParaPago = carrito.map(({ nombre, cantidad, precio }) => ({
-    title: nombre,
-    quantity: cantidad,
-    unit_price: precio,
-  }));
-
-  const toggleFormulario = () => {
-    setMostrarFormulario(!mostrarFormulario);
   };
 
   const irACheckout = () => {

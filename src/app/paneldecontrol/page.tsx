@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "./panel.css"; // Importa el archivo CSS
 
 // Configura Supabase
@@ -57,7 +57,7 @@ type Cafe = {
 // Definir tipo para los documentos agrupados por UID
 interface UsuarioDocumento {
   id: string;
-  data: any;
+  data: unknown;
 }
 
 const PanelControl = () => {
@@ -169,17 +169,16 @@ const PanelControl = () => {
       });
       
       // Eliminar duplicados, mantener solo el más reciente
-      for (const [uid, documentos] of usuariosPorUid.entries()) {
+      for (const [, documentos] of usuariosPorUid.entries()) {
         if (documentos.length > 1) {
           // Ordenar por fecha de creación/actualización
           documentos.sort((a, b) => {
-            const fechaA = new Date(a.data.updatedAt || a.data.createdAt || 0);
-            const fechaB = new Date(b.data.updatedAt || b.data.createdAt || 0);
+            const fechaA = new Date((a as any).data.updatedAt || (a as any).data.createdAt || 0);
+            const fechaB = new Date((b as any).data.updatedAt || (b as any).data.createdAt || 0);
             return fechaB.getTime() - fechaA.getTime();
           });
-          
           // Mantener el primero (más reciente) y eliminar el resto
-          const [mantener, ...eliminar] = documentos;
+          const [, ...eliminar] = documentos;
           for (const docElim of eliminar) {
             await deleteDoc(doc(db, "usuarios", docElim.id));
           }
