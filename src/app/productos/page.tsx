@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import "../styles.css"; // Estilos generales
+import "./productos.css"; // Estilos específicos de productos
 import footerStyles from "../footer.module.css"; // Estilos específicos del footer
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import "./cafe.css";
+import './productos-cafe.css';
 import footerStyles from "../footer.module.css";
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";

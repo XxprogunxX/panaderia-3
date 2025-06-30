@@ -1,4 +1,4 @@
-import './cafe.css'; // Asegúrate de que tu CSS esté importado
+import './segundo.css';
 import Image from 'next/image';
 
 export default function CafePage() {

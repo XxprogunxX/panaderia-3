@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { db } from "../firebaseConfig";
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import "./panel.css"; // Importa el archivo CSS
@@ -35,6 +35,9 @@ type Usuario = {
   photoURL: string | null;
   emailVerified: boolean;
   providerData: any[];
+  createdAt?: string;
+  updatedAt?: string;
+  lastLogin?: string;
 };
 
 type Cafe = {
@@ -79,37 +82,225 @@ const PanelControl = () => {
   const [nuevaCategoria, setNuevaCategoria] = useState({ nombre: "" });
   const [edicionId, setEdicionId] = useState<string | null>(null);
   const [edicionCafeId, setEdicionCafeId] = useState<string | null>(null);
+  const [edicionCategoriaId, setEdicionCategoriaId] = useState<string | null>(null);
+  const [edicionUsuarioId, setEdicionUsuarioId] = useState<string | null>(null);
+  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para cargar usuarios
+  // Componente para mostrar imagen con placeholder
+  const ImagenConPlaceholder = ({ src, alt }: { src?: string; alt: string }) => {
+    const [imgError, setImgError] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    if (!src || imgError) {
+      return <div className="placeholder-imagen">Sin imagen</div>;
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={200}
+        height={200}
+        className={loaded ? "loaded" : ""}
+        onLoad={() => setLoaded(true)}
+        onError={() => setImgError(true)}
+        style={{ display: loaded ? "block" : "none" }}
+      />
+    );
+  };
+
+  // Función para cargar usuarios desde Firestore
   const cargarUsuarios = async () => {
     try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (user) {
-        setUsuarios([{
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          emailVerified: user.emailVerified,
-          providerData: user.providerData
-        }]);
-      } else {
-        setUsuarios([]);
-      }
+      const querySnapshot = await getDocs(collection(db, "usuarios"));
+      const usuariosMap = new Map<string, Usuario>();
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const usuario: Usuario = {
+          uid: data.uid,
+          email: data.email,
+          displayName: data.displayName,
+          photoURL: data.photoURL,
+          emailVerified: data.emailVerified,
+          providerData: data.providerData || [],
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          lastLogin: data.lastLogin
+        };
+        
+        // Solo agregar si no existe (evitar duplicados)
+        if (!usuariosMap.has(usuario.uid)) {
+          usuariosMap.set(usuario.uid, usuario);
+        }
+      });
+      
+      // Convertir el Map a array
+      const lista = Array.from(usuariosMap.values());
+      setUsuarios(lista);
     } catch (error) {
       console.error("Error cargando usuarios:", error);
       setError("Error al cargar los usuarios");
     }
   };
 
+  // Función para limpiar usuarios duplicados en Firestore
+  const limpiarUsuariosDuplicados = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "usuarios"));
+      const usuariosPorUid = new Map<string, any[]>();
+      
+      // Agrupar documentos por UID
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const uid = data.uid;
+        if (!usuariosPorUid.has(uid)) {
+          usuariosPorUid.set(uid, []);
+        }
+        usuariosPorUid.get(uid)!.push({ id: doc.id, data });
+      });
+      
+      // Eliminar duplicados, mantener solo el más reciente
+      for (const [uid, documentos] of usuariosPorUid.entries()) {
+        if (documentos.length > 1) {
+          // Ordenar por fecha de creación/actualización
+          documentos.sort((a, b) => {
+            const fechaA = new Date(a.data.updatedAt || a.data.createdAt || 0);
+            const fechaB = new Date(b.data.updatedAt || b.data.createdAt || 0);
+            return fechaB.getTime() - fechaA.getTime();
+          });
+          
+          // Mantener el primero (más reciente) y eliminar el resto
+          const [mantener, ...eliminar] = documentos;
+          for (const doc of eliminar) {
+            await deleteDoc(doc(db, "usuarios", doc.id));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error limpiando usuarios duplicados:", error);
+    }
+  };
+
+  // Función para guardar usuario en Firestore
+  const guardarUsuario = async (usuario: Usuario) => {
+    try {
+      // Verificar si el usuario ya existe
+      const userDoc = await getDocs(query(collection(db, "usuarios"), where("uid", "==", usuario.uid)));
+      
+      if (userDoc.empty) {
+        // Usuario no existe, agregarlo
+        await addDoc(collection(db, "usuarios"), {
+          uid: usuario.uid,
+          email: usuario.email,
+          displayName: usuario.displayName,
+          photoURL: usuario.photoURL,
+          emailVerified: usuario.emailVerified,
+          providerData: usuario.providerData,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        });
+      } else {
+        // Usuario existe, actualizar último login
+        const docRef = doc(db, "usuarios", userDoc.docs[0].id);
+        await updateDoc(docRef, {
+          lastLogin: new Date().toISOString(),
+          email: usuario.email,
+          displayName: usuario.displayName,
+          photoURL: usuario.photoURL,
+          emailVerified: usuario.emailVerified,
+          providerData: usuario.providerData
+        });
+      }
+    } catch (error) {
+      console.error("Error guardando usuario:", error);
+    }
+  };
+
+  // Función para verificar y guardar usuario actual
+  const verificarUsuarioActual = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        const usuarioData: Usuario = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified,
+          providerData: user.providerData
+        };
+        await guardarUsuario(usuarioData);
+      }
+    } catch (error) {
+      console.error("Error verificando usuario actual:", error);
+    }
+  };
+
   // Cargar datos iniciales
   useEffect(() => {
-    cargarDatosIniciales();
-    cargarUsuarios();
+    const inicializarDatos = async () => {
+      try {
+        await limpiarUsuariosDuplicados(); // Limpiar duplicados primero
+        await cargarDatosIniciales();
+        await verificarUsuarioActual();
+        await cargarUsuarios();
+      } catch (error) {
+        console.error("Error inicializando datos:", error);
+      }
+    };
+    
+    inicializarDatos();
   }, []);
+
+  // Escuchar cambios en la autenticación
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await guardarUsuario({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified,
+          providerData: user.providerData
+        });
+        await cargarUsuarios(); // Recargar lista de usuarios
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Manejar carga de imágenes para prevenir bug visual
+  useEffect(() => {
+    const handleImageLoad = () => {
+      const images = document.querySelectorAll('.producto-imagen img, .cafe-imagen img');
+      images.forEach((img) => {
+        if (img instanceof HTMLImageElement) {
+          if (img.complete) {
+            img.classList.add('loaded');
+          } else {
+            img.addEventListener('load', () => {
+              img.classList.add('loaded');
+            });
+            img.addEventListener('error', () => {
+              img.style.display = 'none';
+            });
+          }
+        }
+      });
+    };
+
+    // Ejecutar después de que el DOM se actualice
+    const timer = setTimeout(handleImageLoad, 100);
+    
+    return () => clearTimeout(timer);
+  }, [productos, cafes]);
 
 const cargarDatosIniciales = async () => {
   setCargando(true);
@@ -510,6 +701,130 @@ const cargarDatosIniciales = async () => {
     }
   };
 
+  // Editar categoría
+  const editarCategoria = (categoria: Categoria) => {
+    setNuevaCategoria({ nombre: categoria.nombre });
+    setEdicionCategoriaId(categoria.id || null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Actualizar categoría
+  const actualizarCategoria = async () => {
+    if (!edicionCategoriaId) return;
+    
+    if (!nuevaCategoria.nombre.trim()) {
+      setError("Por favor ingresa un nombre para la categoría");
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+    try {
+      await updateDoc(doc(db, "categorias", edicionCategoriaId), {
+        nombre: nuevaCategoria.nombre.trim(),
+        updatedAt: new Date().toISOString()
+      });
+      setNuevaCategoria({ nombre: "" });
+      setEdicionCategoriaId(null);
+      await cargarCategorias();
+    } catch (error) {
+      console.error("Error al actualizar categoría:", error);
+      setError(`Error al actualizar categoría: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Eliminar categoría
+  const eliminarCategoria = async (id: string) => {
+    if (!confirm("¿Estás seguro de eliminar esta categoría? Esto también eliminará todos los productos asociados.")) {
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+    try {
+      await deleteDoc(doc(db, "categorias", id));
+      await cargarCategorias();
+    } catch (error) {
+      console.error("Error al eliminar categoría:", error);
+      setError(`Error al eliminar categoría: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Eliminar usuario
+  const eliminarUsuario = async (uid: string) => {
+    if (!confirm("¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+    try {
+      // Buscar el documento del usuario por UID
+      const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", uid)));
+      
+      if (!userQuery.empty) {
+        const userDoc = userQuery.docs[0];
+        await deleteDoc(doc(db, "usuarios", userDoc.id));
+        await cargarUsuarios();
+      }
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+      setError(`Error al eliminar usuario: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Editar usuario
+  const editarUsuario = (usuario: Usuario) => {
+    setUsuarioEditando(usuario);
+    setEdicionUsuarioId(usuario.uid);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Actualizar usuario
+  const actualizarUsuario = async () => {
+    if (!edicionUsuarioId || !usuarioEditando) return;
+    
+    if (!usuarioEditando.email?.trim()) {
+      setError("Por favor ingresa un email válido");
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+    try {
+      // Buscar el documento del usuario por UID
+      const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", edicionUsuarioId)));
+      
+      if (!userQuery.empty) {
+        const userDoc = userQuery.docs[0];
+        await updateDoc(doc(db, "usuarios", userDoc.id), {
+          email: usuarioEditando.email.trim(),
+          displayName: usuarioEditando.displayName?.trim() || null,
+          photoURL: usuarioEditando.photoURL,
+          emailVerified: usuarioEditando.emailVerified,
+          updatedAt: new Date().toISOString()
+        });
+        
+        setUsuarioEditando(null);
+        setEdicionUsuarioId(null);
+        await cargarUsuarios();
+      }
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+      setError(`Error al actualizar usuario: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   if (cargando) {
     return (
       <div className="cargando-overlay">
@@ -680,16 +995,9 @@ const cargarDatosIniciales = async () => {
                   <div className="productos-grid">
                     {productos.map((producto) => (
                       <div key={producto.id} className="producto-card">
-                        {producto.imagenUrl && (
-                          <div className="producto-imagen">
-                            <img
-                              src={producto.imagenUrl}
-                              alt={producto.nombre}
-                              width="200"
-                              height="200"
-                            />
-                          </div>
-                        )}
+                        <div className="producto-imagen">
+                          <ImagenConPlaceholder src={producto.imagenUrl} alt={producto.nombre} />
+                        </div>
                         <div className="producto-info">
                           <h4>{producto.nombre}</h4>
                           <p className="precio">${parseFloat(producto.precio).toFixed(2)} MXN</p>
@@ -877,16 +1185,9 @@ const cargarDatosIniciales = async () => {
                   <div className="productos-grid">
                     {cafes.map((cafe) => (
                       <div key={cafe.id} className="producto-card">
-                        {cafe.imagenUrl && (
-                          <div className="producto-imagen">
-                            <img
-                              src={cafe.imagenUrl}
-                              alt={cafe.nombre}
-                              width="200"
-                              height="200"
-                            />
-                          </div>
-                        )}
+                        <div className="producto-imagen">
+                          <ImagenConPlaceholder src={cafe.imagenUrl} alt={cafe.nombre} />
+                        </div>
                         <div className="producto-info">
                           <h4>{cafe.nombre}</h4>
                           <p className="precio">${parseFloat(cafe.precio).toFixed(2)} MXN</p>
@@ -939,13 +1240,28 @@ const cargarDatosIniciales = async () => {
                     required
                   />
                 </div>
-                <button 
-                  onClick={agregarCategoria}
-                  className="btn-primary"
-                  disabled={cargando}
-                >
-                  Agregar Categoría
-                </button>
+                <div className="form-actions">
+                  <button 
+                    onClick={edicionCategoriaId ? actualizarCategoria : agregarCategoria}
+                    className="btn-primary"
+                    disabled={cargando}
+                  >
+                    {edicionCategoriaId ? "Actualizar Categoría" : "Agregar Categoría"}
+                  </button>
+                  {edicionCategoriaId && (
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => {
+                        setEdicionCategoriaId(null);
+                        setNuevaCategoria({ nombre: "" });
+                      }}
+                      disabled={cargando}
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="categorias-list">
@@ -958,8 +1274,20 @@ const cargarDatosIniciales = async () => {
                       <li key={categoria.id} className="categoria-item">
                         <span>{categoria.nombre}</span>
                         <div className="categoria-acciones">
-                          <button className="btn-editar" disabled={cargando}>Editar</button>
-                          <button className="btn-eliminar" disabled={cargando}>Eliminar</button>
+                          <button 
+                            onClick={() => editarCategoria(categoria)}
+                            className="btn-editar" 
+                            disabled={cargando}
+                          >
+                            Editar
+                          </button>
+                          <button 
+                            onClick={() => categoria.id && eliminarCategoria(categoria.id)}
+                            className="btn-eliminar" 
+                            disabled={cargando}
+                          >
+                            Eliminar
+                          </button>
                         </div>
                       </li>
                     ))}
@@ -973,6 +1301,69 @@ const cargarDatosIniciales = async () => {
             <div className="usuarios-tab">
               <h2>Gestión de Usuarios</h2>
               
+              {edicionUsuarioId && usuarioEditando && (
+                <form onSubmit={(e) => { e.preventDefault(); actualizarUsuario(); }} className="form">
+                  <h3>Editar Usuario</h3>
+                  
+                  <div className="form-group">
+                    <label>Email *</label>
+                    <input
+                      type="email"
+                      value={usuarioEditando.email || ""}
+                      onChange={(e) => setUsuarioEditando({ ...usuarioEditando, email: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input
+                      type="text"
+                      value={usuarioEditando.displayName || ""}
+                      onChange={(e) => setUsuarioEditando({ ...usuarioEditando, displayName: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>URL de Foto de Perfil</label>
+                    <input
+                      type="url"
+                      value={usuarioEditando.photoURL || ""}
+                      onChange={(e) => setUsuarioEditando({ ...usuarioEditando, photoURL: e.target.value })}
+                      placeholder="https://ejemplo.com/foto.jpg"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={usuarioEditando.emailVerified}
+                        onChange={(e) => setUsuarioEditando({ ...usuarioEditando, emailVerified: e.target.checked })}
+                      />
+                      Email Verificado
+                    </label>
+                  </div>
+
+                  <div className="form-actions">
+                    <button type="submit" className="btn-primary" disabled={cargando}>
+                      Actualizar Usuario
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => {
+                        setEdicionUsuarioId(null);
+                        setUsuarioEditando(null);
+                      }}
+                      disabled={cargando}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+              
               {usuarios.length === 0 ? (
                 <p>No hay usuarios registrados</p>
               ) : (
@@ -982,9 +1373,15 @@ const cargarDatosIniciales = async () => {
                     {usuarios.map((usuario) => (
                       <div key={usuario.uid} className="usuario-card">
                         <div className="usuario-info">
-                          {usuario.photoURL && (
+                          {usuario.photoURL ? (
                             <div className="usuario-avatar">
                               <img src={usuario.photoURL} alt="Avatar" width="80" height="80" />
+                            </div>
+                          ) : (
+                            <div className="usuario-avatar">
+                              <div className="avatar-placeholder">
+                                {usuario.displayName ? usuario.displayName.charAt(0).toUpperCase() : 'U'}
+                              </div>
                             </div>
                           )}
                           <div className="usuario-datos">
@@ -992,12 +1389,24 @@ const cargarDatosIniciales = async () => {
                             <p><strong>Email:</strong> {usuario.email || 'No proporcionado'}</p>
                             <p><strong>ID:</strong> {usuario.uid}</p>
                             <p><strong>Verificado:</strong> {usuario.emailVerified ? 'Sí' : 'No'}</p>
-                            <p><strong>Proveedor:</strong> {usuario.providerData[0]?.providerId}</p>
+                            <p><strong>Proveedor:</strong> {usuario.providerData[0]?.providerId || 'Desconocido'}</p>
                           </div>
                         </div>
                         <div className="usuario-acciones">
-                          <button className="btn-editar">Editar</button>
-                          <button className="btn-eliminar">Eliminar</button>
+                          <button 
+                            onClick={() => editarUsuario(usuario)}
+                            className="btn-editar"
+                            disabled={cargando}
+                          >
+                            Editar
+                          </button>
+                          <button 
+                            onClick={() => eliminarUsuario(usuario.uid)}
+                            className="btn-eliminar"
+                            disabled={cargando}
+                          >
+                            Eliminar
+                          </button>
                         </div>
                       </div>
                     ))}
