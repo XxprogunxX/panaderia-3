@@ -28,7 +28,6 @@ export default function Productos() {
   const router = useRouter();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState("");
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   // Usa los hooks para manejar el estado del carrito y el proceso de pago
   const { carrito, agregarAlCarrito, eliminarDelCarrito, mostrarCarrito, toggleCarrito, total } = useCarrito(); // <--- Usa useCarrito

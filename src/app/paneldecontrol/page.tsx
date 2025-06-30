@@ -173,8 +173,10 @@ const PanelControl = () => {
         if (documentos.length > 1) {
           // Ordenar por fecha de creación/actualización
           documentos.sort((a, b) => {
-            const fechaA = new Date((a as any).data.updatedAt || (a as any).data.createdAt || 0);
-            const fechaB = new Date((b as any).data.updatedAt || (b as any).data.createdAt || 0);
+            const dataA = a.data as Record<string, unknown>;
+            const dataB = b.data as Record<string, unknown>;
+            const fechaA = new Date((dataA.updatedAt as string | undefined) || (dataA.createdAt as string | undefined) || 0);
+            const fechaB = new Date((dataB.updatedAt as string | undefined) || (dataB.createdAt as string | undefined) || 0);
             return fechaB.getTime() - fechaA.getTime();
           });
           // Mantener el primero (más reciente) y eliminar el resto
