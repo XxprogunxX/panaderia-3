@@ -6,6 +6,7 @@ import { useCarrito } from '../components/usecarrito';
 import { useMercadoPago } from '../components/useMercadopago';
 import "../styles.css";
 import FormularioEnvio from '../components/FormularioEnvio';
+import Script from "next/script";
 
 interface DatosEnvio {
   nombre: string;
@@ -23,6 +24,9 @@ export default function Checkout() {
   const { carrito, total } = useCarrito();
   const [isLoading, setIsLoading] = useState(true);
   const { cargandoPago, handlePagar } = useMercadoPago();
+
+  // Obtener la public key de Mercado Pago desde la variable de entorno
+  const mpPublicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
 
   useEffect(() => {
     // Verificar el carrito después de la hidratación
@@ -58,28 +62,43 @@ export default function Checkout() {
   }
 
   return (
-    <div className="checkout-container">
-      <div className="checkout-content">
-        <h1>Finalizar Compra</h1>
-        
-        <div className="resumen-pedido">
-          <h2>Resumen del Pedido</h2>
-          <ul>
-            {carrito.map(({ nombre, precio, cantidad }) => (
-              <li key={nombre} className="resumen-item">
-                <span>{nombre} x {cantidad}</span>
-                <span>${precio * cantidad} MXN</span>
-              </li>
-            ))}
-          </ul>
-          <div className="total-checkout">
-            <strong>Total: </strong>${total} MXN
+    <>
+      {/* Carga el SDK de Mercado Pago solo si hay public key */}
+      {mpPublicKey && (
+        <Script
+          src="https://sdk.mercadopago.com/js/v2"
+          strategy="afterInteractive"
+          onLoad={() => {
+            if (window.MercadoPago) {
+              window.mercadoPagoInstance = new window.MercadoPago(mpPublicKey, { locale: "es-MX" });
+              // Ahora puedes usar window.mercadoPagoInstance para inicializar Bricks, etc.
+            }
+          }}
+        />
+      )}
+      <div className="checkout-container">
+        <div className="checkout-content">
+          <h1>Finalizar Compra</h1>
+          
+          <div className="resumen-pedido">
+            <h2>Resumen del Pedido</h2>
+            <ul>
+              {carrito.map(({ nombre, precio, cantidad }) => (
+                <li key={nombre} className="resumen-item">
+                  <span>{nombre} x {cantidad}</span>
+                  <span>${precio * cantidad} MXN</span>
+                </li>
+              ))}
+            </ul>
+            <div className="total-checkout">
+              <strong>Total: </strong>${total} MXN
+            </div>
           </div>
-        </div>
 
-        <h2>Datos de Envío</h2>
-        <FormularioEnvio onSubmit={handleSubmit} isLoading={cargandoPago} />
+          <h2>Datos de Envío</h2>
+          <FormularioEnvio onSubmit={handleSubmit} isLoading={cargandoPago} />
+        </div>
       </div>
-    </div>
+    </>
   );
 } 
