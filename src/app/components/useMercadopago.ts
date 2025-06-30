@@ -73,7 +73,7 @@ export function useMercadoPago() {
       const pedidoId = await crearPedido(items, datosEnvio);
 
       // Luego iniciamos el proceso de pago con Mercado Pago
-      const respuesta = await fetch("http://localhost:5000/create_preference", {
+      const respuesta = await fetch("https://pagos-ml.onrender.com/create_preference", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

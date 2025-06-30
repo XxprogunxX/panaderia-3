@@ -912,7 +912,7 @@ body {
 /* Estilos para la página de Checkout */
 .checkout-container {
   min-height: 100vh;
-  background-color: #f8f4f0;
+  background-color: #F4E8D4;
   padding: 2rem;
 }
 
@@ -921,55 +921,241 @@ body {
   margin: 0 auto;
   background-color: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border: 1px solid rgba(198, 142, 77, 0.2);
 }
 
 .checkout-content h1 {
-  color: #6e4b32;
-  font-size: 2rem;
+  color: #6E4B32;
+  font-size: 2.5rem;
   text-align: center;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid #c68e4d;
-  padding-bottom: 1rem;
+  margin-bottom: 2.5rem;
+  font-weight: 800;
+  position: relative;
+}
+
+.checkout-content h1::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background-color: #C68E4D;
+  border-radius: 2px;
 }
 
 .resumen-pedido {
-  background-color: #faf6f0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  background-color: #FAF6F0;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  border: 1px solid rgba(198, 142, 77, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.resumen-pedido::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #C68E4D;
 }
 
 .resumen-pedido h2 {
-  color: #6e4b32;
+  color: #6E4B32;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resumen-pedido h2::before {
+  content: "🛒";
   font-size: 1.5rem;
-  margin-bottom: 1rem;
 }
 
 .resumen-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.8rem;
-  border-bottom: 1px solid #e0d5c7;
-  color: #604e42;
-  font-weight: 500;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(198, 142, 77, 0.1);
+  color: #604E42;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.resumen-item:hover {
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 .resumen-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
 }
 
 .total-checkout {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 2px solid #c68e4d;
-  text-align: right;
-  font-size: 1.2rem;
-  color: #9a3b3b;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: #C68E4D;
+  color: white;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(198, 142, 77, 0.2);
+}
+
+/* Estilos del formulario */
+.formulario-envio {
+  background-color: #FAF6F0;
+  border-radius: 16px;
+  padding: 2.5rem;
+  border: 1px solid rgba(198, 142, 77, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.formulario-envio::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #C68E4D;
+}
+
+.formulario-envio h2 {
+  color: #6E4B32;
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.formulario-envio h2::before {
+  content: "📍";
+  font-size: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.8rem;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.8rem;
+  color: #6E4B32;
+  font-weight: 600;
+  font-size: 1rem;
+  position: relative;
+}
+
+.form-group label::after {
+  content: " *";
+  color: #9A3B3B;
   font-weight: 700;
 }
 
+.form-group label[for="instrucciones"]::after {
+  content: " (opcional)";
+  color: #604E42;
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border: 2px solid rgba(198, 142, 77, 0.2);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #4A3B31;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #C68E4D;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(198, 142, 77, 0.1);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #604E42;
+  opacity: 0.6;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.btn-continuar {
+  width: 100%;
+  background-color: #C68E4D;
+  color: white;
+  border: none;
+  padding: 1.2rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 15px rgba(198, 142, 77, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1rem;
+}
+
+.btn-continuar::before {
+  content: "💳";
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.btn-continuar:hover:not(:disabled) {
+  background-color: #9A3B3B;
+  transform: translateY(-1px);
+}
+
+.btn-continuar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-continuar:disabled {
+  background-color: #604E42;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-continuar:disabled::before {
+  content: "⏳";
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .checkout-container {
     padding: 1rem;
@@ -977,6 +1163,51 @@ body {
   
   .checkout-content {
     padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .checkout-content h1 {
+    font-size: 2rem;
+  }
+
+  .resumen-pedido,
+  .formulario-envio {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .btn-continuar {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-content {
+    padding: 1rem;
+  }
+
+  .checkout-content h1 {
+    font-size: 1.8rem;
+  }
+
+  .resumen-pedido,
+  .formulario-envio {
+    padding: 1rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.8rem 1rem;
+  }
+
+  .btn-continuar {
+    padding: 0.9rem 1.2rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -1183,7 +1414,7 @@ body {
   margin: 0 3px;
 }
 
-/* Responsive styles */
+/* Responsive styles para carrusel */
 @media (max-width: 768px) {
   .ofertas-carousel {
     max-width: 600px;
