@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
@@ -137,6 +137,34 @@ const PanelControl = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [editandoGuiaId, setEditandoGuiaId] = useState<string | null>(null);
   const [nuevaGuia, setNuevaGuia] = useState<string>("");
+
+  // Refs para evitar dependencias problemáticas en useCallback
+  const nuevoProductoRef = useRef(nuevoProducto);
+  const nuevoCafeRef = useRef(nuevoCafe);
+  const nuevaCategoriaRef = useRef(nuevaCategoria);
+  const usuarioEditandoRef = useRef(usuarioEditando);
+  const nuevaGuiaRef = useRef(nuevaGuia);
+
+  // Actualizar refs cuando cambian los valores
+  useEffect(() => {
+    nuevoProductoRef.current = nuevoProducto;
+  }, [nuevoProducto]);
+
+  useEffect(() => {
+    nuevoCafeRef.current = nuevoCafe;
+  }, [nuevoCafe]);
+
+  useEffect(() => {
+    nuevaCategoriaRef.current = nuevaCategoria;
+  }, [nuevaCategoria]);
+
+  useEffect(() => {
+    usuarioEditandoRef.current = usuarioEditando;
+  }, [usuarioEditando]);
+
+  useEffect(() => {
+    nuevaGuiaRef.current = nuevaGuia;
+  }, [nuevaGuia]);
 
   // Funciones de utilidad - definidas antes de los useEffect que las usan
   const cargarUsuarios = useCallback(async () => {
@@ -482,7 +510,7 @@ const PanelControl = () => {
     };
     
     inicializarDatos();
-  }, [limpiarUsuariosDuplicados, cargarDatosIniciales, verificarUsuarioActual, cargarUsuarios]);
+  }, []);
 
   // Escuchar cambios en la autenticación
   useEffect(() => {
@@ -502,7 +530,7 @@ const PanelControl = () => {
     });
 
     return () => unsubscribe();
-  }, [guardarUsuario, cargarUsuarios]);
+  }, []);
 
   // Manejar carga de imágenes para prevenir bug visual
   useEffect(() => {
@@ -615,46 +643,53 @@ const PanelControl = () => {
     e.preventDefault();
     setCargando(true);
     
-    if (!nuevoProducto.nombre?.trim()) {
+    const producto = nuevoProductoRef.current;
+    
+    if (!producto.nombre?.trim()) {
       setError("Por favor ingresa un nombre válido para el producto");
+      setCargando(false);
       return;
     }
 
-    if (!nuevoProducto.precio || isNaN(parseFloat(nuevoProducto.precio))) {
+    if (!producto.precio || isNaN(parseFloat(producto.precio))) {
       setError("Por favor ingresa un precio válido");
+      setCargando(false);
       return;
     }
 
-    if (parseFloat(nuevoProducto.precio) < 4) {
+    if (parseFloat(producto.precio) < 4) {
       setError("El precio debe ser mayor que 4");
+      setCargando(false);
       return;
     }
 
-    if (!nuevoProducto.categoria) {
+    if (!producto.categoria) {
       setError("Por favor selecciona una categoría");
+      setCargando(false);
       return;
     }
-    if (!edicionId && !nuevoProducto.imagen) {
+    if (!edicionId && !producto.imagen) {
       setError("Por favor selecciona una imagen para el producto");
+      setCargando(false);
       return;
     }
 
     try {
-      let imagenUrl = nuevoProducto.imagenUrl || "";
+      let imagenUrl = producto.imagenUrl || "";
       
-      if (nuevoProducto.imagen) {
+      if (producto.imagen) {
         try {
-          imagenUrl = await subirImagen(nuevoProducto.imagen);
+          imagenUrl = await subirImagen(producto.imagen);
         } catch (error) {
           throw new Error(`No se pudo subir la imagen: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
       const productoData = {
-        product: nuevoProducto.nombre.trim(),
-        price: parseFloat(nuevoProducto.precio),
-        category: nuevoProducto.categoria,
-        description: nuevoProducto.descripcion.trim(),
+        product: producto.nombre.trim(),
+        price: parseFloat(producto.precio),
+        category: producto.categoria,
+        description: producto.descripcion.trim(),
         pic: imagenUrl,
         updatedAt: new Date().toISOString(),
         ...(!edicionId && { createdAt: new Date().toISOString() })
@@ -682,54 +717,60 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [nuevoProducto, edicionId, subirImagen, cargarProductos]);
+  }, [edicionId, subirImagen, cargarProductos]);
 
   // Manejar envío de formulario de café
   const manejarSubmitCafe = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
     
-    if (!nuevoCafe.nombre?.trim()) {
+    const cafe = nuevoCafeRef.current;
+    
+    if (!cafe.nombre?.trim()) {
       setError("Por favor ingresa un nombre válido para el café");
+      setCargando(false);
       return;
     }
 
-    if (!nuevoCafe.precio || isNaN(parseFloat(nuevoCafe.precio))) {
+    if (!cafe.precio || isNaN(parseFloat(cafe.precio))) {
       setError("Por favor ingresa un precio válido");
+      setCargando(false);
       return;
     }
 
-    if (parseFloat(nuevoCafe.precio) < 4) {
+    if (parseFloat(cafe.precio) < 4) {
       setError("El precio debe ser mayor que 4");
+      setCargando(false);
       return;
     }
 
-    if (!edicionCafeId && !nuevoCafe.imagen) {
+    if (!edicionCafeId && !cafe.imagen) {
       setError("Por favor selecciona una imagen para el café");
+      setCargando(false);
       return;
     }
 
     try {
-      let imagenUrl = nuevoCafe.imagenUrl || "";
+      let imagenUrl = cafe.imagenUrl || "";
       
-      if (nuevoCafe.imagen) {
+      if (cafe.imagen) {
         try {
-          imagenUrl = await subirImagen(nuevoCafe.imagen);
+          imagenUrl = await subirImagen(cafe.imagen);
         } catch (error) {
           throw new Error(`No se pudo subir la imagen: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
       const cafeData = {
-        nombre: nuevoCafe.nombre.trim(),
-        precio: parseFloat(nuevoCafe.precio),
-        descripcion: nuevoCafe.descripcion.trim(),
+        nombre: cafe.nombre.trim(),
+        precio: parseFloat(cafe.precio),
+        descripcion: cafe.descripcion.trim(),
         imagenUrl: imagenUrl,
-        origen: nuevoCafe.origen,
-        intensidad: nuevoCafe.intensidad,
-        tipo: nuevoCafe.tipo,
-        notas: nuevoCafe.notas,
-        tueste: nuevoCafe.tueste,
+        origen: cafe.origen,
+        intensidad: cafe.intensidad,
+        tipo: cafe.tipo,
+        notas: cafe.notas,
+        tueste: cafe.tueste,
         updatedAt: new Date().toISOString(),
         ...(!edicionCafeId && { createdAt: new Date().toISOString() })
       };
@@ -760,7 +801,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [nuevoCafe, edicionCafeId, subirImagen, cargarCafes]);
+  }, [edicionCafeId, subirImagen, cargarCafes]);
 
   // Editar producto
   const editarProducto = useCallback((producto: Producto) => {
@@ -864,7 +905,9 @@ const PanelControl = () => {
 
   // Agregar nueva categoría
   const agregarCategoria = useCallback(async () => {
-    if (!nuevaCategoria.nombre.trim()) {
+    const categoria = nuevaCategoriaRef.current;
+    
+    if (!categoria.nombre.trim()) {
       setError("Por favor ingresa un nombre para la categoría");
       return;
     }
@@ -873,7 +916,7 @@ const PanelControl = () => {
     setError(null);
     try {
       await addDoc(collection(db, "categorias"), {
-        nombre: nuevaCategoria.nombre.trim(),
+        nombre: categoria.nombre.trim(),
         createdAt: new Date().toISOString()
       });
       setNuevaCategoria({ nombre: "" });
@@ -884,7 +927,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [nuevaCategoria.nombre, cargarCategorias]);
+  }, [cargarCategorias]);
 
   // Editar categoría
   const editarCategoria = useCallback((categoria: Categoria) => {
@@ -898,7 +941,9 @@ const PanelControl = () => {
   const actualizarCategoria = useCallback(async () => {
     if (!edicionCategoriaId) return;
     
-    if (!nuevaCategoria.nombre.trim()) {
+    const categoria = nuevaCategoriaRef.current;
+    
+    if (!categoria.nombre.trim()) {
       setError("Por favor ingresa un nombre para la categoría");
       return;
     }
@@ -907,7 +952,7 @@ const PanelControl = () => {
     setError(null);
     try {
       await updateDoc(doc(db, "categorias", edicionCategoriaId), {
-        nombre: nuevaCategoria.nombre.trim(),
+        nombre: categoria.nombre.trim(),
         updatedAt: new Date().toISOString()
       });
       setNuevaCategoria({ nombre: "" });
@@ -919,7 +964,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [edicionCategoriaId, nuevaCategoria.nombre, cargarCategorias]);
+  }, [edicionCategoriaId, cargarCategorias]);
 
   // Eliminar categoría
   const eliminarCategoria = useCallback(async (id: string) => {
@@ -975,9 +1020,11 @@ const PanelControl = () => {
 
   // Actualizar usuario
   const actualizarUsuario = useCallback(async () => {
-    if (!edicionUsuarioId || !usuarioEditando) return;
+    if (!edicionUsuarioId || !usuarioEditandoRef.current) return;
     
-    if (!usuarioEditando.email?.trim()) {
+    const usuario = usuarioEditandoRef.current;
+    
+    if (!usuario.email?.trim()) {
       setError("Por favor ingresa un email válido");
       return;
     }
@@ -991,10 +1038,10 @@ const PanelControl = () => {
       if (!userQuery.empty) {
         const userDoc = userQuery.docs[0];
         await updateDoc(doc(db, "usuarios", userDoc.id), {
-          email: usuarioEditando.email.trim(),
-          displayName: usuarioEditando.displayName?.trim() || null,
-          photoURL: usuarioEditando.photoURL,
-          emailVerified: usuarioEditando.emailVerified,
+          email: usuario.email.trim(),
+          displayName: usuario.displayName?.trim() || null,
+          photoURL: usuario.photoURL,
+          emailVerified: usuario.emailVerified,
           updatedAt: new Date().toISOString()
         });
         
@@ -1008,7 +1055,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [edicionUsuarioId, usuarioEditando, cargarUsuarios]);
+  }, [edicionUsuarioId, cargarUsuarios]);
 
 
 
@@ -1033,14 +1080,16 @@ const PanelControl = () => {
 
   // Función para guardar guía de envío
   const guardarGuiaEnvio = useCallback(async (pedidoId: string) => {
-    if (!nuevaGuia.trim()) {
+    const guia = nuevaGuiaRef.current;
+    
+    if (!guia.trim()) {
       setError("Por favor ingresa la guía de envío");
       return;
     }
     setCargando(true);
     setError(null);
     try {
-      await updateDoc(doc(db, "pedidos", pedidoId), { guiaEnvio: nuevaGuia });
+      await updateDoc(doc(db, "pedidos", pedidoId), { guiaEnvio: guia });
       setEditandoGuiaId(null);
       setNuevaGuia("");
       await cargarPedidos();
@@ -1050,7 +1099,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [nuevaGuia, cargarPedidos]);
+  }, [cargarPedidos]);
 
   if (cargando) {
     return (
