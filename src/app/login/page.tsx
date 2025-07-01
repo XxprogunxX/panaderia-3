@@ -5,7 +5,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'fire
 import { auth } from '../firebaseConfig';
 import styles from './LoginForm.module.css';
 import Link from 'next/link';
-import { collection, setDoc, doc } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 const ADMIN_EMAILS = ["oscar73986@gmail.com"];
