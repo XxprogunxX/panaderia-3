@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import "./panel.css"; // Importa el archivo CSS
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import "./panel.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -79,7 +79,21 @@ type Pedido = {
 // Definir tipo para los documentos agrupados por UID
 interface UsuarioDocumento {
   id: string;
-  data: unknown;
+  data: FirestoreData;
+}
+
+// Tipo para datos de Firestore
+interface FirestoreData {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  emailVerified: boolean;
+  providerData: unknown[];
+  createdAt?: string;
+  updatedAt?: string;
+  lastLogin?: string;
+  rol?: string;
 }
 
 const SUPER_ADMIN_EMAIL = "oscar73986@gmail.com";
@@ -125,13 +139,13 @@ const PanelControl = () => {
   const [nuevaGuia, setNuevaGuia] = useState<string>("");
 
   // Funciones de utilidad - definidas antes de los useEffect que las usan
-  const cargarUsuarios = async () => {
+  const cargarUsuarios = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosMap = new Map<string, Usuario>();
       
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const data = doc.data() as FirestoreData;
         const usuario: Usuario = {
           uid: data.uid,
           email: data.email,
@@ -155,18 +169,17 @@ const PanelControl = () => {
       setUsuarios(lista);
     } catch (error) {
       console.error("Error cargando usuarios:", error);
-      setError("Error al cargar los usuarios");
     }
-  };
+  }, []);
 
-  const limpiarUsuariosDuplicados = async () => {
+  const limpiarUsuariosDuplicados = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosPorUid = new Map<string, UsuarioDocumento[]>();
       
       // Agrupar documentos por UID
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const data = doc.data() as unknown as FirestoreData;
         const uid = data.uid;
         if (!usuariosPorUid.has(uid)) {
           usuariosPorUid.set(uid, []);
@@ -179,10 +192,10 @@ const PanelControl = () => {
         if (documentos.length > 1) {
           // Ordenar por fecha de creación/actualización
           documentos.sort((a, b) => {
-            const dataA = a.data as Record<string, unknown>;
-            const dataB = b.data as Record<string, unknown>;
-            const fechaA = new Date((dataA.updatedAt as string | undefined) || (dataA.createdAt as string | undefined) || 0);
-            const fechaB = new Date((dataB.updatedAt as string | undefined) || (dataB.createdAt as string | undefined) || 0);
+            const dataA = a.data;
+            const dataB = b.data;
+            const fechaA = new Date(dataA.updatedAt || dataA.createdAt || 0);
+            const fechaB = new Date(dataB.updatedAt || dataB.createdAt || 0);
             return fechaB.getTime() - fechaA.getTime();
           });
           // Mantener el primero (más reciente) y eliminar el resto
@@ -195,9 +208,9 @@ const PanelControl = () => {
     } catch (error) {
       console.error("Error limpiando usuarios duplicados:", error);
     }
-  };
+  }, []);
 
-  const guardarUsuario = async (usuario: Usuario) => {
+  const guardarUsuario = useCallback(async (usuario: Usuario) => {
     try {
       // Verificar si el usuario ya existe
       const userDoc = await getDocs(query(collection(db, "usuarios"), where("uid", "==", usuario.uid)));
@@ -229,9 +242,9 @@ const PanelControl = () => {
     } catch (error) {
       console.error("Error guardando usuario:", error);
     }
-  };
+  }, []);
 
-  const verificarUsuarioActual = async () => {
+  const verificarUsuarioActual = useCallback(async () => {
     try {
       const auth = getAuth();
       const user = auth.currentUser;
@@ -249,14 +262,20 @@ const PanelControl = () => {
     } catch (error) {
       console.error("Error verificando usuario actual:", error);
     }
-  };
+  }, [guardarUsuario]);
 
-  const cargarProductos = async () => {
+  const cargarProductos = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "productos"));
       const lista: Producto[] = [];
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const data = doc.data() as {
+          product: string;
+          price: number;
+          category: string;
+          description: string;
+          pic: string;
+        };
         lista.push({
           id: doc.id,
           nombre: data.product,
@@ -272,14 +291,24 @@ const PanelControl = () => {
       console.error("Error cargando productos:", error);
       throw new Error("No se pudieron cargar los productos");
     }
-  };
+  }, []);
 
-  const cargarCafes = async () => {
+  const cargarCafes = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "cafes"));
       const lista: Cafe[] = [];
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const data = doc.data() as {
+          nombre?: string;
+          precio?: number;
+          descripcion?: string;
+          imagenUrl?: string;
+          origen?: string;
+          intensidad?: number;
+          tipo?: string;
+          notas?: string;
+          tueste?: string;
+        };
         lista.push({
           id: doc.id,
           nombre: data.nombre || "",
@@ -299,16 +328,17 @@ const PanelControl = () => {
       console.error("Error cargando cafés:", error);
       throw new Error("No se pudieron cargar los cafés");
     }
-  };
+  }, []);
 
-  const cargarCategorias = async () => {
+  const cargarCategorias = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "categorias"));
       const lista: Categoria[] = [];
       querySnapshot.forEach((doc) => {
+        const data = doc.data() as { nombre: string };
         lista.push({
           id: doc.id,
-          nombre: doc.data().nombre
+          nombre: data.nombre
         });
       });
       setCategorias(lista);
@@ -316,48 +346,69 @@ const PanelControl = () => {
       console.error("Error cargando categorías:", error);
       throw new Error("No se pudieron cargar las categorías");
     }
-  };
+  }, []);
 
-  const cargarDatosIniciales = async () => {
+  const cargarDatosIniciales = useCallback(async () => {
     setCargando(true);
-    setError(null);
     try {
       await Promise.all([cargarProductos(), cargarCategorias(), cargarCafes()]);
     } catch (error) {
       console.error("Error cargando datos:", error);
-      setError(`Error al cargar los datos iniciales: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  };
+  }, [cargarProductos, cargarCategorias, cargarCafes]);
 
-  const cargarPedidos = async () => {
+  const cargarPedidos = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "pedidos"));
       const lista: Pedido[] = [];
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const data = doc.data() as {
+          productos?: { nombre: string; cantidad: number; precio: number }[];
+          total?: number;
+          estado?: string;
+          fechaCreacion?: string;
+          datosEnvio?: {
+            nombre: string;
+            email: string;
+            telefono: string;
+            direccion: string;
+            codigoPostal: string;
+            ciudad: string;
+            estado: string;
+            instrucciones?: string;
+          };
+          guiaEnvio?: string;
+        };
         lista.push({
           id: doc.id,
           productos: data.productos || [],
           total: data.total || 0,
           estado: data.estado || 'pendiente',
           fechaCreacion: data.fechaCreacion || '',
-          datosEnvio: data.datosEnvio || {},
+          datosEnvio: data.datosEnvio || {
+            nombre: '',
+            email: '',
+            telefono: '',
+            direccion: '',
+            codigoPostal: '',
+            ciudad: '',
+            estado: ''
+          },
           guiaEnvio: data.guiaEnvio || ''
         });
       });
       setPedidos(lista.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
     } catch (error) {
       console.error("Error cargando pedidos:", error);
-      setError("Error al cargar los pedidos");
     }
-  };
+  }, []);
 
   // useEffect hooks
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       try {
         if (!user) {
           router.replace("/login");
@@ -367,7 +418,14 @@ const PanelControl = () => {
         
         // Verificar si es el super admin por email
         if (user.email === SUPER_ADMIN_EMAIL) {
-          setUsuarioActual(user);
+          setUsuarioActual({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            emailVerified: user.emailVerified,
+            providerData: user.providerData
+          });
           setCheckingAuth(false);
           return;
         }
@@ -376,9 +434,16 @@ const PanelControl = () => {
         const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", user.uid)));
         if (!userQuery.empty) {
           const userDoc = userQuery.docs[0];
-          const data = userDoc.data();
+          const data = userDoc.data() as FirestoreData;
           if (data.rol === "admin") {
-            setUsuarioActual(user);
+            setUsuarioActual({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              emailVerified: user.emailVerified,
+              providerData: user.providerData
+            });
           } else {
             console.log("Usuario no tiene rol de admin:", user.email);
             router.replace("/login");
@@ -401,7 +466,7 @@ const PanelControl = () => {
     if (!checkingAuth) {
       cargarPedidos();
     }
-  }, [checkingAuth]);
+  }, [checkingAuth, cargarPedidos]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -417,13 +482,12 @@ const PanelControl = () => {
     };
     
     inicializarDatos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [limpiarUsuariosDuplicados, cargarDatosIniciales, verificarUsuarioActual, cargarUsuarios]);
 
   // Escuchar cambios en la autenticación
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
         await guardarUsuario({
           uid: user.uid,
@@ -438,7 +502,7 @@ const PanelControl = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [guardarUsuario, cargarUsuarios]);
 
   // Manejar carga de imágenes para prevenir bug visual
   useEffect(() => {
@@ -482,7 +546,7 @@ const PanelControl = () => {
   }
 
   // Componente para mostrar imagen con placeholder
-  const ImagenConPlaceholder = ({ src, alt }: { src?: string; alt: string }) => {
+  const ImagenConPlaceholder = React.memo(({ src, alt }: { src?: string; alt: string }) => {
     const [imgError, setImgError] = useState(false);
 
     if (!src || imgError) {
@@ -501,12 +565,14 @@ const PanelControl = () => {
         priority={false}
       />
     );
-  };
+  });
+
+  ImagenConPlaceholder.displayName = 'ImagenConPlaceholder';
 
 
 
   // Subir imagen a Supabase Storage
-  const subirImagen = async (file: File): Promise<string> => {
+  const subirImagen = useCallback(async (file: File): Promise<string> => {
     try {
       const formatosPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
       if (!formatosPermitidos.includes(file.type)) {
@@ -542,12 +608,12 @@ const PanelControl = () => {
       console.error("Error en subirImagen:", error);
       throw error;
     }
-  };
+  }, []);
 
   // Manejar envío de formulario de producto
-  const manejarSubmitProducto = async (e: React.FormEvent) => {
+  const manejarSubmitProducto = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setCargando(true);
     
     if (!nuevoProducto.nombre?.trim()) {
       setError("Por favor ingresa un nombre válido para el producto");
@@ -573,7 +639,6 @@ const PanelControl = () => {
       return;
     }
 
-    setCargando(true);
     try {
       let imagenUrl = nuevoProducto.imagenUrl || "";
       
@@ -617,12 +682,12 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [nuevoProducto, edicionId, subirImagen, cargarProductos]);
 
   // Manejar envío de formulario de café
-  const manejarSubmitCafe = async (e: React.FormEvent) => {
+  const manejarSubmitCafe = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setCargando(true);
     
     if (!nuevoCafe.nombre?.trim()) {
       setError("Por favor ingresa un nombre válido para el café");
@@ -644,7 +709,6 @@ const PanelControl = () => {
       return;
     }
 
-    setCargando(true);
     try {
       let imagenUrl = nuevoCafe.imagenUrl || "";
       
@@ -696,10 +760,10 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [nuevoCafe, edicionCafeId, subirImagen, cargarCafes]);
 
   // Editar producto
-  const editarProducto = (producto: Producto) => {
+  const editarProducto = useCallback((producto: Producto) => {
     setNuevoProducto({
       nombre: producto.nombre,
       precio: producto.precio,
@@ -711,10 +775,10 @@ const PanelControl = () => {
     setEdicionId(producto.id || null);
     setError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
   // Editar café
-  const editarCafe = (cafe: Cafe) => {
+  const editarCafe = useCallback((cafe: Cafe) => {
     setNuevoCafe({
       nombre: cafe.nombre,
       precio: cafe.precio,
@@ -730,10 +794,10 @@ const PanelControl = () => {
     setEdicionCafeId(cafe.id || null);
     setError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
   // Eliminar producto (con imagen en Supabase)
-  const eliminarProducto = async (id: string, imagenUrl?: string) => {
+  const eliminarProducto = useCallback(async (id: string, imagenUrl?: string) => {
     if (!confirm("¿Estás seguro de eliminar este producto permanentemente?")) {
       return;
     }
@@ -763,10 +827,10 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [cargarProductos]);
 
   // Eliminar café (con imagen en Supabase)
-  const eliminarCafe = async (id: string, imagenUrl?: string) => {
+  const eliminarCafe = useCallback(async (id: string, imagenUrl?: string) => {
     if (!confirm("¿Estás seguro de eliminar este café permanentemente?")) {
       return;
     }
@@ -796,10 +860,10 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [cargarCafes]);
 
   // Agregar nueva categoría
-  const agregarCategoria = async () => {
+  const agregarCategoria = useCallback(async () => {
     if (!nuevaCategoria.nombre.trim()) {
       setError("Por favor ingresa un nombre para la categoría");
       return;
@@ -820,18 +884,18 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [nuevaCategoria.nombre, cargarCategorias]);
 
   // Editar categoría
-  const editarCategoria = (categoria: Categoria) => {
+  const editarCategoria = useCallback((categoria: Categoria) => {
     setNuevaCategoria({ nombre: categoria.nombre });
     setEdicionCategoriaId(categoria.id || null);
     setError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
   // Actualizar categoría
-  const actualizarCategoria = async () => {
+  const actualizarCategoria = useCallback(async () => {
     if (!edicionCategoriaId) return;
     
     if (!nuevaCategoria.nombre.trim()) {
@@ -855,10 +919,10 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [edicionCategoriaId, nuevaCategoria.nombre, cargarCategorias]);
 
   // Eliminar categoría
-  const eliminarCategoria = async (id: string) => {
+  const eliminarCategoria = useCallback(async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar esta categoría? Esto también eliminará todos los productos asociados.")) {
       return;
     }
@@ -874,10 +938,10 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [cargarCategorias]);
 
   // Eliminar usuario
-  const eliminarUsuario = async (uid: string) => {
+  const eliminarUsuario = useCallback(async (uid: string) => {
     if (!confirm("¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.")) {
       return;
     }
@@ -899,18 +963,18 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [cargarUsuarios]);
 
   // Editar usuario
-  const editarUsuario = (usuario: Usuario) => {
+  const editarUsuario = useCallback((usuario: Usuario) => {
     setUsuarioEditando(usuario);
     setEdicionUsuarioId(usuario.uid);
     setError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
   // Actualizar usuario
-  const actualizarUsuario = async () => {
+  const actualizarUsuario = useCallback(async () => {
     if (!edicionUsuarioId || !usuarioEditando) return;
     
     if (!usuarioEditando.email?.trim()) {
@@ -944,7 +1008,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [edicionUsuarioId, usuarioEditando, cargarUsuarios]);
 
 
 

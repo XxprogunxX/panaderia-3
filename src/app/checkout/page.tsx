@@ -25,11 +25,9 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(true);
   const { cargandoPago, handlePagar } = useMercadoPago();
 
-  // Obtener la public key de Mercado Pago desde la variable de entorno
   const mpPublicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
 
   useEffect(() => {
-    // Verificar el carrito después de la hidratación
     if (carrito.length === 0) {
       router.push('/productos');
     } else {
@@ -38,7 +36,6 @@ export default function Checkout() {
   }, [carrito, router]);
 
   const handleSubmit = async (datosEnvio: DatosEnvio) => {
-    // Transforma el carrito al formato que Mercado Pago espera
     const itemsParaPago = carrito.map(({ nombre, cantidad, precio }) => ({
       title: nombre,
       quantity: cantidad,
@@ -47,7 +44,6 @@ export default function Checkout() {
     await handlePagar(itemsParaPago, datosEnvio);
   };
 
-  // Mostrar un estado de carga consistente
   if (isLoading) {
     return (
       <div className="checkout-container">
@@ -63,19 +59,13 @@ export default function Checkout() {
 
   return (
     <>
-      {/* Carga el SDK de Mercado Pago solo si hay public key */}
       {mpPublicKey && (
         <Script
           src="https://sdk.mercadopago.com/js/v2"
           strategy="afterInteractive"
           onLoad={() => {
-            if ((window as unknown as { MercadoPago?: unknown }).MercadoPago) {
-              const windowWithMP = window as unknown as { 
-                MercadoPago: new (publicKey: string, options: { locale: string }) => unknown;
-                mercadoPagoInstance: unknown;
-              };
-              windowWithMP.mercadoPagoInstance = new windowWithMP.MercadoPago(mpPublicKey, { locale: "es-MX" });
-              // Ahora puedes usar window.mercadoPagoInstance para inicializar Bricks, etc.
+            if (window.MercadoPago) {
+              window.mercadoPagoInstance = new window.MercadoPago(mpPublicKey, { locale: "es-MX" });
             }
           }}
         />
@@ -83,7 +73,7 @@ export default function Checkout() {
       <div className="checkout-container">
         <div className="checkout-content">
           <h1>Finalizar Compra</h1>
-          
+
           <div className="resumen-pedido">
             <h2>Resumen del Pedido</h2>
             <ul>
@@ -105,4 +95,4 @@ export default function Checkout() {
       </div>
     </>
   );
-} 
+}
