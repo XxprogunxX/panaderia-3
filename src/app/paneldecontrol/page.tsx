@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "./panel.css"; // Importa el archivo CSS
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // Configura Supabase - Usar variables de entorno en producción
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vvtqfedsnthxeqaejhzg.supabase.co';
@@ -86,7 +87,7 @@ const SUPER_ADMIN_EMAIL = "oscar73986@gmail.com";
 const PanelControl = () => {
   const router = useRouter();
   // useState hooks
-  const [usuarioActual, setUsuarioActual] = useState<any>(null);
+  const [usuarioActual, setUsuarioActual] = useState<Usuario | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "cafes" | "pedidos">("productos");
@@ -416,6 +417,7 @@ const PanelControl = () => {
     };
     
     inicializarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Escuchar cambios en la autenticación
@@ -482,24 +484,21 @@ const PanelControl = () => {
   // Componente para mostrar imagen con placeholder
   const ImagenConPlaceholder = ({ src, alt }: { src?: string; alt: string }) => {
     const [imgError, setImgError] = useState(false);
-    const [loaded, setLoaded] = useState(false);
 
     if (!src || imgError) {
       return <div className="placeholder-imagen">Sin imagen</div>;
     }
 
     return (
-      <img
+      <Image
         src={src}
         alt={alt}
         width={200}
         height={200}
-        className={loaded ? "loaded" : ""}
-        onLoad={() => setLoaded(true)}
+        className="loaded"
         onError={() => setImgError(true)}
-        style={{ display: loaded ? "block" : "none" }}
-        loading="lazy"
-        decoding="async"
+        style={{ objectFit: 'cover' }}
+        priority={false}
       />
     );
   };
@@ -960,7 +959,7 @@ const PanelControl = () => {
     try {
       await deleteDoc(doc(db, "pedidos", pedidoId));
       await cargarPedidos();
-    } catch (error) {
+    } catch {
       setError("Error al completar el pedido");
     } finally {
       setCargando(false);
@@ -980,7 +979,7 @@ const PanelControl = () => {
       setEditandoGuiaId(null);
       setNuevaGuia("");
       await cargarPedidos();
-    } catch (error) {
+    } catch {
       setError("Error al guardar la guía de envío");
     } finally {
       setCargando(false);
@@ -1122,10 +1121,12 @@ const PanelControl = () => {
                   />
                   {nuevoProducto.imagenUrl && (
                     <div className="imagen-preview">
-                      <img 
+                      <Image 
                         src={nuevoProducto.imagenUrl} 
                         alt="Preview" 
-                        width="100"
+                        width={100}
+                        height={100}
+                        style={{ objectFit: 'cover' }}
                       />
                       <span>Imagen actual</span>
                     </div>
@@ -1308,10 +1309,12 @@ const PanelControl = () => {
                   />
                   {nuevoCafe.imagenUrl && (
                     <div className="imagen-preview">
-                      <img 
+                      <Image 
                         src={nuevoCafe.imagenUrl} 
                         alt="Preview" 
-                        width="100"
+                        width={100}
+                        height={100}
+                        style={{ objectFit: 'cover' }}
                       />
                       <span>Imagen actual</span>
                     </div>
@@ -1551,7 +1554,7 @@ const PanelControl = () => {
                         <div className="usuario-info">
                           {usuario.photoURL ? (
                             <div className="usuario-avatar">
-                              <img src={usuario.photoURL} alt="Avatar" width="80" height="80" />
+                              <Image src={usuario.photoURL} alt="Avatar" width={80} height={80} style={{ objectFit: 'cover' }} />
                             </div>
                           ) : (
                             <div className="usuario-avatar">

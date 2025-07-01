@@ -128,9 +128,11 @@ export default function Productos() {
                     <div key={producto.nombre} className="producto-card">
                       <div className="producto-imagen-container">
                         {esImagenExterna(producto.imagen) ? (
-                          <img
+                          <Image
                             src={producto.imagen}
                             alt={producto.nombre}
+                            width={300}
+                            height={200}
                             className="producto-imagen"
                             style={{ objectFit: "cover" }}
                           />
