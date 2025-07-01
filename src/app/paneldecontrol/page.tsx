@@ -1013,7 +1013,7 @@ const PanelControl = () => {
 
 
   // Función para marcar como completado y eliminar
-  const marcarComoPagado = async (pedidoId: string) => {
+  const marcarComoPagado = useCallback(async (pedidoId: string) => {
     if (!confirm("¿Estás seguro de marcar este pedido como completado? Se eliminará permanentemente.")) {
       return;
     }
@@ -1023,15 +1023,16 @@ const PanelControl = () => {
     try {
       await deleteDoc(doc(db, "pedidos", pedidoId));
       await cargarPedidos();
-    } catch {
+    } catch (error) {
+      console.error("Error al completar el pedido:", error);
       setError("Error al completar el pedido");
     } finally {
       setCargando(false);
     }
-  };
+  }, [cargarPedidos]);
 
   // Función para guardar guía de envío
-  const guardarGuiaEnvio = async (pedidoId: string) => {
+  const guardarGuiaEnvio = useCallback(async (pedidoId: string) => {
     if (!nuevaGuia.trim()) {
       setError("Por favor ingresa la guía de envío");
       return;
@@ -1043,12 +1044,13 @@ const PanelControl = () => {
       setEditandoGuiaId(null);
       setNuevaGuia("");
       await cargarPedidos();
-    } catch {
+    } catch (error) {
+      console.error("Error al guardar la guía de envío:", error);
       setError("Error al guardar la guía de envío");
     } finally {
       setCargando(false);
     }
-  };
+  }, [nuevaGuia, cargarPedidos]);
 
   if (cargando) {
     return (

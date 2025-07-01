@@ -19,6 +19,12 @@ interface DatosEnvio {
   instrucciones?: string;
 }
 
+interface ItemPago {
+  title: string;
+  quantity: number;
+  unit_price: number;
+}
+
 export default function Checkout() {
   const router = useRouter();
   const { carrito, total } = useCarrito();
@@ -36,7 +42,7 @@ export default function Checkout() {
   }, [carrito, router]);
 
   const handleSubmit = async (datosEnvio: DatosEnvio) => {
-    const itemsParaPago = carrito.map(({ nombre, cantidad, precio }) => ({
+    const itemsParaPago: ItemPago[] = carrito.map(({ nombre, cantidad, precio }) => ({
       title: nombre,
       quantity: cantidad,
       unit_price: precio,
