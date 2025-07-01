@@ -5,12 +5,13 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } 
 import { createClient } from '@supabase/supabase-js';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "./panel.css"; // Importa el archivo CSS
+import { useRouter } from "next/navigation";
 
-// Configura Supabase
-const supabase = createClient(
-  'https://vvtqfedsnthxeqaejhzg.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dHFmZWRzbnRoeGVxYWVqaHpnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODI5NTIyOCwiZXhwIjoyMDYzODcxMjI4fQ.nxeSUTZ2429JBZVONXE9oRpkpFFJ6YAtcDvb-BKfJ-k'
-);
+// Configura Supabase - Usar variables de entorno en producción
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vvtqfedsnthxeqaejhzg.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dHFmZWRzbnRoeGVxYWVqaHpnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODI5NTIyOCwiZXhwIjoyMDYzODcxMjI4fQ.nxeSUTZ2429JBZVONXE9oRpkpFFJ6YAtcDvb-BKfJ-k';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Tipos de datos
 type Producto = {
@@ -80,8 +81,13 @@ interface UsuarioDocumento {
   data: unknown;
 }
 
+const SUPER_ADMIN_EMAIL = "oscar73986@gmail.com";
+
 const PanelControl = () => {
-  // Estados
+  const router = useRouter();
+  // useState hooks
+  const [usuarioActual, setUsuarioActual] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [activeTab, setActiveTab] = useState<"productos" | "categorias" | "usuarios" | "estadisticas" | "cafes" | "pedidos">("productos");
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -113,35 +119,11 @@ const PanelControl = () => {
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Estado para pedidos
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [editandoGuiaId, setEditandoGuiaId] = useState<string | null>(null);
   const [nuevaGuia, setNuevaGuia] = useState<string>("");
 
-  // Componente para mostrar imagen con placeholder
-  const ImagenConPlaceholder = ({ src, alt }: { src?: string; alt: string }) => {
-    const [imgError, setImgError] = useState(false);
-    const [loaded, setLoaded] = useState(false);
-
-    if (!src || imgError) {
-      return <div className="placeholder-imagen">Sin imagen</div>;
-    }
-
-    return (
-      <img
-        src={src}
-        alt={alt}
-        width={200}
-        height={200}
-        className={loaded ? "loaded" : ""}
-        onLoad={() => setLoaded(true)}
-        onError={() => setImgError(true)}
-        style={{ display: loaded ? "block" : "none" }}
-      />
-    );
-  };
-
-  // Función para cargar usuarios desde Firestore
+  // Funciones de utilidad - definidas antes de los useEffect que las usan
   const cargarUsuarios = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
@@ -176,7 +158,6 @@ const PanelControl = () => {
     }
   };
 
-  // Función para limpiar usuarios duplicados en Firestore
   const limpiarUsuariosDuplicados = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
@@ -215,7 +196,6 @@ const PanelControl = () => {
     }
   };
 
-  // Función para guardar usuario en Firestore
   const guardarUsuario = async (usuario: Usuario) => {
     try {
       // Verificar si el usuario ya existe
@@ -250,7 +230,6 @@ const PanelControl = () => {
     }
   };
 
-  // Función para verificar y guardar usuario actual
   const verificarUsuarioActual = async () => {
     try {
       const auth = getAuth();
@@ -270,6 +249,158 @@ const PanelControl = () => {
       console.error("Error verificando usuario actual:", error);
     }
   };
+
+  const cargarProductos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "productos"));
+      const lista: Producto[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        lista.push({
+          id: doc.id,
+          nombre: data.product,
+          precio: data.price.toString(),
+          categoria: data.category,
+          descripcion: data.description,
+          imagen: null,
+          imagenUrl: data.pic
+        });
+      });
+      setProductos(lista);
+    } catch (error) {
+      console.error("Error cargando productos:", error);
+      throw new Error("No se pudieron cargar los productos");
+    }
+  };
+
+  const cargarCafes = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "cafes"));
+      const lista: Cafe[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        lista.push({
+          id: doc.id,
+          nombre: data.nombre || "",
+          precio: data.precio ? data.precio.toString() : "",
+          descripcion: data.descripcion || "",
+          imagen: null,
+          imagenUrl: data.imagenUrl || "",
+          origen: data.origen || "",
+          intensidad: data.intensidad ?? 3,
+          tipo: data.tipo || "",
+          notas: data.notas || "",
+          tueste: data.tueste || ""
+        });
+      });
+      setCafes(lista);
+    } catch (error) {
+      console.error("Error cargando cafés:", error);
+      throw new Error("No se pudieron cargar los cafés");
+    }
+  };
+
+  const cargarCategorias = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "categorias"));
+      const lista: Categoria[] = [];
+      querySnapshot.forEach((doc) => {
+        lista.push({
+          id: doc.id,
+          nombre: doc.data().nombre
+        });
+      });
+      setCategorias(lista);
+    } catch (error) {
+      console.error("Error cargando categorías:", error);
+      throw new Error("No se pudieron cargar las categorías");
+    }
+  };
+
+  const cargarDatosIniciales = async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      await Promise.all([cargarProductos(), cargarCategorias(), cargarCafes()]);
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+      setError(`Error al cargar los datos iniciales: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const cargarPedidos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "pedidos"));
+      const lista: Pedido[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        lista.push({
+          id: doc.id,
+          productos: data.productos || [],
+          total: data.total || 0,
+          estado: data.estado || 'pendiente',
+          fechaCreacion: data.fechaCreacion || '',
+          datosEnvio: data.datosEnvio || {},
+          guiaEnvio: data.guiaEnvio || ''
+        });
+      });
+      setPedidos(lista.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
+    } catch (error) {
+      console.error("Error cargando pedidos:", error);
+      setError("Error al cargar los pedidos");
+    }
+  };
+
+  // useEffect hooks
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        if (!user) {
+          router.replace("/login");
+          setCheckingAuth(false);
+          return;
+        }
+        
+        // Verificar si es el super admin por email
+        if (user.email === SUPER_ADMIN_EMAIL) {
+          setUsuarioActual(user);
+          setCheckingAuth(false);
+          return;
+        }
+        
+        // Consultar Firestore para obtener el rol
+        const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", user.uid)));
+        if (!userQuery.empty) {
+          const userDoc = userQuery.docs[0];
+          const data = userDoc.data();
+          if (data.rol === "admin") {
+            setUsuarioActual(user);
+          } else {
+            console.log("Usuario no tiene rol de admin:", user.email);
+            router.replace("/login");
+          }
+        } else {
+          console.log("Usuario no encontrado en Firestore:", user.email);
+          router.replace("/login");
+        }
+      } catch (error) {
+        console.error("Error verificando rol de usuario:", error);
+        router.replace("/login");
+      } finally {
+        setCheckingAuth(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  useEffect(() => {
+    if (!checkingAuth) {
+      cargarPedidos();
+    }
+  }, [checkingAuth]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -309,22 +440,28 @@ const PanelControl = () => {
 
   // Manejar carga de imágenes para prevenir bug visual
   useEffect(() => {
+    if (typeof window === 'undefined') return; // Evitar errores en SSR
+    
     const handleImageLoad = () => {
-      const images = document.querySelectorAll('.producto-imagen img, .cafe-imagen img');
-      images.forEach((img) => {
-        if (img instanceof HTMLImageElement) {
-          if (img.complete) {
-            img.classList.add('loaded');
-          } else {
-            img.addEventListener('load', () => {
+      try {
+        const images = document.querySelectorAll('.producto-imagen img, .cafe-imagen img');
+        images.forEach((img) => {
+          if (img instanceof HTMLImageElement) {
+            if (img.complete) {
               img.classList.add('loaded');
-            });
-            img.addEventListener('error', () => {
-              img.style.display = 'none';
-            });
+            } else {
+              img.addEventListener('load', () => {
+                img.classList.add('loaded');
+              });
+              img.addEventListener('error', () => {
+                img.style.display = 'none';
+              });
+            }
           }
-        }
-      });
+        });
+      } catch (error) {
+        console.error("Error manejando carga de imágenes:", error);
+      }
     };
 
     // Ejecutar después de que el DOM se actualice
@@ -333,87 +470,41 @@ const PanelControl = () => {
     return () => clearTimeout(timer);
   }, [productos, cafes]);
 
-const cargarDatosIniciales = async () => {
-  setCargando(true);
-  setError(null);
-  try {
-    await Promise.all([cargarProductos(), cargarCategorias(), cargarCafes()]);
-  } catch (error) {
-    console.error("Error cargando datos:", error);
-    setError(`Error al cargar los datos iniciales: ${error instanceof Error ? error.message : String(error)}`);
-  } finally {
-    setCargando(false);
+  if (checkingAuth) {
+    return <div style={{padding: 40, textAlign: 'center'}}>Cargando...</div>;
   }
-};
-  // Cargar productos desde Firestore
-  const cargarProductos = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "productos"));
-      const lista: Producto[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        lista.push({
-          id: doc.id,
-          nombre: data.product,
-          precio: data.price.toString(),
-          categoria: data.category,
-          descripcion: data.description,
-          imagen: null,
-          imagenUrl: data.pic
-        });
-      });
-      setProductos(lista);
-    } catch (error) {
-      console.error("Error cargando productos:", error);
-      throw new Error("No se pudieron cargar los productos");
+
+  // Verificación adicional de seguridad
+  if (!usuarioActual) {
+    return <div style={{padding: 40, textAlign: 'center'}}>Acceso denegado. Redirigiendo...</div>;
+  }
+
+  // Componente para mostrar imagen con placeholder
+  const ImagenConPlaceholder = ({ src, alt }: { src?: string; alt: string }) => {
+    const [imgError, setImgError] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    if (!src || imgError) {
+      return <div className="placeholder-imagen">Sin imagen</div>;
     }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={200}
+        height={200}
+        className={loaded ? "loaded" : ""}
+        onLoad={() => setLoaded(true)}
+        onError={() => setImgError(true)}
+        style={{ display: loaded ? "block" : "none" }}
+        loading="lazy"
+        decoding="async"
+      />
+    );
   };
 
-  // Cargar cafés desde Firestore
-  const cargarCafes = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "cafes"));
-    const lista: Cafe[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      lista.push({
-        id: doc.id,
-        nombre: data.nombre || "",
-        precio: data.precio ? data.precio.toString() : "",
-        descripcion: data.descripcion || "",
-        imagen: null,
-        imagenUrl: data.imagenUrl || "",
-        origen: data.origen || "",
-        intensidad: data.intensidad ?? 3,
-        tipo: data.tipo || "",
-        notas: data.notas || "",
-        tueste: data.tueste || ""
-      });
-    });
-    setCafes(lista);
-  } catch (error) {
-    console.error("Error cargando cafés:", error);
-    throw new Error("No se pudieron cargar los cafés");
-  }
-};
 
-  // Cargar categorías desde Firestore
-  const cargarCategorias = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "categorias"));
-      const lista: Categoria[] = [];
-      querySnapshot.forEach((doc) => {
-        lista.push({
-          id: doc.id,
-          nombre: doc.data().nombre
-        });
-      });
-      setCategorias(lista);
-    } catch (error) {
-      console.error("Error cargando categorías:", error);
-      throw new Error("No se pudieron cargar las categorías");
-    }
-  };
 
   // Subir imagen a Supabase Storage
   const subirImagen = async (file: File): Promise<string> => {
@@ -856,39 +947,21 @@ const cargarDatosIniciales = async () => {
     }
   };
 
-  // Función para cargar pedidos
-  const cargarPedidos = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "pedidos"));
-      const lista: Pedido[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        lista.push({
-          id: doc.id,
-          productos: data.productos || [],
-          total: data.total || 0,
-          estado: data.estado || 'pendiente',
-          fechaCreacion: data.fechaCreacion || '',
-          datosEnvio: data.datosEnvio || {},
-          guiaEnvio: data.guiaEnvio || ''
-        });
-      });
-      setPedidos(lista.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
-    } catch (error) {
-      console.error("Error cargando pedidos:", error);
-      setError("Error al cargar los pedidos");
-    }
-  };
 
-  // Función para marcar como pagado
+
+  // Función para marcar como completado y eliminar
   const marcarComoPagado = async (pedidoId: string) => {
+    if (!confirm("¿Estás seguro de marcar este pedido como completado? Se eliminará permanentemente.")) {
+      return;
+    }
+    
     setCargando(true);
     setError(null);
     try {
-      await updateDoc(doc(db, "pedidos", pedidoId), { estado: "pagado" });
+      await deleteDoc(doc(db, "pedidos", pedidoId));
       await cargarPedidos();
     } catch (error) {
-      setError("Error al marcar como pagado");
+      setError("Error al completar el pedido");
     } finally {
       setCargando(false);
     }
@@ -913,11 +986,6 @@ const cargarDatosIniciales = async () => {
       setCargando(false);
     }
   };
-
-  // Cargar pedidos al iniciar
-  useEffect(() => {
-    cargarPedidos();
-  }, []);
 
   if (cargando) {
     return (
@@ -969,6 +1037,14 @@ const cargarDatosIniciales = async () => {
         <header className="panel-header">
           <h1>Panel de Control</h1>
           <p>Administra tus productos y categorías</p>
+          {usuarioActual && (
+            <div style={{marginTop: 10, fontSize: '14px', color: '#666'}}>
+              Conectado como: <strong>{usuarioActual.email}</strong>
+              {usuarioActual.email === SUPER_ADMIN_EMAIL && (
+                <span style={{marginLeft: 10, color: '#28a745'}}>👑 Super Admin</span>
+              )}
+            </div>
+          )}
         </header>
 
         {error && (
@@ -1560,14 +1636,9 @@ const cargarDatosIniciales = async () => {
                           {pedido.datosEnvio?.instrucciones && <p><strong>Instrucciones:</strong> {pedido.datosEnvio.instrucciones}</p>}
                         </div>
                         <div className="pedido-acciones">
-                          {pedido.estado !== "pagado" && (
-                            <button onClick={() => marcarComoPagado(pedido.id)} className="btn-primary" disabled={cargando}>
-                              <span role="img" aria-label="Pagado">✔️</span> Marcar como pagado
-                            </button>
-                          )}
-                          {pedido.estado === "pagado" && (
-                            <span className="badge-pagado estado-pedido completado">Pagado</span>
-                          )}
+                          <button onClick={() => marcarComoPagado(pedido.id)} className="btn-primary" disabled={cargando}>
+                            <span role="img" aria-label="Completado">✅</span> Completar y eliminar
+                          </button>
                           {editandoGuiaId === pedido.id ? (
                             <div className="numero-guia-input">
                               <input

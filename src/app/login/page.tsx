@@ -5,6 +5,10 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'fire
 import { auth } from '../firebaseConfig';
 import styles from './LoginForm.module.css';
 import Link from 'next/link';
+import { collection, setDoc, doc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+
+const ADMIN_EMAILS = ["oscar73986@gmail.com"];
 
 export default function LoginForm() {
   const [rightPanelActive, setRightPanelActive] = useState(false);
@@ -18,8 +22,21 @@ export default function LoginForm() {
     e.preventDefault();
     setError('');
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // Aquí puedes agregar el username a tu base de datos si es necesario
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      // Guarda el usuario en Firestore
+      await setDoc(doc(db, "usuarios", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: username || null,
+        photoURL: user.photoURL || null,
+        emailVerified: user.emailVerified,
+        providerData: user.providerData,
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        rol: "usuario"
+      });
       router.push('/');
     } catch (error: unknown) {
       let errorMessage = 'Error al registrar';
@@ -37,7 +54,13 @@ export default function LoginForm() {
     e.preventDefault();
     setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      if (!user.email || !ADMIN_EMAILS.includes(user.email)) {
+        await auth.signOut();
+        setError("Tu cuenta no tiene permisos para acceder al panel de control.");
+        return;
+      }
       router.push('/paneldecontrol');
     } catch (error: unknown) {
       let errorMessage = 'Error al iniciar sesión';
