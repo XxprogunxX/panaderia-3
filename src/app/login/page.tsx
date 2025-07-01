@@ -2,13 +2,42 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from '../firebaseConfig';
 import styles from './LoginForm.module.css';
 import Link from 'next/link';
 import { setDoc, doc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
-const ADMIN_EMAILS = ["oscar73986@gmail.com"];
+const ADMIN_EMAILS = ["oscar73981@gmail.com"];
+
+// Función para traducir errores de Firebase
+const getErrorMessage = (error: FirebaseError): string => {
+  switch (error.code) {
+    case 'auth/invalid-credential':
+      return 'Email o contraseña incorrectos. Por favor verifica tus credenciales.';
+    case 'auth/user-not-found':
+      return 'No existe una cuenta con este email.';
+    case 'auth/wrong-password':
+      return 'Contraseña incorrecta.';
+    case 'auth/too-many-requests':
+      return 'Demasiados intentos fallidos. Por favor espera unos minutos antes de intentar nuevamente.';
+    case 'auth/user-disabled':
+      return 'Esta cuenta ha sido deshabilitada.';
+    case 'auth/invalid-email':
+      return 'El formato del email no es válido.';
+    case 'auth/weak-password':
+      return 'La contraseña debe tener al menos 6 caracteres.';
+    case 'auth/email-already-in-use':
+      return 'Ya existe una cuenta con este email.';
+    case 'auth/network-request-failed':
+      return 'Error de conexión. Verifica tu conexión a internet.';
+    case 'auth/operation-not-allowed':
+      return 'El inicio de sesión con email y contraseña no está habilitado.';
+    default:
+      return `Error: ${error.message}`;
+  }
+};
 
 export default function LoginForm() {
   const [rightPanelActive, setRightPanelActive] = useState(false);
@@ -16,14 +45,18 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState(''); // Solo para registro
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
+    
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      
       // Guarda el usuario en Firestore
       await setDoc(doc(db, "usuarios", user.uid), {
         uid: user.uid,
@@ -37,47 +70,63 @@ export default function LoginForm() {
         updatedAt: new Date().toISOString(),
         rol: "usuario"
       });
+      
       router.push('/');
     } catch (error: unknown) {
-      let errorMessage = 'Error al registrar';
-      if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = (error as { message?: string }).message || errorMessage;
+      if (error instanceof FirebaseError) {
+        setError(getErrorMessage(error));
       } else {
-        errorMessage = String(error);
+        setError('Error inesperado al registrar. Por favor intenta nuevamente.');
       }
-      setError(errorMessage);
       console.error('Error al registrar:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
+    
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      
       if (!user.email || !ADMIN_EMAILS.includes(user.email)) {
         await auth.signOut();
-        setError("Tu cuenta no tiene permisos para acceder al panel de control.");
+        setError("Tu cuenta no tiene permisos para acceder al panel de control. Solo los administradores pueden acceder.");
         return;
       }
+      
       router.push('/paneldecontrol');
     } catch (error: unknown) {
-      let errorMessage = 'Error al iniciar sesión';
-      if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = (error as { message?: string }).message || errorMessage;
+      if (error instanceof FirebaseError) {
+        setError(getErrorMessage(error));
       } else {
-        errorMessage = String(error);
+        setError('Error inesperado al iniciar sesión. Por favor intenta nuevamente.');
       }
-      setError(errorMessage);
       console.error('Error al iniciar sesión:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className={`${styles.container} ${rightPanelActive ? styles.rightPanelActive : ''}`}>
       {/* Mostrar errores */}
-      {error && <div className={styles.error}>{error}</div>}
+      {error && (
+        <div className={styles.error}>
+          {error}
+          <button 
+            onClick={() => setError('')} 
+            className={styles.errorClose}
+            aria-label="Cerrar error"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Sign Up Form */}
       <div className={`${styles.container__form} ${styles.containerSignup}`}>
@@ -90,6 +139,7 @@ export default function LoginForm() {
             value={username}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
             required 
+            disabled={isLoading}
           />
           <input 
             type="email" 
@@ -98,6 +148,7 @@ export default function LoginForm() {
             value={email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required 
+            disabled={isLoading}
           />
           <input 
             type="password" 
@@ -106,8 +157,16 @@ export default function LoginForm() {
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required 
+            disabled={isLoading}
+            minLength={6}
           />
-          <button type="submit" className={styles.btn}>Registrarse</button>
+          <button 
+            type="submit" 
+            className={styles.btn}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Registrando...' : 'Registrarse'}
+          </button>
         </form>
       </div>
 
@@ -122,6 +181,7 @@ export default function LoginForm() {
             value={email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required 
+            disabled={isLoading}
           />
           <input 
             type="password" 
@@ -130,9 +190,16 @@ export default function LoginForm() {
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required 
+            disabled={isLoading}
           />
           <Link href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</Link>
-          <button type="submit" className={styles.btn}>Ingresar</button>
+          <button 
+            type="submit" 
+            className={styles.btn}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
+          </button>
         </form>
       </div>
 
@@ -145,6 +212,7 @@ export default function LoginForm() {
             <button 
               onClick={() => setRightPanelActive(false)} 
               className={styles.btn}
+              disabled={isLoading}
             >
               Iniciar Sesión
             </button>
@@ -155,6 +223,7 @@ export default function LoginForm() {
             <button 
               onClick={() => setRightPanelActive(true)} 
               className={styles.btn}
+              disabled={isLoading}
             >
               Crear Cuenta
             </button>
