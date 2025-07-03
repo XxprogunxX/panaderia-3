@@ -213,20 +213,19 @@ const PanelControl = () => {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosPorUid = new Map<string, UsuarioDocumento[]>();
       
-      querySnapshot.forEach((docSnapshot) => {
-        const data = docSnapshot.data() as unknown as FirestoreData;
-        const uid = data.uid;
-        if (uid) { // Ensure UID exists
-          if (!usuariosPorUid.has(uid)) {
-            usuariosPorUid.set(uid, []);
+      // Usar for...of para await dentro del ciclo
+      for (const documento of querySnapshot.docs) {
+        const data = documento.data() as FirestoreData;
+        if (data.uid) {
+          if (!usuariosPorUid.has(data.uid)) {
+            usuariosPorUid.set(data.uid, []);
           }
-          usuariosPorUid.get(uid)!.push({ id: docSnapshot.id, data });
+          usuariosPorUid.get(data.uid)!.push({ id: documento.id, data });
         } else {
-          console.warn("Documento de usuario sin UID encontrado, eliminando:", docSnapshot.id);
-          // FIX: Correctly call deleteDoc with the document reference
-          deleteDoc(doc(db, "usuarios", docSnapshot.id)); // Clean up docs without UID
+          console.warn("Documento de usuario sin UID encontrado, eliminando:", documento.id);
+          await deleteDoc(doc(db, "usuarios", documento.id)); // ahora sí funciona bien
         }
-      });
+      }
       
       for (const [, documentos] of usuariosPorUid.entries()) {
         if (documentos.length > 1) {
