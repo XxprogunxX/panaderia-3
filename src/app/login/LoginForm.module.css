@@ -1,3 +1,4 @@
+/* Reset y especificidad para evitar conflictos */
 .container {
   /* COLORS */
   --white: #e9e9e9;
@@ -12,171 +13,187 @@
   --max-width: 758px;
   --max-height: 420px;
 
-  background-color: var(--white);
-  border-radius: var(--button-radius);
+  background-color: var(--white) !important;
+  border-radius: var(--button-radius) !important;
   box-shadow: 0 0.9rem 1.7rem rgba(0, 0, 0, 0.25),
-    0 0.7rem 0.7rem rgba(0, 0, 0, 0.22);
-  height: var(--max-height);
-  max-width: var(--max-width);
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-  
+    0 0.7rem 0.7rem rgba(0, 0, 0, 0.22) !important;
+  height: var(--max-height) !important;
+  max-width: var(--max-width) !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  box-sizing: border-box !important;
 }
 
 .form__title {
-  font-weight: 300;
-  margin: 0;
-  margin-bottom: 1.25rem;
+  font-weight: 300 !important;
+  margin: 0 !important;
+  margin-bottom: 1.25rem !important;
+  font-size: 24px !important;
+  color: var(--gray) !important;
 }
 
 .link {
-  color: var(--gray);
-  font-size: 0.9rem;
-  margin: 1.5rem 0;
-  text-decoration: none;
+  color: var(--gray) !important;
+  font-size: 14px !important;
+  margin: 15px 0 !important;
+  text-decoration: none !important;
+  display: block !important;
 }
 
 .container__form {
-  height: 100%;
-  position: absolute;
-  top: 0;
-  transition: all 0.6s ease-in-out;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  transition: all 0.6s ease-in-out !important;
+  box-sizing: border-box !important;
 }
 
 .containerSignin {
-  left: 0;
-  width: 50%;
-  z-index: 2;
+  left: 0 !important;
+  width: 50% !important;
+  z-index: 2 !important;
 }
 
 .rightPanelActive .containerSignin {
-  transform: translateX(100%);
+  transform: translateX(100%) !important;
 }
 
 .containerSignup {
-  left: 0;
-  opacity: 0;
-  width: 50%;
-  z-index: 1;
+  left: 0 !important;
+  opacity: 0 !important;
+  width: 50% !important;
+  z-index: 1 !important;
 }
 
 .rightPanelActive .containerSignup {
-  animation: show 0.6s;
-  opacity: 1;
-  transform: translateX(100%);
-  z-index: 5;
+  animation: show 0.6s !important;
+  opacity: 1 !important;
+  transform: translateX(100%) !important;
+  z-index: 5 !important;
 }
 
 .container__overlay {
-  height: 100%;
-  left: 50%;
-  overflow: hidden;
-  position: absolute;
-  top: 0;
-  transition: transform 0.6s ease-in-out;
-  width: 50%;
-  z-index: 100;
+  height: 100% !important;
+  left: 50% !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  top: 0 !important;
+  transition: transform 0.6s ease-in-out !important;
+  width: 50% !important;
+  z-index: 100 !important;
 }
 
 .rightPanelActive .container__overlay {
-  transform: translateX(-100%);
+  transform: translateX(-100%) !important;
 }
 
 .overlay {
-  background-color: var(--lightblue);
-  background: url("/images/wallpaper-6380532_1920.jpg");
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  height: 100%;
-  left: -100%;
-  position: relative;
-  transform: translateX(0);
-  transition: transform 0.6s ease-in-out;
-  width: 200%;
+  background-color: var(--lightblue) !important;
+  background: url("/images/wallpaper-6380532_1920.jpg") !important;
+  background-attachment: fixed !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  height: 100% !important;
+  left: -100% !important;
+  position: relative !important;
+  transform: translateX(0) !important;
+  transition: transform 0.6s ease-in-out !important;
+  width: 200% !important;
 }
 
 .rightPanelActive .overlay {
-  transform: translateX(50%);
+  transform: translateX(50%) !important;
 }
 
 .overlay__panel {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: center;
-  position: absolute;
-  text-align: center;
-  top: 0;
-  transform: translateX(0);
-  transition: transform 0.6s ease-in-out;
-  width: 50%;
+  align-items: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  justify-content: center !important;
+  position: absolute !important;
+  text-align: center !important;
+  top: 0 !important;
+  transform: translateX(0) !important;
+  transition: transform 0.6s ease-in-out !important;
+  width: 50% !important;
+  color: white !important;
 }
 
 .overlayLeft {
-  transform: translateX(-20%);
+  transform: translateX(-20%) !important;
 }
 
 .rightPanelActive .overlayLeft {
-  transform: translateX(0);
+  transform: translateX(0) !important;
 }
 
 .overlayRight {
-  right: 0;
-  transform: translateX(0);
+  right: 0 !important;
+  transform: translateX(0) !important;
 }
 
 .rightPanelActive .overlayRight {
-  transform: translateX(20%);
+  transform: translateX(20%) !important;
 }
 
 .btn {
-  background-color: var(--blue);
-  background-image: linear-gradient(90deg, var(--blue) 0%, var(--lightblue) 74%);
-  border-radius: 20px;
-  border: 1px solid var(--blue);
-  color: var(--white);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 0.1rem;
-  padding: 0.9rem 4rem;
-  text-transform: uppercase;
-  transition: transform 80ms ease-in;
+  background-color: var(--blue) !important;
+  background-image: linear-gradient(90deg, var(--blue) 0%, var(--lightblue) 74%) !important;
+  border-radius: 20px !important;
+  border: 1px solid var(--blue) !important;
+  color: var(--white) !important;
+  cursor: pointer !important;
+  font-size: 0.8rem !important;
+  font-weight: bold !important;
+  letter-spacing: 0.1rem !important;
+  padding: 0.9rem 4rem !important;
+  text-transform: uppercase !important;
+  transition: transform 80ms ease-in !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
 }
 
 .form > .btn {
-  margin-top: 1.5rem;
+  margin-top: 1.5rem !important;
 }
 
 .btn:active {
-  transform: scale(0.95);
+  transform: scale(0.95) !important;
 }
 
 .btn:focus {
-  outline: none;
+  outline: none !important;
 }
 
 .form {
-  background-color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0 3rem;
-  height: 100%;
-  text-align: center;
+  background-color: var(--white) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  padding: 0 3rem !important;
+  height: 100% !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
 }
 
 .input {
-  background-color: #ffffff36;
-  border: none;
-  padding: 0.9rem 0.9rem;
-  margin: 0.5rem 0;
-  width: 100%;
+  background-color: #ffffff36 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  padding: 12px 15px !important;
+  margin: 8px 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
 }
 
 @keyframes show {
@@ -192,82 +209,43 @@
     z-index: 5;
   }
 }
-/* Asegurar que el contenedor esté centrado */
-.container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Mejorar los inputs */
-.input {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 12px 15px;
-  margin: 8px 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Estilos para los títulos */
-.form__title {
- 
-  font-size: 24px;
-  font-weight: 300;
-  margin-bottom: 20px;
-}
-
-/* Estilo para el enlace */
-.link {
-
-  font-size: 14px;
-  text-decoration: none;
-  margin: 15px 0;
-  display: block;
-}
-
-/* Asegurar que el overlay ocupe todo el espacio */
-.overlay {
-  background-size: cover;
-  background-position: center;
-}
 
 /* Estilos para mensajes de error */
 .error {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #f44336;
-  color: white;
-  padding: 15px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  max-width: 400px;
-  width: 90%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  animation: slideDown 0.3s ease-out;
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: #f44336 !important;
+  color: white !important;
+  padding: 15px 20px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  z-index: 1000 !important;
+  max-width: 400px !important;
+  width: 90% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  animation: slideDown 0.3s ease-out !important;
+  font-family: inherit !important;
 }
 
 .errorClose {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 15px;
-  line-height: 1;
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  background: none !important;
+  border: none !important;
+  color: white !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin-left: 15px !important;
+  line-height: 1 !important;
+  opacity: 0.8 !important;
+  transition: opacity 0.2s !important;
 }
 
 .errorClose:hover {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 @keyframes slideDown {
@@ -283,18 +261,43 @@
 
 /* Estilos para botones deshabilitados */
 .btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
 }
 
 .btn:disabled:active {
-  transform: none;
+  transform: none !important;
 }
 
 /* Estilos para inputs deshabilitados */
 .input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background-color: #f5f5f5;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background-color: #f5f5f5 !important;
+}
+
+/* Reset específico para evitar conflictos con otros estilos */
+.container * {
+  box-sizing: border-box !important;
+}
+
+.container h2 {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.container p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Asegurar que el contenedor principal tenga el fondo correcto */
+.container {
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  padding: 20px !important;
 }

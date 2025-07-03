@@ -21,8 +21,15 @@ interface Oferta {
 const OfertasCarousel = () => {
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     const cargarOfertas = async () => {
       try {
         const ofertasRef = collection(db, 'ofertas');
@@ -46,7 +53,7 @@ const OfertasCarousel = () => {
     };
 
     cargarOfertas();
-  }, []);
+  }, [isClient]);
 
   const settings = {
     dots: true,
@@ -81,7 +88,7 @@ const OfertasCarousel = () => {
     )
   };
 
-  if (ofertas.length === 0) return null;
+  if (!isClient || ofertas.length === 0) return null;
 
   return (
     <motion.section 

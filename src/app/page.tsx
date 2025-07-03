@@ -34,9 +34,17 @@ const Home = () => {
     { nombre: string; precio: number; cantidad: number }[]
   >([]);
   const [mostrarCarrito, setMostrarCarrito] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Verificar si estamos en el cliente
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Función para cargar los productos más vendidos
   useEffect(() => {
+    if (!isClient) return;
+    
     const cargarProductosPopulares = async () => {
       try {
         const pedidosRef = collection(db, "pedidos");
@@ -87,7 +95,7 @@ const Home = () => {
     };
 
     cargarProductosPopulares();
-  }, []);
+  }, [isClient]);
 
   function agregarAlCarrito(producto: { nombre: string; precio: number }) {
     setCarrito((prev) => {
@@ -111,6 +119,38 @@ const Home = () => {
   }
 
   const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+
+  // Mostrar estado de carga mientras se hidrata
+  if (!isClient) {
+    return (
+      <main>
+        <header className="header">
+          <div className="logo-link-header">
+            <Image
+              src="/images/logo.png"
+              alt="Logo"
+              width={60}
+              height={60}
+              className="logo-img"
+            />
+            <h1 className="logo">Panadería El Pan de Cada Día</h1>
+          </div>
+          <nav className="nav">
+            <ul>
+              <li><Link href="/">Inicio</Link></li>
+              <li><Link href="/productos">Productos</Link></li>
+              <li><Link href="/cafe">Cafe</Link></li>
+              <li><Link href="/nosotros">Nosotros</Link></li>
+              <li><Link href="/login">Login</Link></li>
+            </ul>
+          </nav>
+        </header>
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Cargando...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main>

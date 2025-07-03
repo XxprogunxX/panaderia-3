@@ -40,6 +40,7 @@ type Usuario = {
   createdAt?: string;
   updatedAt?: string;
   lastLogin?: string;
+  rol?: string; // Add rol to the Usuario type
 };
 
 type Cafe = {
@@ -96,7 +97,7 @@ interface FirestoreData {
   rol?: string;
 }
 
-const SUPER_ADMIN_EMAIL = "oscar73986@gmail.com";
+const SUPER_ADMIN_EMAIL = "admin11@gmail.com";
 
 const PanelControl = () => {
   const router = useRouter();
@@ -139,13 +140,14 @@ const PanelControl = () => {
   const [nuevaGuia, setNuevaGuia] = useState<string>("");
 
   // Refs para evitar dependencias problemáticas en useCallback
+  // These refs are crucial for `useCallback` functions to always get the latest state without re-creating the function.
   const nuevoProductoRef = useRef(nuevoProducto);
   const nuevoCafeRef = useRef(nuevoCafe);
   const nuevaCategoriaRef = useRef(nuevaCategoria);
   const usuarioEditandoRef = useRef(usuarioEditando);
   const nuevaGuiaRef = useRef(nuevaGuia);
 
-  // Actualizar refs cuando cambian los valores
+  // Update refs when state changes
   useEffect(() => {
     nuevoProductoRef.current = nuevoProducto;
   }, [nuevoProducto]);
@@ -166,9 +168,11 @@ const PanelControl = () => {
     nuevaGuiaRef.current = nuevaGuia;
   }, [nuevaGuia]);
 
+
   // Funciones de utilidad - definidas antes de los useEffect que las usan
   const cargarUsuarios = useCallback(async () => {
     try {
+      console.log("Loading users from Firestore...");
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosMap = new Map<string, Usuario>();
       
@@ -183,92 +187,115 @@ const PanelControl = () => {
           providerData: data.providerData || [],
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
-          lastLogin: data.lastLogin
+          lastLogin: data.lastLogin,
+          rol: data.rol // Make sure to include the rol when loading users
         };
         
-        // Solo agregar si no existe (evitar duplicados)
+        // Solo agregar si no existe (evitar duplicados lógicos en el estado)
+        // Note: The `limpiarUsuariosDuplicados` function handles physical duplicates in Firestore.
         if (!usuariosMap.has(usuario.uid)) {
           usuariosMap.set(usuario.uid, usuario);
         }
       });
       
-      // Convertir el Map a array
       const lista = Array.from(usuariosMap.values());
       setUsuarios(lista);
+      console.log(`Loaded ${lista.length} users.`);
     } catch (error) {
       console.error("Error cargando usuarios:", error);
+      setError(`Error al cargar usuarios: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, []);
 
   const limpiarUsuariosDuplicados = useCallback(async () => {
     try {
+      console.log("Cleaning duplicate user documents...");
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosPorUid = new Map<string, UsuarioDocumento[]>();
       
-      // Agrupar documentos por UID
       querySnapshot.forEach((doc) => {
         const data = doc.data() as unknown as FirestoreData;
         const uid = data.uid;
-        if (!usuariosPorUid.has(uid)) {
-          usuariosPorUid.set(uid, []);
+        if (uid) { // Ensure UID exists
+          if (!usuariosPorUid.has(uid)) {
+            usuariosPorUid.set(uid, []);
+          }
+          usuariosPorUid.get(uid)!.push({ id: doc.id, data });
+        } else {
+          console.warn("Documento de usuario sin UID encontrado, eliminando:", doc.id);
+          deleteDoc(doc(db, "usuarios", doc.id)); // Clean up docs without UID
         }
-        usuariosPorUid.get(uid)!.push({ id: doc.id, data });
       });
       
-      // Eliminar duplicados, mantener solo el más reciente
       for (const [, documentos] of usuariosPorUid.entries()) {
         if (documentos.length > 1) {
-          // Ordenar por fecha de creación/actualización
           documentos.sort((a, b) => {
             const dataA = a.data;
             const dataB = b.data;
-            const fechaA = new Date(dataA.updatedAt || dataA.createdAt || 0);
-            const fechaB = new Date(dataB.updatedAt || dataB.createdAt || 0);
-            return fechaB.getTime() - fechaA.getTime();
+            const fechaA = new Date(dataA.updatedAt || dataA.createdAt || 0).getTime();
+            const fechaB = new Date(dataB.updatedAt || dataB.createdAt || 0).getTime();
+            return fechaB - fechaA; // Sort descending, most recent first
           });
-          // Mantener el primero (más reciente) y eliminar el resto
-          const [, ...eliminar] = documentos;
-          for (const docElim of eliminar) {
+          
+          const [, ...toDelete] = documentos; // Keep the first (most recent)
+          for (const docElim of toDelete) {
+            console.log("Deleting duplicate user document:", docElim.id, "for UID:", docElim.data.uid);
             await deleteDoc(doc(db, "usuarios", docElim.id));
           }
         }
       }
+      console.log("Duplicate user documents cleaning complete.");
     } catch (error) {
       console.error("Error limpiando usuarios duplicados:", error);
+      setError(`Error al limpiar usuarios duplicados: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, []);
 
-  const guardarUsuario = useCallback(async (usuario: Usuario) => {
+  const guardarUsuario = useCallback(async (usuario: User) => { // Accept Firebase User object directly
     try {
-      // Verificar si el usuario ya existe
-      const userDoc = await getDocs(query(collection(db, "usuarios"), where("uid", "==", usuario.uid)));
+      console.log("Attempting to save or update user in Firestore:", usuario.uid);
+      const userDocQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", usuario.uid)));
       
-      if (userDoc.empty) {
-        // Usuario no existe, agregarlo
+      const userDataToSave = {
+        uid: usuario.uid,
+        email: usuario.email,
+        displayName: usuario.displayName,
+        photoURL: usuario.photoURL,
+        emailVerified: usuario.emailVerified,
+        providerData: usuario.providerData.map(p => ({
+          providerId: p.providerId,
+          uid: p.uid,
+          displayName: p.displayName,
+          email: p.email,
+          phoneNumber: p.phoneNumber,
+          photoURL: p.photoURL
+        })), // Sanitize providerData if necessary
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (userDocQuery.empty) {
+        console.log("User not found in Firestore, adding new document.");
         await addDoc(collection(db, "usuarios"), {
-          uid: usuario.uid,
-          email: usuario.email,
-          displayName: usuario.displayName,
-          photoURL: usuario.photoURL,
-          emailVerified: usuario.emailVerified,
-          providerData: usuario.providerData,
+          ...userDataToSave,
           createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
+          lastLogin: new Date().toISOString(),
+          rol: "cliente" // Default role for new users
         });
       } else {
-        // Usuario existe, actualizar último login
-        const docRef = doc(db, "usuarios", userDoc.docs[0].id);
+        console.log("User found in Firestore, updating lastLogin and other fields.");
+        const docRef = doc(db, "usuarios", userDocQuery.docs[0].id);
         await updateDoc(docRef, {
+          ...userDataToSave,
           lastLogin: new Date().toISOString(),
-          email: usuario.email,
-          displayName: usuario.displayName,
-          photoURL: usuario.photoURL,
-          emailVerified: usuario.emailVerified,
-          providerData: usuario.providerData
+          // Preserve existing 'rol' if it exists, otherwise set default 'cliente'
+          rol: userDocQuery.docs[0].data().rol || "cliente"
         });
       }
+      console.log("User data saved/updated successfully in Firestore.");
     } catch (error) {
-      console.error("Error guardando usuario:", error);
+      console.error("Error guardando usuario en Firestore:", error);
+      // Do not set global error here, as this might be part of an auth flow.
+      // Log the error for debugging.
     }
   }, []);
 
@@ -277,23 +304,21 @@ const PanelControl = () => {
       const auth = getAuth();
       const user = auth.currentUser;
       if (user) {
-        const usuarioData: Usuario = {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          emailVerified: user.emailVerified,
-          providerData: user.providerData
-        };
-        await guardarUsuario(usuarioData);
+        // Only save/update if the user is genuinely authenticated via Firebase Auth
+        await guardarUsuario(user);
+      } else {
+        console.log("No current Firebase authenticated user to verify/save.");
       }
     } catch (error) {
-      console.error("Error verificando usuario actual:", error);
+      console.error("Error verificando y guardando usuario actual:", error);
+      // This is less critical to display to the user on initial load
     }
   }, [guardarUsuario]);
 
+
   const cargarProductos = useCallback(async () => {
     try {
+      console.log("Loading products...");
       const querySnapshot = await getDocs(collection(db, "productos"));
       const lista: Producto[] = [];
       querySnapshot.forEach((doc) => {
@@ -310,19 +335,22 @@ const PanelControl = () => {
           precio: data.price.toString(),
           categoria: data.category,
           descripcion: data.description,
-          imagen: null,
+          imagen: null, // Image file itself is not stored here
           imagenUrl: data.pic
         });
       });
       setProductos(lista);
+      console.log(`Loaded ${lista.length} products.`);
     } catch (error) {
       console.error("Error cargando productos:", error);
-      throw new Error("No se pudieron cargar los productos");
+      setError("No se pudieron cargar los productos. Por favor, inténtalo de nuevo."); // Set specific error message
+      // No need to throw new Error here, as we catch it in `cargarDatosIniciales`
     }
   }, []);
 
   const cargarCafes = useCallback(async () => {
     try {
+      console.log("Loading coffees...");
       const querySnapshot = await getDocs(collection(db, "cafes"));
       const lista: Cafe[] = [];
       querySnapshot.forEach((doc) => {
@@ -352,14 +380,16 @@ const PanelControl = () => {
         });
       });
       setCafes(lista);
+      console.log(`Loaded ${lista.length} coffees.`);
     } catch (error) {
       console.error("Error cargando cafés:", error);
-      throw new Error("No se pudieron cargar los cafés");
+      setError("No se pudieron cargar los cafés. Por favor, inténtalo de nuevo."); // Set specific error message
     }
   }, []);
 
   const cargarCategorias = useCallback(async () => {
     try {
+      console.log("Loading categories...");
       const querySnapshot = await getDocs(collection(db, "categorias"));
       const lista: Categoria[] = [];
       querySnapshot.forEach((doc) => {
@@ -370,25 +400,17 @@ const PanelControl = () => {
         });
       });
       setCategorias(lista);
+      console.log(`Loaded ${lista.length} categories.`);
     } catch (error) {
       console.error("Error cargando categorías:", error);
-      throw new Error("No se pudieron cargar las categorías");
+      setError("No se pudieron cargar las categorías. Por favor, inténtalo de nuevo."); // Set specific error message
     }
   }, []);
-
-  const cargarDatosIniciales = useCallback(async () => {
-    setCargando(true);
-    try {
-      await Promise.all([cargarProductos(), cargarCategorias(), cargarCafes()]);
-    } catch (error) {
-      console.error("Error cargando datos:", error);
-    } finally {
-      setCargando(false);
-    }
-  }, [cargarProductos, cargarCategorias, cargarCafes]);
-
+  
+  // Moved cargarPedidos definition BEFORE cargarDatosIniciales
   const cargarPedidos = useCallback(async () => {
     try {
+      console.log("Loading orders...");
       const querySnapshot = await getDocs(collection(db, "pedidos"));
       const lista: Pedido[] = [];
       querySnapshot.forEach((doc) => {
@@ -427,156 +449,46 @@ const PanelControl = () => {
           guiaEnvio: data.guiaEnvio || ''
         });
       });
+      // Sort orders by creation date, most recent first
       setPedidos(lista.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
+      console.log(`Loaded ${lista.length} orders.`);
     } catch (error) {
       console.error("Error cargando pedidos:", error);
+      setError(`Error al cargar pedidos: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, []);
 
-  // useEffect hooks
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      try {
-        if (!user) {
-          router.replace("/login");
-          setCheckingAuth(false);
-          return;
-        }
-        
-        // Verificar si es el super admin por email
-        if (user.email === SUPER_ADMIN_EMAIL) {
-          setUsuarioActual({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            emailVerified: user.emailVerified,
-            providerData: user.providerData
-          });
-          setCheckingAuth(false);
-          return;
-        }
-        
-        // Consultar Firestore para obtener el rol
-        const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", user.uid)));
-        if (!userQuery.empty) {
-          const userDoc = userQuery.docs[0];
-          const data = userDoc.data() as FirestoreData;
-          if (data.rol === "admin") {
-            setUsuarioActual({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              emailVerified: user.emailVerified,
-              providerData: user.providerData
-            });
-          } else {
-            console.log("Usuario no tiene rol de admin:", user.email);
-            router.replace("/login");
-          }
-        } else {
-          console.log("Usuario no encontrado en Firestore:", user.email);
-          router.replace("/login");
-        }
-      } catch (error) {
-        console.error("Error verificando rol de usuario:", error);
-        router.replace("/login");
-      } finally {
-        setCheckingAuth(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
-
-  useEffect(() => {
-    if (!checkingAuth) {
-      cargarPedidos();
+  const cargarDatosIniciales = useCallback(async () => {
+    setCargando(true);
+    setError(null); // Clear previous errors
+    try {
+      console.log("Starting initial data load...");
+      // Ensure these run sequentially if cleaning duplicates is a prerequisite for loading users
+      await limpiarUsuariosDuplicados();
+      // Use Promise.all for concurrent fetching of products, categories, and cafes
+      await Promise.all([cargarProductos(), cargarCategorias(), cargarCafes()]);
+      await cargarUsuarios(); // Load users after cleaning duplicates and other data
+      await cargarPedidos(); // Load orders
+      console.log("Initial data load complete.");
+    } catch (error) {
+      console.error("Error during initial data loading:", error);
+      // Specific error messages are set in individual loading functions
+      setError(prev => prev || "Hubo un problema cargando los datos iniciales."); // Generic fallback
+    } finally {
+      setCargando(false);
     }
-  }, [checkingAuth, cargarPedidos]);
+  }, [cargarProductos, cargarCategorias, cargarCafes, cargarUsuarios, limpiarUsuariosDuplicados, cargarPedidos]); // Added all dependencies
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    const inicializarDatos = async () => {
-      try {
-        await limpiarUsuariosDuplicados(); // Limpiar duplicados primero
-        await cargarDatosIniciales();
-        await verificarUsuarioActual();
-        await cargarUsuarios();
-      } catch (error) {
-        console.error("Error inicializando datos:", error);
-      }
-    };
-    
-    inicializarDatos();
-  }, []);
 
-  // Escuchar cambios en la autenticación
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      if (user) {
-        await guardarUsuario({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          emailVerified: user.emailVerified,
-          providerData: user.providerData
-        });
-        await cargarUsuarios(); // Recargar lista de usuarios
-      }
-    });
+  // Removed direct rendering based on checkingAuth and usuarioActual here
+  // These checks are now handled by the main return statement after the `if (cargando)` block.
 
-    return () => unsubscribe();
-  }, []);
-
-  // Manejar carga de imágenes para prevenir bug visual
-  useEffect(() => {
-    if (typeof window === 'undefined') return; // Evitar errores en SSR
-    
-    const handleImageLoad = () => {
-      try {
-        const images = document.querySelectorAll('.producto-imagen img, .cafe-imagen img');
-        images.forEach((img) => {
-          if (img instanceof HTMLImageElement) {
-            if (img.complete) {
-              img.classList.add('loaded');
-            } else {
-              img.addEventListener('load', () => {
-                img.classList.add('loaded');
-              });
-              img.addEventListener('error', () => {
-                img.style.display = 'none';
-              });
-            }
-          }
-        });
-      } catch (error) {
-        console.error("Error manejando carga de imágenes:", error);
-      }
-    };
-
-    // Ejecutar después de que el DOM se actualice
-    const timer = setTimeout(handleImageLoad, 100);
-    
-    return () => clearTimeout(timer);
-  }, [productos, cafes]);
-
-  if (checkingAuth) {
-    return <div style={{padding: 40, textAlign: 'center'}}>Cargando...</div>;
-  }
-
-  // Verificación adicional de seguridad
-  if (!usuarioActual) {
-    return <div style={{padding: 40, textAlign: 'center'}}>Acceso denegado. Redirigiendo...</div>;
-  }
 
   // Componente para mostrar imagen con placeholder
   const ImagenConPlaceholder = React.memo(({ src, alt }: { src?: string; alt: string }) => {
     const [imgError, setImgError] = useState(false);
 
+    // If src is provided but is an empty string, treat it as no image
     if (!src || imgError) {
       return <div className="placeholder-imagen">Sin imagen</div>;
     }
@@ -587,16 +499,18 @@ const PanelControl = () => {
         alt={alt}
         width={200}
         height={200}
-        className="loaded"
-        onError={() => setImgError(true)}
+        className="loaded" // Add loaded class initially, or after load event if preferred
+        onError={() => {
+          console.error(`Error loading image: ${src}`);
+          setImgError(true);
+        }}
         style={{ objectFit: 'cover' }}
-        priority={false}
+        priority={false} // Adjust based on your needs, but false is often better for lists
       />
     );
   });
 
   ImagenConPlaceholder.displayName = 'ImagenConPlaceholder';
-
 
 
   // Subir imagen a Supabase Storage
@@ -613,28 +527,30 @@ const PanelControl = () => {
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-      const filePath = `productos/${fileName}`;
+      const filePath = `productos/${fileName}`; // Ensure correct bucket and path
 
+      console.log(`Uploading image to Supabase: ${filePath}`);
       const { data, error: uploadError } = await supabase.storage
-        .from('imagenes-productos')
+        .from('imagenes-productos') // Your Supabase bucket name
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false // Set to true if you want to allow overwriting
         });
 
       if (uploadError) {
-        console.error("Error al subir imagen:", uploadError);
-        throw new Error("Error al subir la imagen");
+        console.error("Error al subir imagen a Supabase:", uploadError);
+        throw new Error(`Error al subir la imagen: ${uploadError.message}`);
       }
 
       const { data: { publicUrl } } = supabase.storage
         .from('imagenes-productos')
         .getPublicUrl(data.path);
 
+      console.log("Image uploaded successfully, public URL:", publicUrl);
       return publicUrl;
     } catch (error) {
-      console.error("Error en subirImagen:", error);
-      throw error;
+      console.error("Error en subirImagen (Subase hook):", error);
+      throw error; // Re-throw to be caught by the calling function
     }
   }, []);
 
@@ -642,8 +558,9 @@ const PanelControl = () => {
   const manejarSubmitProducto = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
+    setError(null);
     
-    const producto = nuevoProductoRef.current;
+    const producto = nuevoProductoRef.current; // Use ref for latest state
     
     if (!producto.nombre?.trim()) {
       setError("Por favor ingresa un nombre válido para el producto");
@@ -651,14 +568,9 @@ const PanelControl = () => {
       return;
     }
 
-    if (!producto.precio || isNaN(parseFloat(producto.precio))) {
-      setError("Por favor ingresa un precio válido");
-      setCargando(false);
-      return;
-    }
-
-    if (parseFloat(producto.precio) < 4) {
-      setError("El precio debe ser mayor que 4");
+    const parsedPrecio = parseFloat(producto.precio);
+    if (isNaN(parsedPrecio) || parsedPrecio < 4) {
+      setError("Por favor ingresa un precio válido (mayor o igual a 4 MXN)");
       setCargando(false);
       return;
     }
@@ -668,63 +580,80 @@ const PanelControl = () => {
       setCargando(false);
       return;
     }
-    if (!edicionId && !producto.imagen) {
+    // Only require image if it's a new product AND no existing image URL
+    if (!edicionId && !producto.imagen && !producto.imagenUrl) {
       setError("Por favor selecciona una imagen para el producto");
       setCargando(false);
       return;
     }
 
     try {
-      let imagenUrl = producto.imagenUrl || "";
+      let imagenUrl = producto.imagenUrl || ""; // Start with existing URL if any
       
-      if (producto.imagen) {
+      if (producto.imagen) { // If a new file is selected
         try {
+          console.log("New product image detected, uploading...");
           imagenUrl = await subirImagen(producto.imagen);
         } catch (error) {
-          throw new Error(`No se pudo subir la imagen: ${error instanceof Error ? error.message : String(error)}`);
+          setError(`No se pudo subir la imagen: ${error instanceof Error ? error.message : String(error)}`);
+          setCargando(false);
+          return; // Stop if image upload fails
         }
+      } else if (!edicionId && !imagenUrl) {
+          // This case should ideally be caught by the above !producto.imagen && !producto.imagenUrl check,
+          // but good for an extra layer for new products.
+          setError("Se requiere una imagen para el nuevo producto.");
+          setCargando(false);
+          return;
       }
 
-      const productoData = {
+
+      const productDataToSave = {
         product: producto.nombre.trim(),
-        price: parseFloat(producto.precio),
+        price: parsedPrecio,
         category: producto.categoria,
         description: producto.descripcion.trim(),
-        pic: imagenUrl,
+        pic: imagenUrl, // Use the new or existing image URL
         updatedAt: new Date().toISOString(),
-        ...(!edicionId && { createdAt: new Date().toISOString() })
+        ...(!edicionId && { createdAt: new Date().toISOString() }) // Only add createdAt for new products
       };
 
       if (edicionId) {
-        await updateDoc(doc(db, "productos", edicionId), productoData);
+        console.log("Updating product:", edicionId);
+        await updateDoc(doc(db, "productos", edicionId), productDataToSave);
       } else {
-        await addDoc(collection(db, "productos"), productoData);
+        console.log("Adding new product.");
+        await addDoc(collection(db, "productos"), productDataToSave);
       }
 
+      // Reset form and ID
       setNuevoProducto({
         nombre: "",
         precio: "",
         categoria: "",
         descripcion: "",
-        imagen: null
+        imagen: null,
+        imagenUrl: "" // Clear image URL too
       });
       setEdicionId(null);
       
-      await cargarProductos();
+      await cargarProductos(); // Reload products to update the list
+      setError(null); // Clear error on success
     } catch (error) {
       console.error("Error al guardar producto:", error);
       setError(`Error al guardar producto: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  }, [edicionId, subirImagen, cargarProductos]);
+  }, [edicionId, subirImagen, cargarProductos]); // Added cargarProductos to dependencies
 
   // Manejar envío de formulario de café
   const manejarSubmitCafe = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
+    setError(null);
     
-    const cafe = nuevoCafeRef.current;
+    const cafe = nuevoCafeRef.current; // Use ref for latest state
     
     if (!cafe.nombre?.trim()) {
       setError("Por favor ingresa un nombre válido para el café");
@@ -732,19 +661,14 @@ const PanelControl = () => {
       return;
     }
 
-    if (!cafe.precio || isNaN(parseFloat(cafe.precio))) {
-      setError("Por favor ingresa un precio válido");
+    const parsedPrecio = parseFloat(cafe.precio);
+    if (isNaN(parsedPrecio) || parsedPrecio < 4) {
+      setError("Por favor ingresa un precio válido (mayor o igual a 4 MXN)");
       setCargando(false);
       return;
     }
 
-    if (parseFloat(cafe.precio) < 4) {
-      setError("El precio debe ser mayor que 4");
-      setCargando(false);
-      return;
-    }
-
-    if (!edicionCafeId && !cafe.imagen) {
+    if (!edicionCafeId && !cafe.imagen && !cafe.imagenUrl) {
       setError("Por favor selecciona una imagen para el café");
       setCargando(false);
       return;
@@ -755,15 +679,22 @@ const PanelControl = () => {
       
       if (cafe.imagen) {
         try {
+          console.log("New coffee image detected, uploading...");
           imagenUrl = await subirImagen(cafe.imagen);
         } catch (error) {
-          throw new Error(`No se pudo subir la imagen: ${error instanceof Error ? error.message : String(error)}`);
+          setError(`No se pudo subir la imagen del café: ${error instanceof Error ? error.message : String(error)}`);
+          setCargando(false);
+          return;
         }
+      } else if (!edicionCafeId && !imagenUrl) {
+        setError("Se requiere una imagen para el nuevo café.");
+        setCargando(false);
+        return;
       }
 
-      const cafeData = {
+      const cafeDataToSave = {
         nombre: cafe.nombre.trim(),
-        precio: parseFloat(cafe.precio),
+        precio: parsedPrecio,
         descripcion: cafe.descripcion.trim(),
         imagenUrl: imagenUrl,
         origen: cafe.origen,
@@ -776,9 +707,11 @@ const PanelControl = () => {
       };
 
       if (edicionCafeId) {
-        await updateDoc(doc(db, "cafes", edicionCafeId), cafeData);
+        console.log("Updating coffee:", edicionCafeId);
+        await updateDoc(doc(db, "cafes", edicionCafeId), cafeDataToSave);
       } else {
-        await addDoc(collection(db, "cafes"), cafeData);
+        console.log("Adding new coffee.");
+        await addDoc(collection(db, "cafes"), cafeDataToSave);
       }
 
       setNuevoCafe({
@@ -786,6 +719,7 @@ const PanelControl = () => {
         precio: "",
         descripcion: "",
         imagen: null,
+        imagenUrl: "", // Clear image URL too
         origen: "",
         intensidad: 3,
         tipo: "Arábica",
@@ -795,23 +729,25 @@ const PanelControl = () => {
       setEdicionCafeId(null);
       
       await cargarCafes();
+      setError(null);
     } catch (error) {
       console.error("Error al guardar café:", error);
       setError(`Error al guardar café: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  }, [edicionCafeId, subirImagen, cargarCafes]);
+  }, [edicionCafeId, subirImagen, cargarCafes]); // Added cargarCafes to dependencies
 
   // Editar producto
   const editarProducto = useCallback((producto: Producto) => {
+    // Ensure `imagenUrl` is passed when setting `nuevoProducto` for editing
     setNuevoProducto({
       nombre: producto.nombre,
       precio: producto.precio,
       categoria: producto.categoria,
       descripcion: producto.descripcion,
-      imagen: null,
-      imagenUrl: producto.imagenUrl
+      imagen: null, // Don't pre-fill file input
+      imagenUrl: producto.imagenUrl // Keep the current image URL
     });
     setEdicionId(producto.id || null);
     setError(null);
@@ -839,7 +775,7 @@ const PanelControl = () => {
 
   // Eliminar producto (con imagen en Supabase)
   const eliminarProducto = useCallback(async (id: string, imagenUrl?: string) => {
-    if (!confirm("¿Estás seguro de eliminar este producto permanentemente?")) {
+    if (!confirm("¿Estás seguro de eliminar este producto permanentemente? Esta acción no se puede deshacer.")) {
       return;
     }
 
@@ -847,32 +783,50 @@ const PanelControl = () => {
     setError(null);
     try {
       if (imagenUrl) {
-        const pathStart = imagenUrl.indexOf('productos/');
-        if (pathStart !== -1) {
-          const filePath = imagenUrl.substring(pathStart);
-          const { error: deleteError } = await supabase.storage
-            .from('imagenes-productos')
-            .remove([filePath]);
-            
-          if (deleteError) {
-            console.error("Error al eliminar imagen:", deleteError);
-          }
+        // Correctly parse the path from the URL
+        const url = new URL(imagenUrl);
+        // Supabase path often starts after /storage/v1/object/public/{bucket_name}/
+        const pathSegments = url.pathname.split('/');
+        const bucketIndex = pathSegments.indexOf('imagenes-productos'); // Find your bucket name index
+        
+        let filePath = '';
+        if (bucketIndex !== -1 && bucketIndex + 1 < pathSegments.length) {
+            filePath = pathSegments.slice(bucketIndex + 1).join('/');
+        } else {
+            console.warn("Could not extract file path from URL for deletion:", imagenUrl);
+        }
+
+        if (filePath) {
+            console.log("Attempting to delete image from Supabase:", filePath);
+            const { error: deleteError } = await supabase.storage
+                .from('imagenes-productos')
+                .remove([filePath]);
+                
+            if (deleteError) {
+                console.error("Error al eliminar imagen de Supabase:", deleteError);
+                // Continue to delete Firestore document even if image deletion fails, or handle differently
+                setError(`Producto eliminado de Firestore, pero hubo un error al eliminar la imagen: ${deleteError.message}`);
+            } else {
+                console.log("Image successfully deleted from Supabase:", filePath);
+            }
         }
       }
 
+      console.log("Deleting product document from Firestore:", id);
       await deleteDoc(doc(db, "productos", id));
       await cargarProductos();
+      setError(null); // Clear error on success
     } catch (error) {
-      console.error("Error al eliminar:", error);
+      console.error("Error al eliminar producto:", error);
       setError(`Error al eliminar producto: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  }, [cargarProductos]);
+  }, [cargarProductos]); // Removed unused subirImagen from dependencies, added cargarProductos
 
   // Eliminar café (con imagen en Supabase)
   const eliminarCafe = useCallback(async (id: string, imagenUrl?: string) => {
-    if (!confirm("¿Estás seguro de eliminar este café permanentemente?")) {
+    if (!confirm("¿Estás seguro de eliminar este café permanentemente? Esta acción no se puede deshacer.")) {
       return;
     }
 
@@ -880,21 +834,36 @@ const PanelControl = () => {
     setError(null);
     try {
       if (imagenUrl) {
-        const pathStart = imagenUrl.indexOf('productos/');
-        if (pathStart !== -1) {
-          const filePath = imagenUrl.substring(pathStart);
-          const { error: deleteError } = await supabase.storage
-            .from('imagenes-productos')
-            .remove([filePath]);
-            
-          if (deleteError) {
-            console.error("Error al eliminar imagen:", deleteError);
-          }
+        const url = new URL(imagenUrl);
+        const pathSegments = url.pathname.split('/');
+        const bucketIndex = pathSegments.indexOf('imagenes-productos');
+        
+        let filePath = '';
+        if (bucketIndex !== -1 && bucketIndex + 1 < pathSegments.length) {
+            filePath = pathSegments.slice(bucketIndex + 1).join('/');
+        } else {
+            console.warn("Could not extract file path from URL for deletion:", imagenUrl);
+        }
+
+        if (filePath) {
+            console.log("Attempting to delete coffee image from Supabase:", filePath);
+            const { error: deleteError } = await supabase.storage
+                .from('imagenes-productos')
+                .remove([filePath]);
+                
+            if (deleteError) {
+                console.error("Error al eliminar imagen de café de Supabase:", deleteError);
+                setError(`Café eliminado de Firestore, pero hubo un error al eliminar la imagen: ${deleteError.message}`);
+            } else {
+                console.log("Coffee image successfully deleted from Supabase:", filePath);
+            }
         }
       }
 
+      console.log("Deleting coffee document from Firestore:", id);
       await deleteDoc(doc(db, "cafes", id));
       await cargarCafes();
+      setError(null);
     } catch (error) {
       console.error("Error al eliminar café:", error);
       setError(`Error al eliminar café: ${error instanceof Error ? error.message : String(error)}`);
@@ -905,7 +874,7 @@ const PanelControl = () => {
 
   // Agregar nueva categoría
   const agregarCategoria = useCallback(async () => {
-    const categoria = nuevaCategoriaRef.current;
+    const categoria = nuevaCategoriaRef.current; // Use ref for latest state
     
     if (!categoria.nombre.trim()) {
       setError("Por favor ingresa un nombre para la categoría");
@@ -921,15 +890,16 @@ const PanelControl = () => {
       });
       setNuevaCategoria({ nombre: "" });
       await cargarCategorias();
+      setError(null);
     } catch (error) {
       console.error("Error al agregar categoría:", error);
       setError(`Error al agregar categoría: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  }, [cargarCategorias]);
+  }, [cargarCategorias]); // Added cargarCategorias to dependencies
 
-  // Editar categoría
+  // Editar categoría - already correct
   const editarCategoria = useCallback((categoria: Categoria) => {
     setNuevaCategoria({ nombre: categoria.nombre });
     setEdicionCategoriaId(categoria.id || null);
@@ -941,7 +911,7 @@ const PanelControl = () => {
   const actualizarCategoria = useCallback(async () => {
     if (!edicionCategoriaId) return;
     
-    const categoria = nuevaCategoriaRef.current;
+    const categoria = nuevaCategoriaRef.current; // Use ref for latest state
     
     if (!categoria.nombre.trim()) {
       setError("Por favor ingresa un nombre para la categoría");
@@ -958,32 +928,42 @@ const PanelControl = () => {
       setNuevaCategoria({ nombre: "" });
       setEdicionCategoriaId(null);
       await cargarCategorias();
+      setError(null);
     } catch (error) {
       console.error("Error al actualizar categoría:", error);
       setError(`Error al actualizar categoría: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  }, [edicionCategoriaId, cargarCategorias]);
+  }, [edicionCategoriaId, cargarCategorias]); // Added cargarCategorias to dependencies
 
   // Eliminar categoría
   const eliminarCategoria = useCallback(async (id: string) => {
-    if (!confirm("¿Estás seguro de eliminar esta categoría? Esto también eliminará todos los productos asociados.")) {
+    if (!confirm("¿Estás seguro de eliminar esta categoría? Esto también eliminará todos los productos asociados con esta categoría.")) {
       return;
     }
 
     setCargando(true);
     setError(null);
     try {
+      // Opcional: Eliminar productos asociados. Esto puede ser costoso en Firestore.
+      // Si hay muchos productos, considera una Cloud Function o un proceso batch.
+      // const productosAsociados = await getDocs(query(collection(db, "productos"), where("category", "==", categorias.find(c => c.id === id)?.nombre || "")));
+      // const batch = writeBatch(db);
+      // productosAsociados.forEach(pDoc => batch.delete(pDoc.ref));
+      // await batch.commit();
+
       await deleteDoc(doc(db, "categorias", id));
       await cargarCategorias();
+      await cargarProductos(); // Reload products as categories might affect them
+      setError(null);
     } catch (error) {
       console.error("Error al eliminar categoría:", error);
       setError(`Error al eliminar categoría: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
-  }, [cargarCategorias]);
+  }, [cargarCategorias, cargarProductos, categorias]); // Added categorias to dependencies to access category name for product deletion (if implemented)
 
   // Eliminar usuario
   const eliminarUsuario = useCallback(async (uid: string) => {
@@ -994,13 +974,16 @@ const PanelControl = () => {
     setCargando(true);
     setError(null);
     try {
-      // Buscar el documento del usuario por UID
       const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", uid)));
       
       if (!userQuery.empty) {
         const userDoc = userQuery.docs[0];
+        console.log("Deleting user document:", userDoc.id, "for UID:", uid);
         await deleteDoc(doc(db, "usuarios", userDoc.id));
         await cargarUsuarios();
+        setError(null);
+      } else {
+        setError("Usuario no encontrado en la base de datos.");
       }
     } catch (error) {
       console.error("Error al eliminar usuario:", error);
@@ -1020,9 +1003,12 @@ const PanelControl = () => {
 
   // Actualizar usuario
   const actualizarUsuario = useCallback(async () => {
-    if (!edicionUsuarioId || !usuarioEditandoRef.current) return;
+    if (!edicionUsuarioId || !usuarioEditandoRef.current) {
+      setError("No hay usuario para actualizar.");
+      return;
+    }
     
-    const usuario = usuarioEditandoRef.current;
+    const usuario = usuarioEditandoRef.current; // Use ref for latest state
     
     if (!usuario.email?.trim()) {
       setError("Por favor ingresa un email válido");
@@ -1032,22 +1018,26 @@ const PanelControl = () => {
     setCargando(true);
     setError(null);
     try {
-      // Buscar el documento del usuario por UID
       const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", edicionUsuarioId)));
       
       if (!userQuery.empty) {
         const userDoc = userQuery.docs[0];
+        console.log("Updating user document:", userDoc.id, "for UID:", edicionUsuarioId);
         await updateDoc(doc(db, "usuarios", userDoc.id), {
           email: usuario.email.trim(),
           displayName: usuario.displayName?.trim() || null,
           photoURL: usuario.photoURL,
           emailVerified: usuario.emailVerified,
+          // Do not update providerData here unless it's explicitly managed
           updatedAt: new Date().toISOString()
         });
         
         setUsuarioEditando(null);
         setEdicionUsuarioId(null);
         await cargarUsuarios();
+        setError(null);
+      } else {
+        setError("No se encontró el documento del usuario para actualizar.");
       }
     } catch (error) {
       console.error("Error al actualizar usuario:", error);
@@ -1058,21 +1048,22 @@ const PanelControl = () => {
   }, [edicionUsuarioId, cargarUsuarios]);
 
 
-
   // Función para marcar como completado y eliminar
   const marcarComoPagado = useCallback(async (pedidoId: string) => {
-    if (!confirm("¿Estás seguro de marcar este pedido como completado? Se eliminará permanentemente.")) {
+    if (!confirm("¿Estás seguro de marcar este pedido como completado? Se eliminará permanentemente de la lista de pedidos pendientes.")) {
       return;
     }
     
     setCargando(true);
     setError(null);
     try {
+      console.log("Deleting order as completed:", pedidoId);
       await deleteDoc(doc(db, "pedidos", pedidoId));
       await cargarPedidos();
+      setError(null);
     } catch (error) {
       console.error("Error al completar el pedido:", error);
-      setError("Error al completar el pedido");
+      setError(`Error al completar el pedido: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
@@ -1080,7 +1071,7 @@ const PanelControl = () => {
 
   // Función para guardar guía de envío
   const guardarGuiaEnvio = useCallback(async (pedidoId: string) => {
-    const guia = nuevaGuiaRef.current;
+    const guia = nuevaGuiaRef.current; // Use ref for latest state
     
     if (!guia.trim()) {
       setError("Por favor ingresa la guía de envío");
@@ -1089,24 +1080,167 @@ const PanelControl = () => {
     setCargando(true);
     setError(null);
     try {
-      await updateDoc(doc(db, "pedidos", pedidoId), { guiaEnvio: guia });
+      console.log("Updating shipping guide for order:", pedidoId);
+      await updateDoc(doc(db, "pedidos", pedidoId), { guiaEnvio: guia.trim() });
       setEditandoGuiaId(null);
       setNuevaGuia("");
       await cargarPedidos();
+      setError(null);
     } catch (error) {
       console.error("Error al guardar la guía de envío:", error);
-      setError("Error al guardar la guía de envío");
+      setError(`Error al guardar la guía de envío: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setCargando(false);
     }
   }, [cargarPedidos]);
 
+
+  // Primary Authentication Effect
+  useEffect(() => {
+    console.log("🔍 Starting authentication check via onAuthStateChanged...");
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+      console.log("👤 Auth state changed. User:", user?.email || "No authenticated user");
+      try {
+        if (!user) {
+          console.warn("No authenticated user found. Redirecting to login.");
+          setUsuarioActual(null); // Explicitly clear user
+          router.replace("/login");
+          return; // Crucial: exit early if no user
+        }
+
+        // If it's the super admin by email (highest privilege)
+        if (user.email === SUPER_ADMIN_EMAIL) {
+          console.log("👑 User is SUPER_ADMIN_EMAIL. Granting access.");
+          setUsuarioActual({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            emailVerified: user.emailVerified,
+            providerData: user.providerData,
+            rol: "super_admin" // Explicitly set role for super admin
+          });
+          // Also save/update this user in Firestore with their proper data
+          await guardarUsuario(user);
+          return; // Exit here, super admin has immediate access
+        }
+
+        // Consult Firestore for role if not super admin email
+        console.log("🔍 Querying Firestore for user role for UID:", user.uid);
+        const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", user.uid)));
+
+        if (!userQuery.empty) {
+          const userDoc = userQuery.docs[0];
+          const data = userDoc.data() as FirestoreData;
+          console.log("📋 User document found in Firestore. Data:", data);
+
+          if (data.rol === "admin") {
+            console.log("✅ User has 'admin' role. Setting usuarioActual.");
+            setUsuarioActual({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              emailVerified: user.emailVerified,
+              providerData: user.providerData,
+              rol: "admin" // Explicitly set role
+            });
+            // Also save/update this user in Firestore with their proper data
+            await guardarUsuario(user);
+          } else {
+            console.warn(`User ${user.email} (UID: ${user.uid}) does not have 'admin' role. Redirecting.`);
+            setUsuarioActual(null); // Ensure user state is cleared
+            router.replace("/login");
+          }
+        } else {
+          console.warn(`User ${user.email} (UID: ${user.uid}) not found in Firestore 'usuarios' collection. Redirecting.`);
+          setUsuarioActual(null); // Ensure user state is cleared
+          router.replace("/login");
+        }
+      } catch (error) {
+        console.error("🚨 Critical Error during authentication or role verification:", error);
+        setError(`Error de autenticación: ${error instanceof Error ? error.message : String(error)}. Por favor, intenta de nuevo.`);
+        setUsuarioActual(null); // Clear user state on error
+        router.replace("/login"); // Redirect on critical error
+      } finally {
+        console.log("🏁 Authentication check complete. Setting checkingAuth(false).");
+        setCheckingAuth(false); // Always set to false here to dismiss initial loading overlay
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener
+  }, [router, guardarUsuario]); // Added guardarUsuario as a dependency for this effect
+
+  // Effect to load initial data *after* authentication check is done AND a user is authenticated
+  useEffect(() => {
+    if (!checkingAuth && usuarioActual) {
+      console.log("✅ Auth check complete and user authenticated. Starting initial data fetch.");
+      cargarDatosIniciales(); // This includes all other data loading
+    } else if (!checkingAuth && !usuarioActual) {
+      console.log("❌ Auth check complete, but no admin user authenticated. No data fetch initiated.");
+      // The user would have been redirected by the auth effect
+    }
+  }, [checkingAuth, usuarioActual, cargarDatosIniciales]); // Added cargarDatosIniciales as a dependency
+
+  // Manejar carga de imágenes para prevenir bug visual
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleImageLoad = () => {
+      try {
+        const images = document.querySelectorAll('.producto-imagen img, .cafe-imagen img');
+        images.forEach((img) => {
+          if (img instanceof HTMLImageElement) {
+            if (img.complete) {
+              img.classList.add('loaded');
+            } else {
+              img.addEventListener('load', () => {
+                img.classList.add('loaded');
+              });
+              img.addEventListener('error', () => {
+                img.style.display = 'none'; // Hide broken images
+                img.classList.remove('loaded'); // Ensure 'loaded' class is removed
+              });
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error manejando carga de imágenes:", error);
+      }
+    };
+
+    // Re-run this effect when products or cafes change
+    const timer = setTimeout(handleImageLoad, 200); // Give DOM a moment to update
+    
+    return () => clearTimeout(timer);
+  }, [productos, cafes, activeTab]); // Added activeTab to re-run on tab change
+
+
+  // --- Conditional Rendering for Loading and Access Denied ---
+  if (checkingAuth) {
+    return (
+      <div className="cargando-overlay">
+        <div className="cargando-contenido">
+          <div className="spinner"></div>
+          <p>Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Once authentication check is done, if no user is authenticated, show access denied
+  if (!usuarioActual) {
+    return <div style={{padding: 40, textAlign: 'center', color: 'red', fontSize: '1.2em'}}>Acceso denegado. Por favor, inicia sesión con una cuenta de administrador.</div>;
+  }
+
+  // If a user is authenticated, but other data operations are loading
   if (cargando) {
     return (
       <div className="cargando-overlay">
         <div className="cargando-contenido">
           <div className="spinner"></div>
-          <p>Procesando...</p>
+          <p>Procesando datos...</p>
         </div>
       </div>
     );
@@ -1150,12 +1284,15 @@ const PanelControl = () => {
       <div className="panel-control">
         <header className="panel-header">
           <h1>Panel de Control</h1>
-          <p>Administra tus productos y categorías</p>
+          <p>Administra tus productos, categorías, cafés, usuarios y pedidos.</p>
           {usuarioActual && (
             <div style={{marginTop: 10, fontSize: '14px', color: '#666'}}>
               Conectado como: <strong>{usuarioActual.email}</strong>
-              {usuarioActual.email === SUPER_ADMIN_EMAIL && (
+              {(usuarioActual.rol === "super_admin" || usuarioActual.email === SUPER_ADMIN_EMAIL) && (
                 <span style={{marginLeft: 10, color: '#28a745'}}>👑 Super Admin</span>
+              )}
+              {usuarioActual.rol === "admin" && usuarioActual.email !== SUPER_ADMIN_EMAIL && (
+                <span style={{marginLeft: 10, color: '#007bff'}}>⭐ Admin</span>
               )}
             </div>
           )}
@@ -1268,8 +1405,10 @@ const PanelControl = () => {
                           precio: "",
                           categoria: "",
                           descripcion: "",
-                          imagen: null
+                          imagen: null,
+                          imagenUrl: "" // Clear image URL too
                         });
+                        setError(null); // Clear error on cancel
                       }}
                       disabled={cargando}
                     >
@@ -1456,12 +1595,14 @@ const PanelControl = () => {
                           precio: "",
                           descripcion: "",
                           imagen: null,
+                          imagenUrl: "", // Clear image URL too
                           origen: "",
                           intensidad: 3,
                           tipo: "Arábica",
                           notas: "",
                           tueste: "Medio"
                         });
+                        setError(null); // Clear error on cancel
                       }}
                       disabled={cargando}
                     >
@@ -1549,6 +1690,7 @@ const PanelControl = () => {
                       onClick={() => {
                         setEdicionCategoriaId(null);
                         setNuevaCategoria({ nombre: "" });
+                        setError(null); // Clear error on cancel
                       }}
                       disabled={cargando}
                     >
@@ -1628,6 +1770,20 @@ const PanelControl = () => {
                     />
                   </div>
 
+                  {/* Add role editing only if current user is SUPER_ADMIN_EMAIL */}
+                  {(usuarioActual?.email === SUPER_ADMIN_EMAIL) && (
+                    <div className="form-group">
+                      <label>Rol</label>
+                      <select
+                        value={usuarioEditando.rol || "cliente"} // Default to 'cliente' if not set
+                        onChange={(e) => setUsuarioEditando({ ...usuarioEditando, rol: e.target.value })}
+                      >
+                        <option value="cliente">Cliente</option>
+                        <option value="admin">Administrador</option>
+                      </select>
+                    </div>
+                  )}
+
                   <div className="form-group">
                     <label>
                       <input
@@ -1649,6 +1805,7 @@ const PanelControl = () => {
                       onClick={() => {
                         setEdicionUsuarioId(null);
                         setUsuarioEditando(null);
+                        setError(null); // Clear error on cancel
                       }}
                       disabled={cargando}
                     >
@@ -1674,7 +1831,7 @@ const PanelControl = () => {
                           ) : (
                             <div className="usuario-avatar">
                               <div className="avatar-placeholder">
-                                {usuario.displayName ? usuario.displayName.charAt(0).toUpperCase() : 'U'}
+                                {usuario.displayName ? usuario.displayName.charAt(0).toUpperCase() : (usuario.email ? usuario.email.charAt(0).toUpperCase() : 'U')}
                               </div>
                             </div>
                           )}
@@ -1682,6 +1839,7 @@ const PanelControl = () => {
                             <h4>{usuario.displayName || 'Sin nombre'}</h4>
                             <p><strong>Email:</strong> {usuario.email || 'No proporcionado'}</p>
                             <p><strong>ID:</strong> {usuario.uid}</p>
+                            <p><strong>Rol:</strong> {usuario.rol ? (usuario.rol === 'admin' ? 'Administrador' : 'Cliente') : 'Cliente (por defecto)'}</p>
                             <p><strong>Verificado:</strong> {usuario.emailVerified ? 'Sí' : 'No'}</p>
                             <p><strong>Proveedor:</strong> {(() => {
                               const provider = usuario.providerData[0];
@@ -1700,13 +1858,16 @@ const PanelControl = () => {
                           >
                             Editar
                           </button>
-                          <button 
-                            onClick={() => eliminarUsuario(usuario.uid)}
-                            className="btn-eliminar"
-                            disabled={cargando}
-                          >
-                            Eliminar
-                          </button>
+                          {/* Allow super admin to delete any user, regular admin cannot delete other admins or super admin */}
+                          {usuarioActual?.email === SUPER_ADMIN_EMAIL && usuario.uid !== usuarioActual.uid && (
+                            <button 
+                              onClick={() => eliminarUsuario(usuario.uid)}
+                              className="btn-eliminar"
+                              disabled={cargando}
+                            >
+                              Eliminar
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1736,7 +1897,7 @@ const PanelControl = () => {
                           {pedido.productos.map((prod, idx) => (
                             <div key={idx} className="pedido-producto-item">
                               <span>{prod.nombre} x {prod.cantidad}</span>
-                              <span>${prod.precio} c/u</span>
+                              <span>${prod.precio.toFixed(2)} c/u</span> {/* Ensure price is formatted */}
                             </div>
                           ))}
                         </div>
@@ -1769,14 +1930,14 @@ const PanelControl = () => {
                               <button onClick={() => guardarGuiaEnvio(pedido.id)} className="btn-primary" disabled={cargando}>
                                 <span role="img" aria-label="Guardar">💾</span> Guardar
                               </button>
-                              <button onClick={() => { setEditandoGuiaId(null); setNuevaGuia(""); }} className="btn-secondary" disabled={cargando}>
+                              <button onClick={() => { setEditandoGuiaId(null); setNuevaGuia(""); setError(null); }} className="btn-secondary" disabled={cargando}>
                                 Cancelar
                               </button>
                             </div>
                           ) : (
                             <div className="numero-guia-input">
                               <span><strong>Guía de envío:</strong> {pedido.guiaEnvio || 'No asignada'}</span>
-                              <button onClick={() => { setEditandoGuiaId(pedido.id); setNuevaGuia(pedido.guiaEnvio || ""); }} className="btn-editar" disabled={cargando}>
+                              <button onClick={() => { setEditandoGuiaId(pedido.id); setNuevaGuia(pedido.guiaEnvio || ""); setError(null); }} className="btn-editar" disabled={cargando}>
                                 {pedido.guiaEnvio ? 'Editar' : 'Agregar'}
                               </button>
                               {pedido.guiaEnvio && pedido.datosEnvio?.telefono && (
