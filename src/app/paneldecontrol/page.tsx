@@ -223,6 +223,7 @@ const PanelControl = () => {
           usuariosPorUid.get(uid)!.push({ id: docSnapshot.id, data });
         } else {
           console.warn("Documento de usuario sin UID encontrado, eliminando:", docSnapshot.id);
+          // FIX: Correctly call deleteDoc with the document reference
           deleteDoc(doc(db, "usuarios", docSnapshot.id)); // Clean up docs without UID
         }
       });
