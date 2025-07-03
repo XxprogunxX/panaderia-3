@@ -213,17 +213,17 @@ const PanelControl = () => {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosPorUid = new Map<string, UsuarioDocumento[]>();
       
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as unknown as FirestoreData;
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data() as unknown as FirestoreData;
         const uid = data.uid;
         if (uid) { // Ensure UID exists
           if (!usuariosPorUid.has(uid)) {
             usuariosPorUid.set(uid, []);
           }
-          usuariosPorUid.get(uid)!.push({ id: doc.id, data });
+          usuariosPorUid.get(uid)!.push({ id: docSnapshot.id, data });
         } else {
-          console.warn("Documento de usuario sin UID encontrado, eliminando:", doc.id);
-          deleteDoc(doc(db, "usuarios", doc.id)); // Clean up docs without UID
+          console.warn("Documento de usuario sin UID encontrado, eliminando:", docSnapshot.id);
+          deleteDoc(doc(db, "usuarios", docSnapshot.id)); // Clean up docs without UID
         }
       });
       
