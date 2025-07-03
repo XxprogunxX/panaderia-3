@@ -176,8 +176,8 @@ const PanelControl = () => {
       const querySnapshot = await getDocs(collection(db, "usuarios"));
       const usuariosMap = new Map<string, Usuario>();
       
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as FirestoreData;
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data() as FirestoreData;
         const usuario: Usuario = {
           uid: data.uid,
           email: data.email,
@@ -321,8 +321,8 @@ const PanelControl = () => {
       console.log("Loading products...");
       const querySnapshot = await getDocs(collection(db, "productos"));
       const lista: Producto[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as {
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data() as {
           product: string;
           price: number;
           category: string;
@@ -330,7 +330,7 @@ const PanelControl = () => {
           pic: string;
         };
         lista.push({
-          id: doc.id,
+          id: docSnapshot.id,
           nombre: data.product,
           precio: data.price.toString(),
           categoria: data.category,
@@ -353,8 +353,8 @@ const PanelControl = () => {
       console.log("Loading coffees...");
       const querySnapshot = await getDocs(collection(db, "cafes"));
       const lista: Cafe[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as {
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data() as {
           nombre?: string;
           precio?: number;
           descripcion?: string;
@@ -366,7 +366,7 @@ const PanelControl = () => {
           tueste?: string;
         };
         lista.push({
-          id: doc.id,
+          id: docSnapshot.id,
           nombre: data.nombre || "",
           precio: data.precio ? data.precio.toString() : "",
           descripcion: data.descripcion || "",
@@ -392,10 +392,10 @@ const PanelControl = () => {
       console.log("Loading categories...");
       const querySnapshot = await getDocs(collection(db, "categorias"));
       const lista: Categoria[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as { nombre: string };
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data() as { nombre: string };
         lista.push({
-          id: doc.id,
+          id: docSnapshot.id,
           nombre: data.nombre
         });
       });
@@ -413,8 +413,8 @@ const PanelControl = () => {
       console.log("Loading orders...");
       const querySnapshot = await getDocs(collection(db, "pedidos"));
       const lista: Pedido[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as {
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data() as {
           productos?: { nombre: string; cantidad: number; precio: number }[];
           total?: number;
           estado?: string;
@@ -432,7 +432,7 @@ const PanelControl = () => {
           guiaEnvio?: string;
         };
         lista.push({
-          id: doc.id,
+          id: docSnapshot.id,
           productos: data.productos || [],
           total: data.total || 0,
           estado: data.estado || 'pendiente',
