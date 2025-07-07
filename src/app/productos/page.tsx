@@ -25,6 +25,7 @@ interface Producto {
 }
 
 export default function Productos() {
+  console.log("render Productos"); // Log para detectar remounts
   const router = useRouter();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [busqueda, setBusqueda] = useState("");
@@ -44,7 +45,7 @@ export default function Productos() {
         lista.push({
           nombre: data.product,
           descripcion: data.description,
-          imagen: data.pic || "/images/",
+          imagen: data.pic || "/images/default.jpg",
           precio: data.price,
           categoria: data.category,
         });
@@ -84,7 +85,10 @@ export default function Productos() {
           type="text"
           placeholder="Buscar pan..."
           value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          onChange={(e) => {
+            setBusqueda(e.target.value);
+            console.log("busqueda:", e.target.value); // Log para depuración
+          }}
           className={styles.buscador}
         />
       </section>
