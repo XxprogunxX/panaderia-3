@@ -2,49 +2,39 @@ import './segundo.css';
 import Image from 'next/image';
 import Link from 'next/link';
 
+
 export default function CafePage() {
   return (
-    <> 
-      <main className="cafe-page">
+    <>
+      <main className="cafe-page" suppressHydrationWarning>
         <section className="hero">
           {/* Navbar ajustado para el diseño de la imagen */}
           <nav className="navbar">
             {/* Contenedor para el logo y el nombre de la cafetería (parte izquierda de la navbar) */}
             <div className="navbar-brand-container"> {/* NUEVO CONTENEDOR */}
-              
               <Link href="/" className="nav-link logo-text">Cafetería</Link> {/* El texto del nombre de la cafetería */}
             </div>
-
             {/* Links de navegación y (opcionalmente) el icono de búsqueda (parte derecha de la navbar) */}
             <div className="navbar-links-container"> {/* Renombrado para claridad */}
               <Link href="/cafe" className="nav-link">Inicio</Link> {/* Corregí el enlace a "Inicio" */}
               <Link href="/cafeproductos" className="nav-link">Productos</Link>
               <Link href="/" className="nav-link">Panadería</Link> {/* Asumo que tienes una página /panaderia */}
               <a href="#testimonios" className="nav-link">Testimonios</a>
-
               <Image
-                src="/images/logo-cafe.png" // <--- RUTA DE TU LOGO DE CAFETERÍA
+                src="/images/logo-cafe.png"
                 alt="Logo de la Cafetería"
-                width={50} // <--- AJUSTA EL TAMAÑO DE TU LOGO AQUÍ
-                height={50} // <--- AJUSTA EL TAMAÑO DE TU LOGO AQUÍ
-                className="navbar-logo-image" // NUEVA CLASE para estilizar la imagen del logo
+                width={50}
+                height={50}
+                className="navbar-logo-image"
               />
-              
-              {/* Opcional: Si quieres un icono de búsqueda a la derecha, mantén esto.
-                  Si no, simplemente quítalo. */}
-              
-              
             </div>
-            {/* Para móviles, podrías añadir un botón de hamburguesa aquí y manejarlo con JS */}
           </nav>
-
           <div className="hero-text">
             <h1>El Arte del Café</h1>
             <p>Una experiencia sensorial en cada taza.</p>
             <button className="cta-button">Comprar Ahora</button>
           </div>
         </section>
-
         {/* Sección de enlaces de menú inferior */}
         <section className="info-nav-links">
           <Link href="#menu" className="info-nav-link">El Menú</Link>
@@ -52,7 +42,6 @@ export default function CafePage() {
           <Link href="#ubicacion" className="info-nav-link">Ubicación</Link>
           <Link href="#contacto" className="info-nav-link">Contacto</Link>
         </section>
-
         <section id="productos" className="productos">
           <h2 className="productos-titulo">Nuestros Favoritos</h2>
           <div className="productos-grid">
@@ -67,7 +56,6 @@ export default function CafePage() {
                 <p className="producto-tueste">Tueste Medio</p>
               </div>
             </div>
-
             <div className="producto-card">
               <div className="producto-etiqueta honey">AMERICANO</div>
               <Image src="/images/cafe.png" alt="Americano" width={180} height={180} className="producto-img" />
@@ -79,7 +67,6 @@ export default function CafePage() {
                 <p className="producto-tueste">Tueste Medio</p>
               </div>
             </div>
-
             <div className="producto-card">
               <div className="producto-etiqueta lavado">CAPPUCCINO</div>
               <Image src="/images/cafe.png" alt="Cappuccino" width={180} height={180} className="producto-img" />
@@ -104,7 +91,6 @@ export default function CafePage() {
             </div>
           </div>
         </section>
-
         <section id="informacion" className="informacion fade-in-up">
           <h2>Información del Café</h2>
           <div className="info-cards-container">
@@ -120,7 +106,6 @@ export default function CafePage() {
                 </p>
               </div>
             </article>
-
             <article className="info-card right-image">
               <div className="info-text">
                 <h3>Proceso de Tostado</h3>
@@ -134,7 +119,6 @@ export default function CafePage() {
                 <Image src="/images/tostado.jpeg" alt="Proceso de tostado" width={500} height={300} />
               </div>
             </article>
-
             <article className="info-card left-image">
               <div className="info-image">
                 <Image src="/images/variedades-cafe.jpg" alt="Variedades de café" width={500} height={300} />
@@ -147,7 +131,6 @@ export default function CafePage() {
                 </p>
               </div>
             </article>
-
             <article className="info-card right-image">
               <div className="info-text">
                 <h3>Perfil de Sabor</h3>
@@ -162,7 +145,6 @@ export default function CafePage() {
             </article>
           </div>
         </section>
-
         <section id="testimonios" className="testimonios fade-in">
           <h2>Lo que dicen nuestros clientes</h2>
           <blockquote>“El mejor café que he probado. Su aroma es una delicia.”</blockquote>

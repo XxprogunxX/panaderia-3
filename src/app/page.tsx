@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import "./styles.css";
+
 import { useState, useEffect } from "react";
 import HelpPopup from "./components/bolita-de-ayuda/bolita";
 import { db } from "./firebaseConfig";
@@ -124,27 +124,6 @@ const Home = () => {
   if (!isClient) {
     return (
       <main>
-        <header className="header">
-          <div className="logo-link-header">
-            <Image
-              src="/images/logo.png"
-              alt="Logo"
-              width={60}
-              height={60}
-              className="logo-img"
-            />
-            <h1 className="logo">Panadería El Pan de Cada Día</h1>
-          </div>
-          <nav className="nav">
-            <ul>
-              <li><Link href="/">Inicio</Link></li>
-              <li><Link href="/productos">Productos</Link></li>
-              <li><Link href="/cafe">Cafe</Link></li>
-              <li><Link href="/nosotros">Nosotros</Link></li>
-              <li><Link href="/login">Login</Link></li>
-            </ul>
-          </nav>
-        </header>
         <div style={{ padding: '2rem', textAlign: 'center' }}>
           <p>Cargando...</p>
         </div>
@@ -154,40 +133,6 @@ const Home = () => {
 
   return (
     <main>
-      <header className="header">
-        <div className="logo-link-header">
-          <Image
-            src="/images/logo.png"
-            alt="Logo"
-            width={60}
-            height={60}
-            className="logo-img"
-          />
-          <h1 className="logo">Panadería El Pan de Cada Día</h1>
-        </div>
-        <nav className="nav">
-          <ul>
-            <li><Link href="/">Inicio</Link></li>
-            <li><Link href="/productos">Productos</Link></li>
-            <li><Link href="/cafe">Cafe</Link></li>
-            <li><Link href="/nosotros">Nosotros</Link></li>
-            <li><Link href="/login">Login</Link></li>
-            <li>
-              <button onClick={toggleCarrito} className="btn-carrito-toggle">
-  <span className="icono-carrito">🛒</span>
-  <span>Carrito</span>
-  {carrito.length > 0 && (
-    <span className="notificacion-carrito">
-      {carrito.reduce((sum, p) => sum + p.cantidad, 0)}
-    </span>
-  )}
-</button>
-
-            </li>
-          </ul>
-        </nav>
-      </header>
-
       <section className="hero">
         <div className="intro">
           <h1>

@@ -47,39 +47,7 @@ export default function NosotrosPage() {
 
   return (
     <main>
-      <header className="header">
-        <div className="logo-link-header">
-          <Image
-            src="/images/logo.png"
-            alt="Logo"
-            width={60}
-            height={60}
-            className="logo-img"
-          />
-          <h1 className="logo">Panadería El Pan de Cada Día</h1>
-        </div>
-        <nav className="nav">
-          <ul>
-            <li><Link href="/">Inicio</Link></li>
-            <li><Link href="/productos">Productos</Link></li>
-            <li><Link href="/cafe">Cafe</Link></li>
-            <li><Link href="/nosotros" className="active">Nosotros</Link></li>
-            <li><Link href="/login">Login</Link></li>
-            <li>
-              <button onClick={toggleCarrito} className="btn-carrito-toggle">
-                <span className="icono-carrito">🛒</span>
-                <span>Carrito</span>
-                {totalItemsEnCarrito > 0 && (
-                  <span className="notificacion-carrito">
-                    {totalItemsEnCarrito}
-                  </span>
-                )}
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </header>
-
+      
       <section className="nosotros-hero">
         <div className="nosotros-hero-content">
           <h1>Nuestra Historia, Tu Confianza</h1>

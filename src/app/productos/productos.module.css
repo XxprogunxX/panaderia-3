@@ -1,0 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Montserrat:wght@400;600;700&display=swap');
+
+/* Reset local */
+
+
+.productos {
+  font-family: 'Montserrat', sans-serif;
+  background: #fff8f3;
+  color: #4A3B31;
+}
+
+/* Hero */
+.productosHero {
+  background: linear-gradient(rgba(244, 224, 195, 0.7), rgba(244, 224, 195, 0.7)),
+              url('/images/wallpaper-no.jpg') center/cover no-repeat;
+  min-height: 60vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 5rem 1rem 3rem;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 8px 32px rgba(212, 163, 115, 0.18);
+}
+
+.productosHero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.2rem;
+  background: linear-gradient(90deg, #4A3B31 0%, #D4A373 60%, #B6894B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding: 0.6em 1.5em;
+  border-radius: 18px;
+}
+
+.productosHero p {
+  max-width: 600px;
+  font-size: 1.1rem;
+  color: #5D4A3A;
+  margin: 1.2rem 0 2.5rem;
+}
+
+.buscador {
+  width: 100%;
+  max-width: 500px;
+  padding: 1rem;
+  border: 1.5px solid #D4A373;
+  border-radius: 30px;
+  background: white;
+  color: #4A3B31;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 2.5rem;
+}
+.buscador:focus {
+  border-color: #B6894B;
+}
+
+/* Categorías */
+.categoriasProductos {
+  padding: 3rem 2rem;
+  background: #F4E8D4;
+}
+
+.categoriaTitulo {
+  font-size: 1.6rem;
+  margin-bottom: 1.2rem;
+  color: #4A3B31;
+}
+
+/* Grid productos */
+.productosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Card producto */
+.card {
+  width: 100%;
+  max-width: 270px;
+  background: linear-gradient(180deg, #F8F0E0 0 80px, #fff 80px 100%);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(212, 163, 115, 0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 16px 40px rgba(212, 163, 115, 0.18);
+}
+
+/* Imagen producto */
+.imagenContainer {
+  margin-top: 30px;
+  width: 120px;
+  height: 120px;
+  padding: 6px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 18px rgba(212, 163, 115, 0.13);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Contenido de producto */
+.cardContent {
+  text-align: center;
+  padding: 0 0.8rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardContent h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 0.7rem;
+  margin-bottom: 0.3rem;
+  color: #4A3B31;
+  letter-spacing: 0.5px;
+}
+
+.descripcion {
+  font-size: 0.95rem;
+  color: #7c5c3e;
+  line-height: 1.5;
+  margin-bottom: 0.6rem;
+}
+
+.precio {
+  font-weight: bold;
+  color: #D4A373;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Botón */
+.btnPedir {
+  padding: 0.75rem;
+  width: 100%;
+  background: #D4A373;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btnPedir:hover {
+  background: #b97b37;
+}
+.btnPedir:disabled {
+  background: #e0c3a0;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* No resultados */
+.noResultados {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: 2rem;
+  color: #999;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .productosHero h1 {
+    font-size: 2rem;
+    padding: 0.4em 1em;
+  }
+
+  .productosHero p {
+    font-size: 1rem;
+  }
+
+  .buscador {
+    max-width: 90%;
+  }
+
+  .card {
+    max-width: 95%;
+  }
+
+  .productosGrid {
+    grid-template-columns: 1fr;
+  }
+}
