@@ -1,33 +1,10 @@
 /* Importar fuentes de Google Fonts (debes añadir esto en tu HTML en la sección <head> o usar @import en la primera línea del CSS si lo prefieres) */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;600&display=swap');
 
-/* Reset básico */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Open Sans', sans-serif;
-  background: linear-gradient(120deg, #fff8f3 0%, #fceee3 100%);
-  color: #4b3a2f;
-  line-height: 1.6;
-  font-size: 16px;
-}
-
-/* Contenedor principal de la página */
-.cafe-page {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden; /* Evitar scroll horizontal */
-}
-
 /* === Sección HERO === */
 
 
-.hero {
+.cafe-hero {
     position: relative;
     min-height: 90vh;
     background: linear-gradient(135deg, #fceee3 0%, #fff8f3 100%);
@@ -53,7 +30,7 @@ body {
   }
   
   /* Círculo decorativo grande */
-  .hero::before {
+  .cafe-hero::before {
     content: '';
     position: absolute;
     top: -100px;
@@ -68,7 +45,7 @@ body {
   }
   
   /* Círculo decorativo con imagen */
-  .hero::after {
+  .cafe-hero::after {
     content: '';
     position: absolute;
     bottom: -150px;
@@ -108,7 +85,7 @@ body {
 /* ... (todo el CSS anterior hasta la sección .navbar) ... */
 
 /* === Barra de navegación === */
-.navbar {
+.cafe-navbar {
   width: 100%;
   position: absolute;
   top: 0;
@@ -123,21 +100,21 @@ body {
 }
 
 /* NUEVO: Contenedor para el logo de la cafetería y el texto */
-.navbar-brand-container {
+.cafe-navbar-brand-container {
   display: flex;
   align-items: center;
   gap: 10px; /* Espacio entre el logo de la imagen y el texto */
 }
 
 /* NUEVO: Estilo para la imagen del logo dentro del navbar-brand-container */
-.navbar-logo-image {
+.cafe-navbar-logo-image {
   width: 50px; /* Tamaño del logo, ajusta según sea necesario */
   height: 50px;
   object-fit: contain; /* Asegura que la imagen no se recorte */
 }
 
 /* El texto "Cafetería" que actúa como logo */
-.logo-text {
+.cafe-logo-text {
   font-family: 'Playfair Display', serif; /* O la fuente que uses para el nombre de la cafetería */
   color: #4b3a2f; /* Color del texto del logo */
   font-size: 2.2rem; /* Tamaño del texto del logo */
@@ -146,14 +123,14 @@ body {
 }
 
 /* Contenedor de enlaces de navegación (a la derecha) */
-.navbar-links-container { /* Renombrado para claridad */
+.cafe-navbar-links-container { /* Renombrado para claridad */
   display: flex;
   gap: 30px; /* Espacio entre los enlaces y el icono de búsqueda */
   align-items: center;
 }
 
 /* Los nav-links como en la imagen (Inicio, Productos, Panaderia, Testimonios) */
-.nav-link {
+.cafe-nav-link {
   font-family: 'Montserrat', sans-serif;
   color: #5a4432; /* Un marrón más oscuro para los enlaces */
   text-decoration: none;
@@ -162,12 +139,12 @@ body {
   transition: color 0.3s ease;
 }
 
-.nav-link:hover {
+.cafe-nav-link:hover {
   color: #8d6e63; /* Color de hover similar al cta-button */
 }
 
 /* Icono de búsqueda (Si lo mantienes) */
-.search-icon {
+.cafe-search-icon {
   width: 24px;
   height: 24px;
   fill: #5a4432; /* Color del SVG */
@@ -175,7 +152,7 @@ body {
   transition: fill 0.3s ease;
 }
 
-.search-icon:hover {
+.cafe-search-icon:hover {
   fill: #8d6e63;
 }
 
@@ -183,36 +160,36 @@ body {
 
 /* Media query para móviles, ajustar el logo y links */
 @media (max-width: 768px) {
-  .navbar {
+  .cafe-navbar {
     padding: 15px 20px;
     flex-direction: column; /* Apila el brand y los links */
     justify-content: center; /* Centra en columna */
     gap: 15px; /* Espacio entre el brand y los links apilados */
   }
 
-  .navbar-brand-container {
+  .cafe-navbar-brand-container {
     justify-content: center; /* Centra el logo y el texto en móvil */
     width: 100%;
   }
 
-  .logo-text {
+  .cafe-logo-text {
     font-size: 2rem; /* Ajusta el tamaño del texto del logo en móvil */
   }
 
-  .navbar-links-container {
+  .cafe-navbar-links-container {
     flex-direction: column; /* Apila los links */
     gap: 15px;
     width: 100%;
   }
 
   /* Ocultar icono de búsqueda en móviles si se prefiere un menú de hamburguesa */
-  .search-icon {
+  .cafe-search-icon {
     display: none;
   }
 }
 
 /* === Contenido del Hero === */
-.hero-text {
+.cafe-hero-text {
   position: relative; /* Para que esté por encima de los círculos */
   z-index: 5;
   text-align: center; /* Centrado como en la imagen */
@@ -220,7 +197,7 @@ body {
   margin-top: 50px; /* Ajuste para subir un poco el texto */
 }
 
-.hero-text h1 {
+.cafe-hero-text h1 {
   font-family: 'Playfair Display', serif; /* Fuente elegante para el título */
   font-size: 4.5rem; /* Tamaño grande para el título */
   font-weight: 700;
@@ -241,16 +218,16 @@ body {
   transition: all 0.3s ease;
 }
 
-.hero-text h1:hover,
-.hero-title:hover {
+.cafe-hero-text h1:hover,
+.cafe-hero-title:hover {
   transform: scale(1.02);
   text-shadow: 
     3px 3px 6px rgba(0, 0, 0, 0.4),
     0 0 30px rgba(139, 69, 19, 0.4);
 }
 
-.hero-text h1::after,
-.hero-title::after {
+.cafe-hero-text h1::after,
+.cafe-hero-title::after {
   content: '';
   position: absolute;
   bottom: -10px;
@@ -264,8 +241,8 @@ body {
   animation: lineGlow 2s ease-in-out infinite alternate;
 }
 
-.hero-text p,
-.hero-subtitle {
+.cafe-hero-text p,
+.cafe-hero-subtitle {
   font-family: 'Open Sans', sans-serif; /* Fuente más legible para el párrafo */
   font-size: 1.3rem; /* Tamaño del subtítulo */
   color: #6b5b47; /* Color más suave para el subtítulo */
@@ -282,8 +259,8 @@ body {
   transition: all 0.3s ease;
 }
 
-.hero-text p:hover,
-.hero-subtitle:hover {
+.cafe-hero-text p:hover,
+.cafe-hero-subtitle:hover {
   transform: scale(1.01);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
@@ -313,7 +290,7 @@ body {
   }
 }
 
-.cta-button {
+.cafe-cta-button {
   background: linear-gradient(90deg, #b9936c 0%, #8d6e63 100%);
   color: #fff;
   padding: 16px 48px;
@@ -330,7 +307,7 @@ body {
   overflow: hidden;
 }
 
-.cta-button::after {
+.cafe-cta-button::after {
   content: '';
   position: absolute;
   left: 0; top: 0; right: 0; bottom: 0;
@@ -341,19 +318,19 @@ body {
   opacity: 0.7;
 }
 
-.cta-button:hover, .cta-button:focus {
+.cafe-cta-button:hover, .cafe-cta-button:focus {
   background: linear-gradient(90deg, #8d6e63 0%, #b9936c 100%);
   transform: translateY(-2px) scale(1.04);
   box-shadow: 0 8px 32px rgba(185,147,108,0.22);
 }
 
-.cta-button:active {
+.cafe-cta-button:active {
   transform: scale(0.98);
   box-shadow: 0 2px 8px rgba(185,147,108,0.10);
 }
 
 /* === Sección de enlaces de menú inferior (El Menú, Información, Ubicación, Contacto) === */
-.info-nav-links {
+.cafe-info-nav-links {
   display: flex;
   justify-content: center;
   gap: 60px; /* Espacio entre los enlaces */
@@ -365,7 +342,7 @@ body {
   z-index: 10; /* Para que se vea por encima de otras secciones */
 }
 
-.info-nav-link {
+.cafe-info-nav-link {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.2rem;
   font-weight: 600;
@@ -374,21 +351,21 @@ body {
   transition: color 0.3s ease, transform 0.3s ease;
 }
 
-.info-nav-link:hover {
+.cafe-info-nav-link:hover {
   color: #8d6e63;
   transform: translateY(-3px);
 }
 
 
 /* === Sección de Productos === */
-.productos {
+.cafe-productos {
   padding: 60px 4%; /* Mayor padding */
   background-color: #ffffff; /* Fondo blanco */
   color: #3e2c23;
   text-align: center;
 }
 
-.productos-titulo {
+.cafe-productos-titulo {
   font-family: 'Playfair Display', serif;
   font-size: 3rem; /* Título más grande */
   margin-bottom: 50px; /* Más espacio */
@@ -398,7 +375,7 @@ body {
 }
 
 /* Mejora del grid de productos para mejor acomodo */
-.productos-grid {
+.cafe-productos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 32px;
@@ -410,21 +387,21 @@ body {
 }
 
 @media (max-width: 900px) {
-  .productos-grid {
+  .cafe-productos-grid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 24px;
   }
 }
 
 @media (max-width: 600px) {
-  .productos-grid {
+  .cafe-productos-grid {
     grid-template-columns: 1fr;
     gap: 18px;
   }
 }
 
 /* Tarjeta del producto */
-.producto-card {
+.cafe-producto-card {
   background: linear-gradient(180deg, #8d6e63 0 80px, #f9f5f1 80px 100%);
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(185,147,108,0.10);
@@ -439,12 +416,12 @@ body {
   border: 1.5px solid #e7c9a9;
 }
 
-.producto-card:hover {
+.cafe-producto-card:hover {
   box-shadow: 0 16px 40px rgba(141, 110, 99, 0.18);
   transform: translateY(-8px) scale(1.03);
 }
 
-.producto-card .producto-etiqueta {
+.cafe-producto-card .cafe-producto-etiqueta {
   position: absolute;
   top: 18px;
   left: 0;
@@ -462,7 +439,7 @@ body {
   padding-bottom: 2px;
 }
 
-.producto-img {
+.cafe-producto-img {
   margin-top: 65px;
   border-radius: 14px;
   box-shadow: 0 4px 18px rgba(141, 110, 99, 0.13);
@@ -473,7 +450,7 @@ body {
   object-fit: contain;
 }
 
-.producto-info {
+.cafe-producto-info {
   background: none;
   border-radius: 0 0 20px 20px;
   margin-top: 1.3rem;
@@ -483,7 +460,7 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
-.producto-nombre {
+.cafe-producto-nombre {
   font-family: 'Playfair Display', serif;
   font-size: 1.6rem;
   color: #4b3a2f;
@@ -492,7 +469,7 @@ body {
   letter-spacing: 1px;
 }
 
-.producto-precio {
+.cafe-producto-precio {
   color: #b9936c;
   font-weight: bold;
   font-size: 1.15rem;
@@ -500,22 +477,22 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
-.producto-notas,
-.producto-tueste {
+.cafe-producto-notas,
+.cafe-producto-tueste {
   color: #7c5c3e;
   font-size: 1.05rem;
   margin: 0.2rem 0;
   font-family: 'Montserrat', sans-serif;
 }
 
-.producto-rating {
+.cafe-producto-rating {
   color: #b9936c;
   font-size: 1.15rem;
   margin-bottom: 0.2rem;
   font-family: 'Montserrat', sans-serif;
 }
 
-.producto-descripcion {
+.cafe-producto-descripcion {
   color: #7c5c3e;
   font-size: 1rem;
   margin: 0.5rem 0;
@@ -524,20 +501,20 @@ body {
 }
 
 /* Variantes del ProductoCard */
-.cafe-card {
+.cafe-cafe-card {
   background: linear-gradient(180deg, #8d6e63 0 80px, #f9f5f1 80px 100%);
 }
 
-.panaderia-card {
+.cafe-panaderia-card {
   background: linear-gradient(180deg, #b9936c 0 80px, #fdf5ed 80px 100%);
 }
 
-.general-card {
+.cafe-general-card {
   background: linear-gradient(180deg, #a1887f 0 80px, #f9f5f1 80px 100%);
 }
 
 /* === Sección de Información del Café (Origen, Tostado, etc.) === */
-.informacion {
+.cafe-informacion {
   max-width: 1200px; /* Ancho máximo para la sección */
   margin: 60px auto; /* Más espacio */
   padding: 50px 4%; /* Mayor padding interno */
@@ -547,7 +524,7 @@ body {
   text-align: center;
 }
 
-.informacion h2 {
+.cafe-informacion h2 {
   font-family: 'Playfair Display', serif;
   font-size: 3rem; /* Título más grande */
   color: #4b3a2f; /* Color principal */
@@ -555,14 +532,14 @@ body {
   text-shadow: 0 2px 8px rgba(185,147,108,0.10);
 }
 
-.info-cards-container {
+.cafe-info-cards-container {
   display: flex;
   flex-direction: column;
   gap: 50px; /* Mayor separación entre tarjetas */
 }
 
 /* Mejora visual para las info-card */
-.info-card {
+.cafe-info-card {
   background: linear-gradient(120deg, #f9f5f1 70%, #e7c9a9 100%);
   border-radius: 32px 80px 32px 80px;
   box-shadow: 0 8px 40px 0 rgba(141, 110, 99, 0.13), 0 1.5px 8px rgba(185,147,108,0.08);
@@ -576,12 +553,12 @@ body {
   position: relative;
   overflow: visible;
 }
-.info-card:hover {
+.cafe-info-card:hover {
   box-shadow: 0 16px 64px 0 rgba(141, 110, 99, 0.22), 0 2px 12px rgba(185,147,108,0.13);
   transform: translateY(-8px) scale(1.02);
 }
 
-.info-card .info-image {
+.cafe-info-card .cafe-info-image {
   min-width: 340px;
   max-width: 420px;
   aspect-ratio: 5/3;
@@ -595,26 +572,26 @@ body {
   position: relative;
 }
 
-.info-card.origen .info-image {
+.cafe-info-card.origen .cafe-info-image {
   clip-path: polygon(0 20%, 10% 0, 80% 0, 100% 20%, 90% 60%, 100% 100%, 20% 90%, 0 100%);
   border-radius: 0 50px 50px 0;
   box-shadow: 0 8px 32px rgba(141, 110, 99, 0.18);
 }
 
-.info-card .info-image img {
+.cafe-info-card .cafe-info-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.info-card .info-text {
+.cafe-info-card .cafe-info-text {
   flex: 1;
   text-align: left;
   padding: 0 0 0 12px;
 }
 
-.info-card .info-text h3 {
+.cafe-info-card .cafe-info-text h3 {
   font-family: 'Playfair Display', serif;
   font-size: 2.8rem;
   color: #8d6e63;
@@ -624,7 +601,7 @@ body {
   text-shadow: 0 2px 12px rgba(185,147,108,0.08);
 }
 
-.info-card .info-text p {
+.cafe-info-card .cafe-info-text p {
   font-size: 1.25rem;
   color: #5a4432;
   line-height: 1.7;
@@ -636,37 +613,37 @@ body {
 }
 
 @media (max-width: 900px) {
-  .info-card {
+  .cafe-info-card {
     flex-direction: column;
     gap: 32px;
     padding: 32px 12px;
     max-width: 98vw;
   }
-  .info-card .info-image {
+  .cafe-info-card .cafe-info-image {
     min-width: 220px;
     max-width: 100%;
     border-radius: 40px;
   }
-  .info-card .info-text {
+  .cafe-info-card .cafe-info-text {
     padding: 0;
     text-align: center;
   }
-  .info-card .info-text h3 {
+  .cafe-info-card .cafe-info-text h3 {
     font-size: 2rem;
   }
 }
 
 /* Alternar posición de la imagen */
-.left-image {
+.cafe-left-image {
   flex-direction: row; /* Imagen a la izquierda */
 }
 
-.right-image {
+.cafe-right-image {
   flex-direction: row-reverse; /* Imagen a la derecha */
 }
 
 /* === Sección de Testimonios === */
-.testimonios {
+.cafe-testimonios {
   background: #fdf5ed; /* Fondo ligeramente diferente para testimonios */
   padding: 50px 4%; /* Más padding */
   border-radius: 20px; /* Más redondeado */
@@ -678,7 +655,7 @@ body {
   color: #5a4432;
 }
 
-.testimonios h2 {
+.cafe-testimonios h2 {
   font-family: 'Playfair Display', serif;
   font-size: 3rem; /* Título más grande */
   margin-bottom: 40px;
@@ -686,7 +663,7 @@ body {
   text-shadow: 0 2px 8px rgba(185,147,108,0.10);
 }
 
-.testimonios blockquote {
+.cafe-testimonios blockquote {
   font-family: 'Georgia', serif; /* Fuente elegante para el testimonio */
   font-size: 1.8rem; /* Texto del testimonio más grande */
   quotes: "“" "”" "‘" "’";
@@ -700,7 +677,7 @@ body {
 }
 
 /* Añadir comillas decorativas */
-.testimonios blockquote::before {
+.cafe-testimonios blockquote::before {
   content: open-quote;
   position: absolute;
   top: 10px;
@@ -711,7 +688,7 @@ body {
   z-index: 1;
 }
 
-.testimonios blockquote::after {
+.cafe-testimonios blockquote::after {
   content: close-quote;
   position: absolute;
   bottom: 10px;
@@ -722,19 +699,19 @@ body {
   z-index: 1;
 }
 
-.testimonios blockquote p {
+.cafe-testimonios blockquote p {
     position: relative; /* Asegura que el texto esté sobre las comillas */
     z-index: 2;
 }
 
 /* === Animaciones de Fade-in (se mantienen) === */
-.fade-in {
+.cafe-fade-in {
   opacity: 0;
   animation: fadeIn 1s forwards;
   animation-delay: 0.5s;
 }
 
-.fade-in-up {
+.cafe-fade-in-up {
   opacity: 0;
   transform: translateY(20px);
   animation: fadeInUp 1s forwards;
@@ -757,201 +734,201 @@ body {
 
 /* === Responsive adjustments === */
 @media (max-width: 1024px) {
-  .hero-text h1,
-  .hero-title {
+  .cafe-hero-text h1,
+  .cafe-hero-title {
     font-size: 3.8rem;
   }
-  .hero-text p,
-  .hero-subtitle {
+  .cafe-hero-text p,
+  .cafe-hero-subtitle {
     font-size: 1.2rem;
   }
-  .info-nav-links {
+  .cafe-info-nav-links {
     gap: 40px;
   }
-  .productos-titulo,
-  .informacion h2,
-  .testimonios h2 {
+  .cafe-productos-titulo,
+  .cafe-informacion h2,
+  .cafe-testimonios h2 {
     font-size: 2.5rem;
   }
-  .info-card {
+  .cafe-info-card {
     gap: 30px;
     padding: 25px;
   }
-  .info-image {
+  .cafe-info-image {
       width: 40%;
   }
-  .info-text h3 {
+  .cafe-info-text h3 {
     font-size: 1.9rem;
   }
-  .testimonios blockquote {
+  .cafe-testimonios blockquote {
     font-size: 1.5rem;
     padding: 30px 40px;
   }
 }
 
 @media (max-width: 768px) {
-  .hero {
+  .cafe-hero {
     padding: 100px 4% 40px 4%; /* Más padding arriba para dejar espacio a la navbar */
   }
 
-  .hero::before,
-  .hero::after {
+  .cafe-hero::before,
+  .cafe-hero::after {
     display: none; /* Ocultar círculos decorativos en móviles */
   }
 
-  .navbar {
+  .cafe-navbar {
     padding: 15px 20px;
     justify-content: center; /* Centrar el logo en móviles */
   }
 
-  .navbar-container {
+  .cafe-navbar-container {
     flex-direction: column;
     gap: 15px;
   }
 
   /* Ocultar enlaces de navegación y búsqueda en móvil por defecto, mostrar solo el logo */
-  .navbar-container .nav-link,
-  .navbar-container .search-icon {
+  .cafe-navbar-container .cafe-nav-link,
+  .cafe-navbar-container .cafe-search-icon {
     display: none;
   }
 
   /* Si quieres un menú de hamburguesa, deberías añadir un botón en page.tsx y manejarlo con JS */
 
-  .hero-text {
+  .cafe-hero-text {
     margin-top: 0; /* Eliminar margen superior negativo */
     max-width: 100%;
     padding: 0 10px;
   }
 
-  .hero-text h1,
-  .hero-title {
+  .cafe-hero-text h1,
+  .cafe-hero-title {
     font-size: 3rem;
   }
 
-  .hero-text p,
-  .hero-subtitle {
+  .cafe-hero-text p,
+  .cafe-hero-subtitle {
     font-size: 1rem;
   }
 
-  .cta-button {
+  .cafe-cta-button {
     padding: 12px 25px;
     font-size: 1rem;
   }
 
-  .info-nav-links {
+  .cafe-info-nav-links {
     flex-direction: column;
     gap: 20px;
     margin-top: -50px; /* Ajuste para móviles */
     padding: 20px;
   }
 
-  .info-nav-link {
+  .cafe-info-nav-link {
     font-size: 1rem;
   }
 
-  .productos-grid {
+  .cafe-productos-grid {
     grid-template-columns: 1fr; /* Una columna en móviles */
     gap: 25px;
   }
 
-  .producto-card {
+  .cafe-producto-card {
     padding: 1.2rem;
   }
 
-  .producto-etiqueta {
+  .cafe-producto-etiqueta {
     font-size: 0.85rem;
   }
 
-  .producto-nombre {
+  .cafe-producto-nombre {
     font-size: 1.4rem;
   }
-  .producto-precio {
+  .cafe-producto-precio {
     font-size: 1.1rem;
   }
-  .producto-notas, .producto-tueste {
+  .cafe-producto-notas, .cafe-producto-tueste {
     font-size: 0.9rem;
   }
 
 
-  .informacion {
+  .cafe-informacion {
     margin: 40px auto;
     padding: 30px 20px;
   }
 
-  .informacion h2 {
+  .cafe-informacion h2 {
     font-size: 2.2rem;
     margin-bottom: 30px;
   }
 
-  .info-cards-container {
+  .cafe-info-cards-container {
     gap: 30px;
   }
 
-  .info-card,
-  .left-image,
-  .right-image {
+  .cafe-info-card,
+  .cafe-left-image,
+  .cafe-right-image {
     flex-direction: column; /* Apilar imagen y texto en móviles */
     text-align: center;
     padding: 20px;
   }
-  .info-image {
+  .cafe-info-image {
     width: 80%; /* Imagen ocupa más ancho en móviles */
     margin-bottom: 20px;
   }
-  .info-text {
+  .cafe-info-text {
     text-align: center;
   }
-  .info-text h3 {
+  .cafe-info-text h3 {
     font-size: 1.8rem;
     margin-bottom: 10px;
   }
-  .info-text p {
+  .cafe-info-text p {
     font-size: 1rem;
   }
 
-  .testimonios {
+  .cafe-testimonios {
     margin: 40px auto 60px auto;
     padding: 30px 20px;
   }
 
-  .testimonios h2 {
+  .cafe-testimonios h2 {
     font-size: 2.2rem;
     margin-bottom: 30px;
   }
 
-  .testimonios blockquote {
+  .cafe-testimonios blockquote {
     font-size: 1.2rem;
     padding: 25px 30px;
     border-left: 4px solid #a1887f;
   }
 
-  .testimonios blockquote::before,
-  .testimonios blockquote::after {
+  .cafe-testimonios blockquote::before,
+  .cafe-testimonios blockquote::after {
     font-size: 4rem; /* Comillas más pequeñas */
   }
 }
 
 @media (max-width: 480px) {
-  .hero-text h1,
-  .hero-title {
+  .cafe-hero-text h1,
+  .cafe-hero-title {
     font-size: 2.5rem;
   }
-  .hero-text p,
-  .hero-subtitle {
+  .cafe-hero-text p,
+  .cafe-hero-subtitle {
     font-size: 0.9rem;
   }
-  .cta-button {
+  .cafe-cta-button {
     padding: 10px 20px;
     font-size: 0.9rem;
   }
 
-  .producto-card {
+  .cafe-producto-card {
     max-width: 280px; /* Un poco más pequeña en dispositivos muy pequeños */
   }
 }
 
 /* === Coffee Landing Custom Styles === */
-.coffee-landing {
+.cafe-coffee-landing {
   background: linear-gradient(90deg, #b9936c 55%, #e7c9a9 45%);
   min-height: 100vh;
   font-family: 'Montserrat', sans-serif;
@@ -959,7 +936,7 @@ body {
   flex-direction: column;
 }
 
-.coffee-navbar {
+.cafe-coffee-navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -968,13 +945,13 @@ body {
   z-index: 10;
 }
 
-.coffee-navbar-links {
+.cafe-coffee-navbar-links {
   display: flex;
   gap: 40px;
   list-style: none;
 }
 
-.coffee-navbar-links a {
+.cafe-coffee-navbar-links a {
   color: #7c5c3e;
   text-decoration: none;
   font-weight: 700;
@@ -982,11 +959,11 @@ body {
   letter-spacing: 1px;
   transition: color 0.2s;
 }
-.coffee-navbar-links a:hover {
+.cafe-coffee-navbar-links a:hover {
   color: #b9936c;
 }
 
-.coffee-logo {
+.cafe-coffee-logo {
   font-family: 'Pacifico', cursive;
   font-size: 2.2rem;
   color: #fff;
@@ -997,7 +974,7 @@ body {
   letter-spacing: 2px;
 }
 
-.coffee-hero {
+.cafe-coffee-hero {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1006,14 +983,14 @@ body {
   flex: 1;
 }
 
-.coffee-hero-left {
+.cafe-coffee-hero-left {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
 }
 
-.coffee-hero-img-circle {
+.cafe-coffee-hero-img-circle {
   width: 340px;
   height: 340px;
   border-radius: 50%;
@@ -1026,13 +1003,13 @@ body {
   background: #fff;
 }
 
-.coffee-hero-img-circle img {
+.cafe-coffee-hero-img-circle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.coffee-hero-right {
+.cafe-coffee-hero-right {
   max-width: 500px;
   color: #7c5c3e;
   display: flex;
@@ -1041,7 +1018,7 @@ body {
   gap: 18px;
 }
 
-.coffee-title {
+.cafe-coffee-title {
   font-family: 'Pacifico', cursive;
   font-size: 4.2rem;
   color: #b9936c;
@@ -1050,7 +1027,7 @@ body {
   text-shadow: 0 2px 8px rgba(185,147,108,0.10);
 }
 
-.coffee-discount {
+.cafe-coffee-discount {
   background: #fff;
   padding: 18px 30px 12px 30px;
   border-radius: 18px;
@@ -1059,27 +1036,27 @@ body {
   width: 100%;
 }
 
-.coffee-discount span {
+.cafe-coffee-discount span {
   font-weight: bold;
   color: #b9936c;
   font-size: 1.3rem;
   display: block;
   margin-bottom: 6px;
 }
-.coffee-discount p {
+.cafe-coffee-discount p {
   color: #7c5c3e;
   font-size: 1.05rem;
   line-height: 1.5;
 }
 
-.coffee-cta-row {
+.cafe-coffee-cta-row {
   display: flex;
   align-items: center;
   gap: 18px;
   margin-top: 8px;
 }
 
-.coffee-cta-btn {
+.cafe-coffee-cta-btn {
   background: linear-gradient(90deg, #b9936c 60%, #e7c9a9 100%);
   color: #fff;
   border: none;
@@ -1092,24 +1069,24 @@ body {
   letter-spacing: 1px;
   transition: background 0.2s, transform 0.2s;
 }
-.coffee-cta-btn:hover {
+.cafe-coffee-cta-btn:hover {
   background: linear-gradient(90deg, #a67c52 60%, #b9936c 100%);
   transform: translateY(-2px) scale(1.04);
 }
 
-.coffee-hearts {
+.cafe-coffee-hearts {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-.coffee-hearts img {
+.cafe-coffee-hearts img {
   margin-right: 0px;
   width: 32px;
   height: 32px;
   filter: drop-shadow(0 2px 6px rgba(185,147,108,0.15));
 }
 
-.coffee-cup img {
+.cafe-coffee-cup img {
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(185,147,108,0.18);
   background: #fff;
@@ -1118,7 +1095,7 @@ body {
   object-fit: cover;
 }
 
-.coffee-footer {
+.cafe-coffee-footer {
   margin-top: 60px;
   text-align: center;
   color: #7c5c3e;
@@ -1130,55 +1107,55 @@ body {
 
 /* Responsive */
 @media (max-width: 1100px) {
-  .coffee-hero {
+  .cafe-coffee-hero {
     flex-direction: column;
     gap: 30px;
     margin-top: 30px;
   }
-  .coffee-hero-left, .coffee-hero-right {
+  .cafe-coffee-hero-left, .cafe-coffee-hero-right {
     align-items: center;
     justify-content: center;
     width: 100%;
   }
-  .coffee-hero-right {
+  .cafe-coffee-hero-right {
     align-items: center;
     text-align: center;
   }
 }
 
 @media (max-width: 700px) {
-  .coffee-navbar {
+  .cafe-coffee-navbar {
     flex-direction: column;
     gap: 18px;
     padding: 24px 10px 0 10px;
   }
-  .coffee-navbar-links {
+  .cafe-coffee-navbar-links {
     gap: 18px;
   }
-  .coffee-hero-img-circle {
+  .cafe-coffee-hero-img-circle {
     width: 220px;
     height: 220px;
     border-width: 6px;
   }
-  .coffee-title {
+  .cafe-coffee-title {
     font-size: 2.2rem;
   }
-  .coffee-discount {
+  .cafe-coffee-discount {
     padding: 12px 10px 8px 10px;
     font-size: 0.95rem;
   }
-  .coffee-cta-btn {
+  .cafe-coffee-cta-btn {
     padding: 10px 18px;
     font-size: 1rem;
   }
-  .coffee-footer {
+  .cafe-coffee-footer {
     font-size: 0.95rem;
     padding: 16px 0 10px 0;
   }
 }
 
 /* Alternancia visual y estilos únicos para cada bloque de información */
-.left-image, .right-image {
+.cafe-left-image, .cafe-right-image {
   display: flex;
   align-items: center;
   gap: 60px;
@@ -1190,15 +1167,15 @@ body {
   box-shadow: none;
   padding: 0;
 }
-.left-image {
+.cafe-left-image {
   flex-direction: row;
 }
-.right-image {
+.cafe-right-image {
   flex-direction: row-reverse;
 }
 
 /* Estilos únicos para cada imagen */
-.left-image.origen .info-image {
+.cafe-left-image.origen .cafe-info-image {
   border-radius: 50%;
   box-shadow: 0 8px 48px 0 rgba(141, 110, 99, 0.18), 0 1.5px 8px rgba(185,147,108,0.08);
   border: 6px solid #e7c9a9;
@@ -1209,7 +1186,7 @@ body {
   animation: floatImage 4s ease-in-out infinite alternate;
 }
 
-.right-image .info-image {
+.cafe-right-image .cafe-info-image {
   clip-path: polygon(0 20%, 10% 0, 80% 0, 100% 20%, 90% 60%, 100% 100%, 20% 90%, 0 100%);
   border-radius: 40px 80px 40px 80px;
   box-shadow: 0 16px 64px 0 rgba(185,147,108,0.18), 0 2px 12px rgba(185,147,108,0.13);
@@ -1221,7 +1198,7 @@ body {
   animation: floatImage2 5s ease-in-out infinite alternate;
 }
 
-.left-image:not(.origen) .info-image {
+.cafe-left-image:not(.origen) .cafe-info-image {
   border-radius: 0 80px 80px 80px;
   box-shadow: 0 8px 48px 0 rgba(141, 110, 99, 0.18), 0 1.5px 8px rgba(185,147,108,0.08);
   border: 6px solid #e7c9a9;
@@ -1233,7 +1210,7 @@ body {
   animation: floatImage 4s ease-in-out infinite alternate;
 }
 
-.right-image:last-child .info-image {
+.cafe-right-image:last-child .cafe-info-image {
   border-radius: 80px 0 80px 40px;
   box-shadow: 0 16px 64px 0 rgba(185,147,108,0.22), 0 2px 12px rgba(185,147,108,0.13);
   border: 6px solid #8d6e63;
@@ -1254,7 +1231,7 @@ body {
   100% { transform: translateY(-8px) scale(1.01) rotate(2deg); }
 }
 
-.info-image img {
+.cafe-info-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1262,16 +1239,16 @@ body {
   filter: contrast(1.08) saturate(1.1);
 }
 
-.info-text {
+.cafe-info-text {
   flex: 1;
   text-align: left;
   padding: 0 0 0 12px;
   position: relative;
 }
-.right-image .info-text {
+.cafe-right-image .cafe-info-text {
   padding: 0 12px 0 0;
 }
-.info-text h3 {
+.cafe-info-text h3 {
   font-family: 'Playfair Display', serif;
   font-size: 3.2rem;
   color: #8d6e63;
@@ -1283,7 +1260,7 @@ body {
   z-index: 2;
   text-shadow: 0 4px 24px rgba(185,147,108,0.10);
 }
-.info-text h3::after {
+.cafe-info-text h3::after {
   content: '';
   display: block;
   width: 80px;
@@ -1293,7 +1270,7 @@ body {
   margin-top: 12px;
   box-shadow: 0 2px 8px rgba(185,147,108,0.13);
 }
-.info-text p {
+.cafe-info-text p {
   font-size: 1.35rem;
   color: #5a4432;
   line-height: 1.7;
@@ -1308,42 +1285,42 @@ body {
   text-shadow: 0 2px 12px rgba(185,147,108,0.08);
 }
 
-.left-image:not(:first-child), .right-image:not(:first-child) {
+.cafe-left-image:not(:first-child), .cafe-right-image:not(:first-child) {
   border-top: 2px dashed #e7c9a9;
   padding-top: 60px;
 }
 
 @media (max-width: 900px) {
-  .left-image, .right-image {
+  .cafe-left-image, .cafe-right-image {
     flex-direction: column !important;
     gap: 32px;
     padding: 0 8px;
     max-width: 98vw;
     margin: 48px auto 48px auto;
   }
-  .info-image, .left-image.origen .info-image {
+  .cafe-info-image, .cafe-left-image.origen .cafe-info-image {
     min-width: 180px;
     max-width: 100%;
     border-radius: 40px !important;
     aspect-ratio: 5/3 !important;
   }
-  .info-text {
+  .cafe-info-text {
     padding: 0;
     text-align: center;
   }
-  .info-text h3 {
+  .cafe-info-text h3 {
     font-size: 2rem;
   }
-  .info-text h3::after {
+  .cafe-info-text h3::after {
     margin-left: auto;
     margin-right: auto;
   }
-  .info-text p {
+  .cafe-info-text p {
     font-size: 1.1rem;
   }
 }
 
-.origen-titulo {
+.cafe-origen-titulo {
   font-family: 'Playfair Display', serif;
   font-size: 3.2rem;
   color: #8d6e63;
@@ -1355,7 +1332,7 @@ body {
   text-shadow: 0 2px 8px rgba(185,147,108,0.10);
 }
 
-.origen-titulo::after {
+.cafe-origen-titulo::after {
   content: '';
   display: block;
   width: 120px;
@@ -1366,7 +1343,7 @@ body {
   box-shadow: 0 2px 8px rgba(185,147,108,0.13);
 }
 
-.origen-subtitulo {
+.cafe-origen-subtitulo {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   color: #5a4432;
@@ -1381,12 +1358,12 @@ body {
 }
 
 /* === Página de Productos === */
-.productos-hero {
+.cafe-productos-hero {
   background: linear-gradient(135deg, #fceee3 0%, #fff8f3 100%);
   min-height: 70vh;
 }
 
-.categorias-filtros {
+.cafe-categorias-filtros {
   background: #ffffff;
   padding: 40px 4%;
   box-shadow: 0 4px 8px rgba(0,0,0,0.05);
@@ -1394,7 +1371,7 @@ body {
   z-index: 10;
 }
 
-.filtros-container {
+.cafe-filtros-container {
   display: flex;
   justify-content: center;
   gap: 20px;
@@ -1403,7 +1380,7 @@ body {
   margin: 0 auto;
 }
 
-.filtro-btn {
+.cafe-filtro-btn {
   background: #f9f5f1;
   border: 2px solid #e7c9a9;
   color: #5a4432;
@@ -1418,32 +1395,32 @@ body {
   letter-spacing: 1px;
 }
 
-.filtro-btn:hover {
+.cafe-filtro-btn:hover {
   background: #e7c9a9;
   color: #4b3a2f;
   transform: translateY(-2px);
 }
 
-.filtro-btn.activo {
+.cafe-filtro-btn.activo {
   background: #b9936c;
   color: #ffffff;
   border-color: #b9936c;
 }
 
-.productos-seccion {
+.cafe-productos-seccion {
   padding: 80px 4%;
   background: #ffffff;
 }
 
-.panaderia-seccion {
+.cafe-panaderia-seccion {
   background: #fdf5ed;
 }
 
-.bebidas-seccion {
+.cafe-bebidas-seccion {
   background: #f9f5f1;
 }
 
-.seccion-titulo {
+.cafe-seccion-titulo {
   font-family: 'Playfair Display', serif;
   font-size: 3.2rem;
   color: #4b3a2f;
@@ -1454,7 +1431,7 @@ body {
   text-shadow: 0 2px 8px rgba(185,147,108,0.10);
 }
 
-.seccion-subtitulo {
+.cafe-seccion-subtitulo {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   color: #6b5b47;
@@ -1464,14 +1441,14 @@ body {
   letter-spacing: 1px;
 }
 
-.cta-seccion {
+.cafe-cta-seccion {
   background: linear-gradient(135deg, #8d6e63 0%, #b9936c 100%);
   padding: 80px 4%;
   text-align: center;
   color: #ffffff;
 }
 
-.cta-content h2 {
+.cafe-cta-content h2 {
   font-family: 'Playfair Display', serif;
   font-size: 3rem;
   margin-bottom: 20px;
@@ -1479,7 +1456,7 @@ body {
   letter-spacing: 2px;
 }
 
-.cta-content p {
+.cafe-cta-content p {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   margin-bottom: 40px;
@@ -1489,7 +1466,7 @@ body {
   margin-right: auto;
 }
 
-.cta-buttons {
+.cafe-cta-buttons {
   display: flex;
   justify-content: center;
   gap: 20px;
@@ -1498,61 +1475,61 @@ body {
 
 /* Responsive para la página de productos */
 @media (max-width: 768px) {
-  .filtros-container {
+  .cafe-filtros-container {
     gap: 15px;
   }
   
-  .filtro-btn {
+  .cafe-filtro-btn {
     padding: 10px 20px;
     font-size: 0.9rem;
   }
   
-  .productos-seccion {
+  .cafe-productos-seccion {
     padding: 60px 4%;
   }
   
-  .seccion-titulo {
+  .cafe-seccion-titulo {
     font-size: 2.5rem;
   }
   
-  .seccion-subtitulo {
+  .cafe-seccion-subtitulo {
     font-size: 1.1rem;
     margin-bottom: 40px;
   }
   
-  .cta-seccion {
+  .cafe-cta-seccion {
     padding: 60px 4%;
   }
   
-  .cta-content h2 {
+  .cafe-cta-content h2 {
     font-size: 2.5rem;
   }
   
-  .cta-content p {
+  .cafe-cta-content p {
     font-size: 1.1rem;
   }
   
-  .cta-buttons {
+  .cafe-cta-buttons {
     flex-direction: column;
     align-items: center;
   }
 }
 
 @media (max-width: 480px) {
-  .filtros-container {
+  .cafe-filtros-container {
     gap: 10px;
   }
   
-  .filtro-btn {
+  .cafe-filtro-btn {
     padding: 8px 16px;
     font-size: 0.8rem;
   }
   
-  .seccion-titulo {
+  .cafe-seccion-titulo {
     font-size: 2rem;
   }
   
-  .cta-content h2 {
+  .cafe-cta-content h2 {
     font-size: 2rem;
   }
 }

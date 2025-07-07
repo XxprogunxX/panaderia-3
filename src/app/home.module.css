@@ -1,0 +1,368 @@
+/* Estilos exclusivos para la página principal (home) */
+
+.hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, #FDF3E7 0%, #EAD8B8 100%);
+  text-align: center;
+}
+
+.heroContent {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.heroVideo {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.videoWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.videoPanaderia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.videoOverlayText {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 245, 230, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: center;
+}
+
+.intro {
+  max-width: 600px;
+}
+
+.intro h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #6E4B32;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  text-shadow: 1px 1px 3px #C68E4D88;
+}
+
+.anahuac {
+  color: #C68E4D;
+  font-style: italic;
+}
+
+.intro p {
+  font-size: 1.25rem;
+  color: #604E42;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.intro button {
+  background-color: #C68E4D;
+  color: white;
+  padding: 0.85rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  box-shadow: 0 6px 10px rgba(198, 142, 77, 0.7);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.intro button:hover,
+.intro button:focus {
+  background-color: #9A3B3B;
+  transform: scale(1.05);
+}
+
+.hashtag {
+  margin-top: 1.8rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #C68E4D;
+  letter-spacing: 0.15em;
+  user-select: none;
+  text-shadow: 1px 1px 3px #6E4B32AA;
+}
+
+.productos-main {
+  background-color: #fffaf4;
+  padding: 4rem 1rem;
+}
+
+.productos-hero {
+  background: linear-gradient(to right, #6E4B32, #c68e4d);
+  padding: 2rem 1rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.productos-hero h1 {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.productos-hero p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.producto-imagen-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.producto-imagen {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.producto-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f0f0f0;
+  min-height: 400px;
+}
+
+.producto-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.producto-card:hover .producto-imagen {
+  transform: scale(1.05);
+}
+
+.producto-card-content {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  flex: 1;
+  background: #ffffff;
+  text-align: center;
+}
+
+.producto-card-content h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: auto;
+  text-align: center;
+  overflow: visible;
+}
+
+.producto-card .descripcion {
+  color: #666;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  min-height: auto;
+  overflow: visible;
+  text-align: center;
+}
+
+.producto-card .precio {
+  color: #c68e4d;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0.8rem 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.producto-card .precio::before {
+  content: "$";
+  font-size: 1.2rem;
+  color: #8b7355;
+}
+
+.btn-pedir {
+  width: 100%;
+  background-color: #c68e4d;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-pedir::before {
+  content: "🛒";
+  font-size: 1.1rem;
+}
+
+.btn-pedir:hover {
+  background-color: #9a3b3b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-pedir:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.footer {
+  background-color: #4A3B31;
+  color: #F4E8D4;
+  padding: 3rem 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+.footer-section {
+  flex: 1 1 220px;
+  margin-bottom: 1.5rem;
+}
+
+.footer-section.logo {
+  flex-grow: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-logo {
+  width: 110px;
+  height: auto;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #C68E4D;
+}
+
+.footer-section h3 {
+  font-size: 1.1rem;
+  color: #C68E4D;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.6rem;
+}
+
+.footer-section ul li a {
+  color: #F4E8D4;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-weight: 600;
+}
+
+.footer-section ul li a:hover {
+  color: #DAB084;
+  text-decoration: underline;
+}
+
+.footer-section p {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid #847760;
+  font-size: 0.85rem;
+  color: #F4E8D4;
+  font-weight: 500;
+}
+
+.footer-bottom a {
+  color: #C68E4D;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .heroContent {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .heroVideo, .intro {
+    min-width: 0;
+    width: 100%;
+  }
+} 

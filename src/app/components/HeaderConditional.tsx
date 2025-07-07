@@ -7,7 +7,7 @@ export default function HeaderConditional() {
   const pathname = usePathname();
 
   // Rutas donde NO quieres mostrar el header
-  const rutasSinHeader = ['/login', '/registro', '/cafe' ];
+  const rutasSinHeader = ['/login', '/registro', '/cafe', '/cafeproductos' ];
 
   if (rutasSinHeader.includes(pathname)) return null;
 

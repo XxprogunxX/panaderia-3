@@ -129,6 +129,10 @@ export default function Cafe() {
                       className="cafe-imagen"
                       style={{ objectFit: "cover" }}
                       priority
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                      }}
                     />
                   ) : (
                     <Image
@@ -139,6 +143,10 @@ export default function Cafe() {
                       className="cafe-imagen"
                       style={{ objectFit: "cover" }}
                       priority
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                      }}
                     />
                   )}
                 </div>

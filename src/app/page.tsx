@@ -9,6 +9,7 @@ import HelpPopup from "./components/bolita-de-ayuda/bolita";
 import { db } from "./firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import OfertasCarousel from "./components/OfertasCarousel";
+import styles from './home.module.css';
 
 interface Producto {
   nombre: string;
@@ -133,72 +134,74 @@ const Home = () => {
 
   return (
     <main>
-      <section className="hero">
-        <div className="intro">
-          <h1>
-          Bienvenido a <br />
-           <span className="anahuac">El Pan de Cada Día</span>
-          </h1>
-
-          <p>
-            Desde hace más de 30 años, horneamos con pasión panes que conectan generaciones. Cada pieza cuenta una historia de tradición y sabor.
-          </p>
-          <Link href="/productos">
-            <button>Explora nuestro catálogo</button>
-          </Link>
-          <h2 className="hashtag">#SABORQUESECOMPARTE</h2>
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <div className={styles.intro}>
+            <h1>
+              Bienvenido a <br />
+              <span className={styles.anahuac}>El Pan de Cada Día</span>
+            </h1>
+            <p>
+              Desde hace más de 30 años, horneamos con pasión panes que conectan generaciones. Cada pieza cuenta una historia de tradición y sabor.
+            </p>
+            <Link href="/productos">
+              <button className={styles.ctaButton}>Explora nuestro catálogo</button>
+            </Link>
+            <h2 className={styles.hashtag}>#SABORQUESECOMPARTE</h2>
+          </div>
+          <div className={styles.heroVideo}>
+            <div className={styles.videoWrapper}>
+              <video
+                className={styles.videoPanaderia}
+                autoPlay
+                loop
+                muted
+                playsInline
+              >
+                <source src="/video/panaderia.mp4" type="video/mp4" />
+                Tu navegador no soporta el video.
+              </video>
+              <div className={styles.videoOverlayText}>
+                <h2>¡Tradición y sabor en cada bocado!</h2>
+              </div>
+            </div>
+          </div>
         </div>
-
-             <section className="video-section">
-  <div className="video-wrapper">
-    <video
-      className="video-panaderia"
-      autoPlay
-      loop
-      muted
-      playsInline
-    >
-      <source src="/video/panaderia.mp4" type="video/mp4" />
-      Tu navegador no soporta el video.
-    </video>
-    <div className="video-overlay-text">
-      <h2>¡Tradición y sabor en cada bocado!</h2>
-    </div>
-  </div>
-</section>
-
-
       </section>
 
       <OfertasCarousel />
 
-      <section id="productos" className="productos-main">
-        <div className="productos-hero">
+      <section id="productos" className={styles["productos-main"]}>
+        <div className={styles["productos-hero"]}>
           <h1>Nuestros Productos Destacados</h1>
           <p>Descubre el sabor de nuestra panadería</p>
         </div>
-        <div className="productos-grid">
+        <div className={styles["productos-grid"]}>
           {productosPopulares.map((producto, index) => (
-            <div key={index} className="producto-card">
+            <div key={index} className={styles["producto-card"]}>
               {producto.imagen && (
-                <div className="producto-imagen-container">
+                <div className={styles["producto-imagen-container"]}>
                   <Image
                     src={producto.imagen}
                     alt={producto.nombre}
                     width={400}
                     height={300}
                     style={{ objectFit: 'cover' }}
-                    className="producto-imagen"
+                    className={styles["producto-imagen"]}
                     priority={index < 3}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                    }}
                   />
                 </div>
               )}
-              <div className="producto-card-content">
+              <div className={styles["producto-card-content"]}>
                 <h3>{producto.nombre}</h3>
-                <p className="descripcion">{producto.descripcion}</p>
-                <p className="precio">${producto.precio} MXN</p>
+                <p className={styles.descripcion}>{producto.descripcion}</p>
+                <p className={styles.precio}>${producto.precio} MXN</p>
                 <button
-                  className="btn-pedir"
+                  className={styles["btn-pedir"]}
                   onClick={() => agregarAlCarrito(producto)}
                 >
                   Añadir al carrito
@@ -244,18 +247,18 @@ const Home = () => {
         </div>
       )}
 
-      <footer className="footer">
-        <div className="footer-container">
-          <div className="footer-section logo">
+      <footer className={styles.footer}>
+        <div className={styles["footer-container"]}>
+          <div className={styles["footer-section"] + ' ' + styles.logo}>
             <Image
               src="/images/logo.png"
               alt="Logo"
               width={100}
               height={100}
-              className="footer-logo"
+              className={styles["footer-logo"]}
             />
           </div>
-          <div className="footer-section">
+          <div className={styles["footer-section"]}>
             <h3>Navegación</h3>
             <ul>
               <li>
@@ -269,7 +272,7 @@ const Home = () => {
               </li>
             </ul>
           </div>
-          <div className="footer-section">
+          <div className={styles["footer-section"]}>
             <h3>Síguenos</h3>
             <ul>
               <li>
@@ -284,7 +287,7 @@ const Home = () => {
               </li>
             </ul>
           </div>
-          <div className="footer-section">
+          <div className={styles["footer-section"]}>
             <h3>Contáctanos</h3>
             <p>Calle del Sabor 123, Col. La Hogaza</p>
             <p>75700 Tehuacán, Pue.</p>

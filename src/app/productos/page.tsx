@@ -44,7 +44,7 @@ export default function Productos() {
         lista.push({
           nombre: data.product,
           descripcion: data.description,
-          imagen: data.pic || "/images/default.jpg",
+          imagen: data.pic || "/images/",
           precio: data.price,
           categoria: data.category,
         });
@@ -113,6 +113,10 @@ export default function Productos() {
                             height={200}
                             className={styles.imagen}
                             style={{ objectFit: "cover" }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                            }}
                           />
                         ) : (
                           <Image
@@ -122,6 +126,10 @@ export default function Productos() {
                             className={styles.imagen}
                             style={{ objectFit: "cover" }}
                             priority
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                            }}
                           />
                         )}
                       </div>

@@ -1,8 +1,10 @@
 import './globals.css';
+import './home.module.css';
 import './styles.css';
 import { ReactNode } from 'react';
 import HeaderConditional from './components/HeaderConditional';
 import { CarritoProvider } from './components/CarritoContext';
+
 
 export const metadata = {
   title: 'Panadería El Pan de Cada Día',
