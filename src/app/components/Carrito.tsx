@@ -1,6 +1,7 @@
 // components/Carrito.tsx
 import { FC } from "react";
 import { useCarrito } from "./CarritoContext";
+import { useRouter } from "next/navigation";
 
 interface CarritoProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface CarritoProps {
 
 const Carrito: FC<CarritoProps> = ({ onClose }) => {
   const { productos, eliminarProducto, vaciarCarrito } = useCarrito();
+  const router = useRouter();
   // Calcular el total
   const total = productos.reduce((sum, producto) => sum + producto.precio * producto.cantidad, 0);
 
@@ -33,7 +35,7 @@ const Carrito: FC<CarritoProps> = ({ onClose }) => {
             <div className="carrito-total">
               <strong>Total: </strong>${total.toFixed(2)} MXN
             </div>
-            <button className="btn-pagar" disabled={productos.length === 0}>
+            <button className="btn-pagar" disabled={productos.length === 0} onClick={() => router.push("/checkout")}>
               Proceder al pago
             </button>
           </>
