@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User, signOut } from "firebase/auth";
 import "./panel.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -1297,14 +1297,27 @@ const PanelControl = () => {
           <h1>Panel de Control</h1>
           <p>Administra tus productos, categorías, cafés, usuarios y pedidos.</p>
           {usuarioActual && (
-            <div style={{marginTop: 10, fontSize: '14px', color: '#666'}}>
-              Conectado como: <strong>{usuarioActual.email}</strong>
-              {(usuarioActual.rol === "super_admin" || usuarioActual.email === SUPER_ADMIN_EMAIL) && (
-                <span style={{marginLeft: 10, color: '#28a745'}}>👑 Super Admin</span>
-              )}
-              {usuarioActual.rol === "admin" && usuarioActual.email !== SUPER_ADMIN_EMAIL && (
-                <span style={{marginLeft: 10, color: '#007bff'}}>⭐ Admin</span>
-              )}
+            <div style={{marginTop: 10, fontSize: '14px', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16}}>
+              <span>
+                Conectado como: <strong>{usuarioActual.email}</strong>
+                {(usuarioActual.rol === "super_admin" || usuarioActual.email === SUPER_ADMIN_EMAIL) && (
+                  <span style={{marginLeft: 10, color: '#28a745'}}>👑 Super Admin</span>
+                )}
+                {usuarioActual.rol === "admin" && usuarioActual.email !== SUPER_ADMIN_EMAIL && (
+                  <span style={{marginLeft: 10, color: '#007bff'}}>⭐ Admin</span>
+                )}
+              </span>
+              <button
+                className="btn-cerrar-sesion"
+                style={{marginLeft: 20, padding: '8px 18px', borderRadius: 8, background: '#e24a4a', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer'}}
+                onClick={async () => {
+                  const auth = getAuth();
+                  await signOut(auth);
+                  router.replace('/login');
+                }}
+              >
+                Cerrar sesión
+              </button>
             </div>
           )}
         </header>
