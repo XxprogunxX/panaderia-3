@@ -1002,3 +1002,26 @@ body {
     font-size: 1.5rem;
   }
 }
+
+.badge-estado {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 4px;
+  margin-right: 6px;
+}
+.badge-molido {
+  background: #ffe082;
+  color: #795548;
+}
+.badge-grano {
+  background: #b2dfdb;
+  color: #004d40;
+}
+.badge-otro {
+  background: #e0e0e0;
+  color: #333;
+}

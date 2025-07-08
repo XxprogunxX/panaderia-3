@@ -23,6 +23,10 @@ type Producto = {
   descripcion: string;
   imagen: File | null;
   imagenUrl?: string;
+  stock?: string;
+  estado?: string;
+  marca?: string;
+  presentacion?: string;
 };
 
 type Categoria = {
@@ -43,6 +47,8 @@ type Usuario = {
   rol?: string; // Add rol to the Usuario type
 };
 
+type Presentacion = { tamanio: string; stock: number };
+
 type Cafe = {
   id?: string;
   nombre: string;
@@ -55,6 +61,8 @@ type Cafe = {
   tipo: string;
   notas: string;
   tueste: string;
+  estado: string;
+  presentaciones?: Presentacion[];
 };
 
 // Agrego tipo Pedido
@@ -125,7 +133,9 @@ const PanelControl = () => {
     intensidad: 3,
     tipo: "Arábica",
     notas: "",
-    tueste: "Medio"
+    tueste: "Medio",
+    estado: "",
+    presentaciones: []
   });
   const [nuevaCategoria, setNuevaCategoria] = useState({ nombre: "" });
   const [edicionId, setEdicionId] = useState<string | null>(null);
@@ -138,6 +148,9 @@ const PanelControl = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [editandoGuiaId, setEditandoGuiaId] = useState<string | null>(null);
   const [nuevaGuia, setNuevaGuia] = useState<string>("");
+  // Añadir estados para los campos temporales de nueva presentación
+  const [nuevaPresentacionTamanio, setNuevaPresentacionTamanio] = useState("");
+  const [nuevaPresentacionStock, setNuevaPresentacionStock] = useState("");
 
   // Refs para evitar dependencias problemáticas en useCallback
   // These refs are crucial for `useCallback` functions to always get the latest state without re-creating the function.
@@ -321,22 +334,22 @@ const PanelControl = () => {
       console.log("Loading products...");
       const querySnapshot = await getDocs(collection(db, "productos"));
       const lista: Producto[] = [];
-      querySnapshot.forEach((docSnapshot) => {
-        const data = docSnapshot.data() as {
-          product: string;
-          price: number;
-          category: string;
-          description: string;
-          pic: string;
-        };
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
         lista.push({
-          id: docSnapshot.id,
-          nombre: data.product,
-          precio: data.price.toString(),
-          categoria: data.category,
-          descripcion: data.description,
-          imagen: null, // Image file itself is not stored here
-          imagenUrl: data.pic
+          id: doc.id,
+          nombre: data.nombre || data.product || "",
+          precio: (data.precio || data.price || 0).toString(),
+          categoria: data.categoria || data.category || "",
+          descripcion: data.descripcion || data.description || "",
+          imagen: null,
+          imagenUrl: data.imagenUrl || data.pic || "",
+          // campos extra
+          stock: data.stock ?? "",
+          estado: data.estado || "",
+          marca: data.marca || "",
+          presentacion: data.presentacion || "",
+          // agrega aquí cualquier otro campo que quieras mostrar
         });
       });
       setProductos(lista);
@@ -354,17 +367,7 @@ const PanelControl = () => {
       const querySnapshot = await getDocs(collection(db, "cafes"));
       const lista: Cafe[] = [];
       querySnapshot.forEach((docSnapshot) => {
-        const data = docSnapshot.data() as {
-          nombre?: string;
-          precio?: number;
-          descripcion?: string;
-          imagenUrl?: string;
-          origen?: string;
-          intensidad?: number;
-          tipo?: string;
-          notas?: string;
-          tueste?: string;
-        };
+        const data = docSnapshot.data();
         lista.push({
           id: docSnapshot.id,
           nombre: data.nombre || "",
@@ -373,10 +376,12 @@ const PanelControl = () => {
           imagen: null,
           imagenUrl: data.imagenUrl || "",
           origen: data.origen || "",
-          intensidad: data.intensidad ?? 3,
+          intensidad: data.intensidad ?? "",
           tipo: data.tipo || "",
           notas: data.notas || "",
-          tueste: data.tueste || ""
+          tueste: data.tueste || "",
+          estado: data.estado || "",
+          presentaciones: data.presentaciones || [],
         });
       });
       setCafes(lista);
@@ -702,6 +707,8 @@ const PanelControl = () => {
         tipo: cafe.tipo,
         notas: cafe.notas,
         tueste: cafe.tueste,
+        estado: cafe.estado,
+        presentaciones: cafe.presentaciones || [],
         updatedAt: new Date().toISOString(),
         ...(!edicionCafeId && { createdAt: new Date().toISOString() })
       };
@@ -724,7 +731,9 @@ const PanelControl = () => {
         intensidad: 3,
         tipo: "Arábica",
         notas: "",
-        tueste: "Medio"
+        tueste: "Medio",
+        estado: "",
+        presentaciones: []
       });
       setEdicionCafeId(null);
       
@@ -766,7 +775,9 @@ const PanelControl = () => {
       intensidad: cafe.intensidad,
       tipo: cafe.tipo,
       notas: cafe.notas,
-      tueste: cafe.tueste
+      tueste: cafe.tueste,
+      estado: cafe.estado,
+      presentaciones: cafe.presentaciones || []
     });
     setEdicionCafeId(cafe.id || null);
     setError(null);
@@ -1423,35 +1434,31 @@ const PanelControl = () => {
                 {productos.length === 0 ? (
                   <p>No hay productos registrados</p>
                 ) : (
-                  <div className="productos-grid">
+                  <div className="productos-grid-simple">
                     {productos.map((producto) => (
-                      <div key={producto.id} className="producto-card">
-                        <div className="producto-imagen">
+                      <div key={producto.id} className="producto-card-simple">
+                        {producto.imagenUrl && (
                           <ImagenConPlaceholder src={producto.imagenUrl} alt={producto.nombre} />
-                        </div>
-                        <div className="producto-info">
-                          <h4>{producto.nombre}</h4>
-                          <p className="precio">${parseFloat(producto.precio).toFixed(2)} MXN</p>
-                          <p className="categoria">{producto.categoria}</p>
-                          {producto.descripcion && (
-                            <p className="descripcion">{producto.descripcion}</p>
-                          )}
-                        </div>
-                        <div className="producto-acciones">
-                          <button 
-                            onClick={() => editarProducto(producto)}
-                            className="btn-editar"
-                            disabled={cargando}
-                          >
-                            Editar
-                          </button>
-                          <button 
-                            onClick={() => producto.id && eliminarProducto(producto.id, producto.imagenUrl)}
-                            className="btn-eliminar"
-                            disabled={cargando}
-                          >
-                            Eliminar
-                          </button>
+                        )}
+                        <h4>{producto.nombre}</h4>
+                        <p className="precio">
+                          {parseFloat(producto.precio).toLocaleString('es-MX', {
+                            style: 'currency',
+                            currency: 'MXN',
+                            minimumFractionDigits: 2
+                          })}
+                        </p>
+                        <p className="categoria">Categoría: {producto.categoria}</p>
+                        <p className="categoria">Stock: {producto.stock}</p>
+                        <p className="categoria">Estado: {producto.estado}</p>
+                        <p className="categoria">Marca: {producto.marca}</p>
+                        <p className="categoria">Presentación: {producto.presentacion}</p>
+                        {producto.descripcion && (
+                          <p className="descripcion">{producto.descripcion}</p>
+                        )}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                          <button className="btn-editar" onClick={() => editarProducto(producto)}>Editar</button>
+                          <button className="btn-eliminar" onClick={() => eliminarProducto(producto.id!, producto.imagenUrl ?? "")}>Eliminar</button>
                         </div>
                       </div>
                     ))}
@@ -1551,6 +1558,20 @@ const PanelControl = () => {
                 </div>
 
                 <div className="form-group">
+                  <label>Estado*</label>
+                  <select
+                    value={nuevoCafe.estado}
+                    onChange={(e) => setNuevoCafe({ ...nuevoCafe, estado: e.target.value })}
+                    required
+                  >
+                    <option value="">Selecciona el estado</option>
+                    <option value="molido">Molido</option>
+                    <option value="grano">En grano</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
                   <label>Imagen {!edicionCafeId && "*"}</label>
                   <input
                     type="file"
@@ -1580,6 +1601,63 @@ const PanelControl = () => {
                   )}
                 </div>
 
+                <div className="form-group">
+                  <label>Presentaciones</label>
+                  {nuevoCafe.presentaciones && nuevoCafe.presentaciones.length > 0 && (
+                    <ul style={{ marginBottom: 10 }}>
+                      {nuevoCafe.presentaciones.map((pres, idx) => (
+                        <li key={idx} style={{ marginBottom: 6 }}>
+                          <span style={{ fontWeight: 'bold' }}>{pres.tamanio}</span> - {pres.stock} piezas
+                          <button type="button" className="btn-eliminar" style={{ marginLeft: 10, padding: '2px 10px', fontSize: '0.9em' }} onClick={() => {
+                            setNuevoCafe({
+                              ...nuevoCafe,
+                              presentaciones: nuevoCafe.presentaciones!.filter((_, i) => i !== idx)
+                            });
+                          }}>Eliminar</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      placeholder="Tamaño (ej: 1 kilo, 500g)"
+                      value={nuevaPresentacionTamanio}
+                      onChange={e => setNuevaPresentacionTamanio(e.target.value)}
+                      style={{ flex: 2 }}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Stock"
+                      value={nuevaPresentacionStock}
+                      onChange={e => setNuevaPresentacionStock(e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ padding: '6px 12px', fontSize: '0.95em' }}
+                      onClick={() => {
+                        if (nuevaPresentacionTamanio && nuevaPresentacionStock) {
+                          setNuevoCafe({
+                            ...nuevoCafe,
+                            presentaciones: [
+                              ...(nuevoCafe.presentaciones || []),
+                              {
+                                tamanio: nuevaPresentacionTamanio,
+                                stock: parseInt(nuevaPresentacionStock)
+                              }
+                            ]
+                          });
+                          setNuevaPresentacionTamanio("");
+                          setNuevaPresentacionStock("");
+                        }
+                      }}
+                    >Agregar</button>
+                  </div>
+                </div>
+
                 <div className="form-actions">
                   <button type="submit" className="btn-primary" disabled={cargando}>
                     {edicionCafeId ? "Actualizar Café" : "Agregar Café"}
@@ -1600,7 +1678,9 @@ const PanelControl = () => {
                           intensidad: 3,
                           tipo: "Arábica",
                           notas: "",
-                          tueste: "Medio"
+                          tueste: "Medio",
+                          estado: "",
+                          presentaciones: []
                         });
                         setError(null); // Clear error on cancel
                       }}
@@ -1617,41 +1697,46 @@ const PanelControl = () => {
                 {cafes.length === 0 ? (
                   <p>No hay cafés registrados</p>
                 ) : (
-                  <div className="productos-grid">
+                  <div className="productos-grid-simple">
                     {cafes.map((cafe) => (
-                      <div key={cafe.id} className="producto-card">
-                        <div className="producto-imagen">
+                      <div key={cafe.id} className="producto-card-simple">
+                        {cafe.imagenUrl && (
                           <ImagenConPlaceholder src={cafe.imagenUrl} alt={cafe.nombre} />
-                        </div>
-                        <div className="producto-info">
-                          <h4>{cafe.nombre}</h4>
-                          <p className="precio">${parseFloat(cafe.precio).toFixed(2)} MXN</p>
-                          <p className="origen"><strong>Origen:</strong> {cafe.origen}</p>
-                          <p className="tipo"><strong>Tipo:</strong> {cafe.tipo}</p>
-                          <p className="intensidad"><strong>Intensidad:</strong> {cafe.intensidad}/10</p>
-                          <p className="tueste"><strong>Tueste:</strong> {cafe.tueste}</p>
-                          {cafe.descripcion && (
-                            <p className="descripcion"><strong>Descripción:</strong> {cafe.descripcion}</p>
-                          )}
-                          {cafe.notas && (
-                            <p className="notas"><strong>Notas:</strong> {cafe.notas}</p>
-                          )}
-                        </div>
-                        <div className="producto-acciones">
-                          <button 
-                            onClick={() => editarCafe(cafe)}
-                            className="btn-editar"
-                            disabled={cargando}
-                          >
-                            Editar
-                          </button>
-                          <button 
-                            onClick={() => cafe.id && eliminarCafe(cafe.id, cafe.imagenUrl)}
-                            className="btn-eliminar"
-                            disabled={cargando}
-                          >
-                            Eliminar
-                          </button>
+                        )}
+                        <h4>{cafe.nombre}</h4>
+                        <p className="precio">
+                          {parseFloat(cafe.precio).toLocaleString('es-MX', {
+                            style: 'currency',
+                            currency: 'MXN',
+                            minimumFractionDigits: 2
+                          })}
+                        </p>
+                        <p className="categoria">Origen: {cafe.origen}</p>
+                        <p className="categoria">Tipo: {cafe.tipo}</p>
+                        <p className="categoria">Intensidad: {cafe.intensidad}</p>
+                        <p className="categoria">Tueste: {cafe.tueste}</p>
+                        {/* Estado visual mejorado */}
+                        <span className={`badge-estado badge-${cafe.estado}`} style={{marginBottom: 6, marginTop: 4}}>
+                          {cafe.estado === 'molido' ? 'Molido' : cafe.estado === 'grano' ? 'En grano' : cafe.estado}
+                        </span>
+                        {Array.isArray(cafe.presentaciones) && cafe.presentaciones.length > 0 && (
+                          <ul style={{marginTop: 8}}>
+                            {cafe.presentaciones.map((pres, idx) => (
+                              <li key={idx}>
+                                {pres.tamanio} - <span style={{fontWeight: pres.stock <= 2 ? 'bold' : 'normal', color: pres.stock <= 2 ? '#e67e22' : undefined}}>{pres.stock} piezas{pres.stock <= 2 && ' ¡Stock bajo!'}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {cafe.descripcion && (
+                          <p className="descripcion">{cafe.descripcion}</p>
+                        )}
+                        {cafe.notas && (
+                          <p className="descripcion">Notas: {cafe.notas}</p>
+                        )}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                          <button className="btn-editar" onClick={() => editarCafe(cafe)}>Editar</button>
+                          <button className="btn-eliminar" onClick={() => eliminarCafe(cafe.id!, cafe.imagenUrl ?? "")}>Eliminar</button>
                         </div>
                       </div>
                     ))}

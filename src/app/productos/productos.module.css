@@ -64,12 +64,14 @@
 .categoriasProductos {
   padding: 3rem 2rem;
   background: #F4E8D4;
+  text-align: center;
 }
 
 .categoriaTitulo {
   font-size: 1.6rem;
   margin-bottom: 1.2rem;
   color: #4A3B31;
+  text-align: center;
 }
 
 /* Grid productos */
@@ -79,8 +81,9 @@
   gap: 2rem;
   justify-items: center;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 auto 3rem auto;
   width: 100%;
+  text-align: center;
 }
 
 /* Card producto */
@@ -203,5 +206,13 @@
 
   .productosGrid {
     grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .categoriaTitulo {
+    text-align: center;
+  }
+  .categoriasProductos {
+    text-align: center;
   }
 }

@@ -467,8 +467,11 @@ h2 {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
   padding: 25px;
   display: flex;
+  flex-direction: column;
   gap: 20px;
-  align-items: center;
+  align-items: stretch;
+  height: 100%;
+  justify-content: space-between;
 }
 
 .usuario-avatar {
@@ -524,9 +527,21 @@ h2 {
 
 .usuario-acciones {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
-  margin-left: auto;
+  width: 100%;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .usuario-acciones {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+  }
 }
 
 /* Loading Overlay */
@@ -682,6 +697,10 @@ h2 {
 
   .usuario-avatar {
     margin-bottom: 15px;
+  }
+  .usuario-acciones {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -1287,4 +1306,107 @@ h2 {
   color: var(--primary-color);
   margin-bottom: 20px;
   font-size: 1.4em;
+}
+
+.cafe-info {
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.cafe-info h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.4em;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+.cafe-info .precio {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
+}
+
+.cafe-info .origen,
+.cafe-info .tipo,
+.cafe-info .intensidad,
+.cafe-info .tueste,
+.cafe-info .descripcion,
+.cafe-info .notas {
+  font-size: 0.95em;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.producto-info, .cafe-info {
+  padding: 20px;
+  color: #333;
+  background: none;
+  border: none;
+  position: static;
+  z-index: auto;
+}
+
+.producto-card-simple {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.producto-card-simple h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.producto-card-simple .precio {
+  font-weight: bold;
+  color: #2a5d34;
+  margin: 5px 0;
+}
+
+.producto-card-simple .categoria {
+  font-style: italic;
+  color: #666;
+  margin: 5px 0;
+}
+
+.producto-card-simple .descripcion {
+  margin: 5px 0;
+  color: #444;
+}
+
+.productos-grid-simple {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
+.badge-molido {
+  background: #ffe082;
+  color: #795548;
+}
+.badge-grano {
+  background: #b2dfdb;
+  color: #004d40;
+}
+.badge-otro {
+  background: #e0e0e0;
+  color: #333;
 }

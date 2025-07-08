@@ -46,20 +46,20 @@ export default function LoginForm() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mobileForm, setMobileForm] = useState<'login' | 'register'>('login');
   const router = useRouter();
+
+  // Detecta si es móvil
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Asignar rol automáticamente
       const rolAsignado = ADMIN_EMAILS.includes(user.email || "") ? "admin" : "usuario";
-      
       await setDoc(doc(db, "usuarios", user.uid), {
         uid: user.uid,
         email: user.email,
@@ -72,7 +72,6 @@ export default function LoginForm() {
         updatedAt: new Date().toISOString(),
         rol: rolAsignado
       });
-      
       router.push('/');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
@@ -90,17 +89,14 @@ export default function LoginForm() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
       if (!user.email || !ADMIN_EMAILS.includes(user.email)) {
         await auth.signOut();
         setError("Tu cuenta no tiene permisos para acceder al panel de control. Solo los administradores pueden acceder.");
         return;
       }
-      
       router.push('/paneldecontrol');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
@@ -130,105 +126,186 @@ export default function LoginForm() {
           </div>
         )}
 
-        {/* Sign Up */}
-        <div className={`${styles.container__form} ${styles.containerSignup}`}>
-          <form onSubmit={handleSignUp} className={styles.form}>
-            <h2 className={styles.form__title}>Crear Cuenta</h2>
-            <input 
-              type="text" 
-              placeholder="Usuario" 
-              className={styles.input} 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required 
-              disabled={isLoading}
-            />
-            <input 
-              type="email" 
-              placeholder="Email" 
-              className={styles.input} 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-              disabled={isLoading}
-            />
-            <input 
-              type="password" 
-              placeholder="Contraseña" 
-              className={styles.input} 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-              disabled={isLoading}
-              minLength={6}
-            />
-            <button 
-              type="submit" 
-              className={styles.btn}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Registrando...' : 'Registrarse'}
-            </button>
-          </form>
-        </div>
-
-        {/* Sign In */}
-        <div className={`${styles.container__form} ${styles.containerSignin}`}>
-          <form onSubmit={handleSignIn} className={styles.form}>
-            <h2 className={styles.form__title}>Iniciar Sesión</h2>
-            <input 
-              type="email" 
-              placeholder="Email" 
-              className={styles.input} 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-              disabled={isLoading}
-            />
-            <input 
-              type="password" 
-              placeholder="Contraseña" 
-              className={styles.input} 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-              disabled={isLoading}
-            />
-            <Link href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</Link>
-            <button 
-              type="submit" 
-              className={styles.btn}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
-            </button>
-          </form>
-        </div>
-
-        {/* Overlay */}
-        <div className={styles.container__overlay}>
-          <div className={styles.overlay}>
-            <div className={`${styles.overlay__panel} ${styles.overlayLeft}`}>
-              <h2>¡Bienvenido de vuelta!</h2>
-              <p>Ingresa tus datos para acceder a tu cuenta</p>
+        {/* MOBILE: solo un formulario visible, sin overlay */}
+        <div className={styles.mobileOnly}>
+          {mobileForm === 'login' && (
+            <form onSubmit={handleSignIn} className={styles.form}>
+              <h2 className={styles.form__title}>Iniciar Sesión</h2>
+              <input 
+                type="email" 
+                placeholder="Email" 
+                className={styles.input} 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                className={styles.input} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <Link href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</Link>
               <button 
-                onClick={() => setRightPanelActive(false)} 
+                type="submit" 
                 className={styles.btn}
                 disabled={isLoading}
               >
+                {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
+              </button>
+              <button type="button" className={styles.btn} onClick={() => setMobileForm('register')}>
+                Crear cuenta
+              </button>
+            </form>
+          )}
+          {mobileForm === 'register' && (
+            <form onSubmit={handleSignUp} className={styles.form}>
+              <h2 className={styles.form__title}>Crear Cuenta</h2>
+              <input 
+                type="text" 
+                placeholder="Usuario" 
+                className={styles.input} 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <input 
+                type="email" 
+                placeholder="Email" 
+                className={styles.input} 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                className={styles.input} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+                disabled={isLoading}
+                minLength={6}
+              />
+              <button 
+                type="submit" 
+                className={styles.btn}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Registrando...' : 'Registrarse'}
+              </button>
+              <button type="button" className={styles.btn} onClick={() => setMobileForm('login')}>
                 Iniciar Sesión
               </button>
-            </div>
-            <div className={`${styles.overlay__panel} ${styles.overlayRight}`}>
-              <h2>¡Hola!</h2>
-              <p>Regístrate para comenzar tu experiencia</p>
+            </form>
+          )}
+        </div>
+
+        {/* DESKTOP: diseño original con overlay y dos paneles */}
+        <div className={styles.desktopOnly}>
+          <div className={`${styles.container__form} ${styles.containerSignup}`}>
+            <form onSubmit={handleSignUp} className={styles.form}>
+              <h2 className={styles.form__title}>Crear Cuenta</h2>
+              <input 
+                type="text" 
+                placeholder="Usuario" 
+                className={styles.input} 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <input 
+                type="email" 
+                placeholder="Email" 
+                className={styles.input} 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                className={styles.input} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+                disabled={isLoading}
+                minLength={6}
+              />
               <button 
-                onClick={() => setRightPanelActive(true)} 
+                type="submit" 
                 className={styles.btn}
                 disabled={isLoading}
               >
-                Crear Cuenta
+                {isLoading ? 'Registrando...' : 'Registrarse'}
               </button>
+            </form>
+          </div>
+
+          <div className={`${styles.container__form} ${styles.containerSignin}`}>
+            <form onSubmit={handleSignIn} className={styles.form}>
+              <h2 className={styles.form__title}>Iniciar Sesión</h2>
+              <input 
+                type="email" 
+                placeholder="Email" 
+                className={styles.input} 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                className={styles.input} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+              <Link href="/recuperar-contrasena" className={styles.link}>¿Olvidaste tu contraseña?</Link>
+              <button 
+                type="submit" 
+                className={styles.btn}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
+              </button>
+            </form>
+          </div>
+
+          <div className={styles.container__overlay}>
+            <div className={styles.overlay}>
+              <div className={`${styles.overlay__panel} ${styles.overlayLeft}`}>
+                <h2>¡Bienvenido de vuelta!</h2>
+                <p>Ingresa tus datos para acceder a tu cuenta</p>
+                <button 
+                  onClick={() => setRightPanelActive(false)} 
+                  className={styles.btn}
+                  disabled={isLoading}
+                >
+                  Iniciar Sesión
+                </button>
+              </div>
+              <div className={`${styles.overlay__panel} ${styles.overlayRight}`}>
+                <h2>¡Hola!</h2>
+                <p>Regístrate para comenzar tu experiencia</p>
+                <button 
+                  onClick={() => setRightPanelActive(true)} 
+                  className={styles.btn}
+                  disabled={isLoading}
+                >
+                  Crear Cuenta
+                </button>
+              </div>
             </div>
           </div>
         </div>

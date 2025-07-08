@@ -64,11 +64,11 @@ const Header = () => {
         )}
         <nav className={`nav${menuAbierto ? " open" : ""}`} style={{zIndex: 1050}} onClick={closeMenu}>
           <ul onClick={e => e.stopPropagation()}>
-            <li><Link href="/">Inicio</Link></li>
-            <li><Link href="/productos">Productos</Link></li>
-            <li><Link href="/cafe">Cafe</Link></li>
-            <li><Link href="/nosotros">Nosotros</Link></li>
-            <li><Link href="/login">Login</Link></li>
+            <li><Link href="/" onClick={closeMenu}>Inicio</Link></li>
+            <li><Link href="/productos" onClick={closeMenu}>Productos</Link></li>
+            <li><Link href="/cafe" onClick={closeMenu}>Cafe</Link></li>
+            <li><Link href="/nosotros" onClick={closeMenu}>Nosotros</Link></li>
+            <li><Link href="/login" onClick={closeMenu}>Login</Link></li>
             <li>
               <button onClick={toggleCarrito} className="btn-carrito-toggle">
                 <span className="icono-carrito">🛒</span>

@@ -10,6 +10,11 @@ import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { useCarrito } from "../components/usecarrito";
 
+interface PresentacionCafe {
+  tamanio: string;
+  stock: number;
+}
+
 interface Cafe {
   id?: string;
   nombre: string;
@@ -21,6 +26,8 @@ interface Cafe {
   tipo: string;
   notas: string;
   tueste: string;
+  presentaciones?: PresentacionCafe[];
+  estado?: string; // Added for badge
 }
 
 export default function Cafe() {
@@ -47,7 +54,9 @@ export default function Cafe() {
           intensidad: data.intensidad,
           tipo: data.tipo,
           notas: data.notas,
-          tueste: data.tueste
+          tueste: data.tueste,
+          presentaciones: data.presentaciones || [],
+          estado: data.estado // Assuming 'estado' is part of the data
         });
       });
 
@@ -57,19 +66,21 @@ export default function Cafe() {
     obtenerCafes();
   }, []);
 
- const cafesFiltrados = cafes.filter(
-  (cafe) => {
-    const searchTerm = busqueda.toLowerCase();
-    return (
-      (cafe.nombre?.toLowerCase() || '').includes(searchTerm) ||
-      (cafe.descripcion?.toLowerCase() || '').includes(searchTerm) ||
-      (cafe.origen?.toLowerCase() || '').includes(searchTerm) ||
-      (cafe.tipo?.toLowerCase() || '').includes(searchTerm) ||
-      (cafe.tueste?.toLowerCase() || '').includes(searchTerm) ||
-      (cafe.notas?.toLowerCase() || '').includes(searchTerm)
-    );
-  }
-);
+  // Filtrar cafés que tengan presentaciones y al menos una con stock > 0
+  const cafesFiltrados = cafes.filter(
+    (cafe) =>
+      Array.isArray(cafe.presentaciones) &&
+      cafe.presentaciones.length > 0 &&
+      cafe.presentaciones.some((pres) => pres.stock > 0) &&
+      ((busqueda === "") ||
+        (cafe.nombre?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+        (cafe.descripcion?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+        (cafe.origen?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+        (cafe.tipo?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+        (cafe.tueste?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+        (cafe.notas?.toLowerCase() || '').includes(busqueda.toLowerCase())
+      )
+  );
   const esImagenExterna = (url: string) => {
     return url.startsWith("http://") || url.startsWith("https://");
   };
@@ -117,65 +128,84 @@ export default function Cafe() {
         <h2 className="titulo-categoria">Café</h2>
         <div className="cafe-grid">
           {cafesFiltrados.length > 0 ? (
-            cafesFiltrados.map((cafe) => (
-              <div key={cafe.id} className="cafe-card">
-                <div className="cafe-imagen-container">
-                  {esImagenExterna(cafe.imagenUrl) ? (
-                    <Image
-                      src={cafe.imagenUrl}
-                      alt={cafe.nombre}
-                      width={180}
-                      height={180}
-                      className="cafe-imagen"
-                      style={{ objectFit: "cover" }}
-                      priority
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
-                      }}
-                    />
-                  ) : (
-                    <Image
-                      src={cafe.imagenUrl}
-                      alt={cafe.nombre}
-                      width={180}
-                      height={180}
-                      className="cafe-imagen"
-                      style={{ objectFit: "cover" }}
-                      priority
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="cafe-card-content">
-                  <h3>{cafe.nombre}</h3>
-                  <p className="descripcion">{cafe.descripcion}</p>
-                  <div className="cafe-details">
-                    <p><strong>Origen:</strong> {cafe.origen}</p>
-                    <p><strong>Tipo:</strong> {cafe.tipo}</p>
-                    <p><strong>Intensidad:</strong> {cafe.intensidad}/10</p>
-                    <p><strong>Tueste:</strong> {cafe.tueste}</p>
-                    {cafe.notas && <p><strong>Notas:</strong> {cafe.notas}</p>}
+            cafesFiltrados.map((cafe) => {
+              // Calcular el stock total sumando todas las presentaciones
+              const stockTotal = Array.isArray(cafe.presentaciones)
+                ? cafe.presentaciones.reduce((acc, pres) => acc + (pres.stock || 0), 0)
+                : 0;
+              return (
+                <div key={cafe.id} className="cafe-card">
+                  <div className="cafe-imagen-container">
+                    {esImagenExterna(cafe.imagenUrl) ? (
+                      <Image
+                        src={cafe.imagenUrl}
+                        alt={cafe.nombre}
+                        width={180}
+                        height={180}
+                        className="cafe-imagen"
+                        style={{ objectFit: "cover" }}
+                        priority
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                        }}
+                      />
+                    ) : (
+                      <Image
+                        src={cafe.imagenUrl}
+                        alt={cafe.nombre}
+                        width={180}
+                        height={180}
+                        className="cafe-imagen"
+                        style={{ objectFit: "cover" }}
+                        priority
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                        }}
+                      />
+                    )}
                   </div>
-                  <p className="precio">${cafe.precio} MXN</p>
-                  <button
-                    className="btn-pedir"
-                    onClick={() => agregarAlCarrito({
-                      nombre: cafe.nombre,
-                      descripcion: cafe.descripcion,
-                      imagen: cafe.imagenUrl,
-                      precio: cafe.precio,
-                      categoria: "Café"
-                    })}
-                  >
-                    Añadir al carrito
-                  </button>
+                  <div className="cafe-card-content">
+                    <h3>{cafe.nombre}</h3>
+                    <p className="descripcion">{cafe.descripcion}</p>
+                    <div className="cafe-details">
+                      <p><strong>Origen:</strong> {cafe.origen}</p>
+                      <p><strong>Tipo:</strong> {cafe.tipo}</p>
+                      <p><strong>Intensidad:</strong> {cafe.intensidad}/10</p>
+                      <p><strong>Tueste:</strong> {cafe.tueste}</p>
+                      {cafe.estado && (
+                        <p><strong>Estado:</strong> {cafe.estado === 'molido' ? 'Molido' : cafe.estado === 'grano' ? 'En grano' : cafe.estado}</p>
+                      )}
+                      {cafe.notas && <p><strong>Notas:</strong> {cafe.notas}</p>}
+                      {/* Mostrar presentaciones y stock */}
+                      {Array.isArray(cafe.presentaciones) && cafe.presentaciones.length > 0 && (
+                        <ul style={{marginTop: 8}}>
+                          {cafe.presentaciones.filter(p => p.stock > 0).map((pres, idx) => (
+                            <li key={idx}>
+                              {pres.tamanio} - <span style={{fontWeight: pres.stock <= 2 ? 'bold' : 'normal', color: pres.stock <= 2 ? '#e67e22' : undefined}}>{pres.stock} piezas{pres.stock <= 2 && ' ¡Stock bajo!'}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <p className="precio">${cafe.precio} MXN</p>
+                    <button
+                      className="btn-pedir"
+                      onClick={() => agregarAlCarrito({
+                        nombre: cafe.nombre,
+                        descripcion: cafe.descripcion,
+                        imagen: cafe.imagenUrl,
+                        precio: cafe.precio,
+                        categoria: "Café"
+                      })}
+                    >
+                      Añadir al carrito
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <p className="no-resultados">No se encontraron cafés que coincidan con tu búsqueda.</p>
           )}

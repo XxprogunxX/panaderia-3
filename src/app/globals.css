@@ -6,11 +6,11 @@
 }
 
 body {
-  font-family: 'Open Sans', sans-serif;
-  background: linear-gradient(120deg, #fff8f3 0%, #fceee3 100%);
-  color: #4b3a2f;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
-  font-size: 16px;
+  background-color: #F4E8D4; /* Color crema claro */
+  color: #4A3B31; /* Marrón oscuro para texto principal */
+  scroll-behavior: smooth;
 }
 
 html, body {
