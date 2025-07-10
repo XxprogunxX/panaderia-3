@@ -1,10 +1,12 @@
 /* styles/footer.module.css */
 
 .footer {
-  background-color: #4A3B31;
+  background: linear-gradient(135deg, #4A3B31 60%, #7c5e3c 100%);
   padding: 3rem 2rem;
   margin-top: 4rem;
   border-top: 1px solid #e7e7e7;
+  
+
 }
 
 .footerContainer {
@@ -12,11 +14,21 @@
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 .footerSection {
   margin-bottom: 1.5rem;
+  background: none;
+  border-radius: 16px;
+  padding: 1.2rem 1rem;
+ 
+  
+}
+
+.footerSection:hover {
+  background: none;
+  
 }
 
 .logoSection {
@@ -27,19 +39,24 @@
 
 .footerLogo {
   margin-bottom: 1rem;
+  border-radius: 100%;
+  box-shadow: 0 2px 8px 0 rgba(60, 40, 20, 0.10);
+
 }
 
 .footerBrand {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: white;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
 }
 
 .footerSectionTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
   margin-bottom: 1rem;
-  color: white;
+  color: #ffe6b3;
+  letter-spacing: 0.5px;
 }
 
 .footerLinks {
@@ -48,17 +65,22 @@
 }
 
 .footerLinks li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .footerLinks a {
-  color: white;
+  color: #fff;
   text-decoration: none;
-  transition: color 0.3s;
+  font-size: 1.08rem;
+  transition: color 0.3s, text-shadow 0.3s;
 }
 
 .footerLinks a:hover {
-  color: white;
+  color: #ffe6b3;
+  text-shadow: 0 2px 8px #7c5e3c44;
 }
 
 .address {
@@ -67,7 +89,8 @@
 
 .address p {
   margin: 0.3rem 0;
-  color: white;
+  color: #fff;
+  font-size: 1.05rem;
 }
 
 .footerBottom {
@@ -75,20 +98,123 @@
   padding-top: 1.5rem;
   border-top: 1px solid #e7e7e7;
   text-align: center;
-  color: white;
-  font-size: 0.9rem;
+  color: #fff;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.socialIcon {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.3rem;
+  filter: drop-shadow(0 1px 2px #0002);
+  transition: filter 0.2s;
+}
+
+.footerLinks a:hover .socialIcon {
+  filter: drop-shadow(0 2px 6px #ffe6b3cc);
+}
+
+@media (max-width: 1024px) {
+  .footerContainer {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .footerLogo {
+    width: 100px !important;
+    height: 100px !important;
+  }
 }
 
 @media (max-width: 768px) {
   .footerContainer {
     grid-template-columns: 1fr;
+    gap: 2.2rem;
+    justify-items: center;
   }
-  
   .footerSection {
     text-align: center;
+    align-items: center;
+    padding: 1.2rem 0.5rem;
+    margin-bottom: 2.2rem;
   }
-  
   .logoSection {
     align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  .footerLogo {
+    width: 80px !important;
+    height: 80px !important;
+    margin: 0 auto 1.2rem auto;
+    display: block;
+  }
+  .footerSectionTitle {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffe6b3;
+    margin-bottom: 1.1rem;
+    letter-spacing: 0.5px;
+  }
+  .footerLinks {
+    padding: 0;
+    margin: 0 auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: center;
+  }
+  .footerLinks li {
+    margin-bottom: 0;
+    width: 100%;
+    justify-content: center;
+  }
+  .footerLinks a {
+    font-size: 1.08rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+  }
+  .socialIcon {
+    width: 28px;
+    height: 28px;
+    margin-right: 0.5rem;
+  }
+  .address p {
+    font-size: 1.05rem;
+    margin: 0.4rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 1.5rem 0.5rem;
+  }
+  .footerSection {
+    padding: 0.7rem 0.2rem;
+    margin-bottom: 1.5rem;
+  }
+  .footerLogo {
+    width: 60px !important;
+    height: 60px !important;
+    margin-bottom: 1rem;
+  }
+  .footerSectionTitle {
+    font-size: 1.08rem;
+    margin-bottom: 0.7rem;
+  }
+  .footerLinks a {
+    font-size: 0.98rem;
+    padding: 0.2rem 0.5rem;
+  }
+  .socialIcon {
+    width: 22px;
+    height: 22px;
+    margin-right: 0.4rem;
   }
 }

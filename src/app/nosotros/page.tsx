@@ -10,6 +10,7 @@ import styles from "./nosotros.module.css";
 import { useCarrito } from "../components/usecarrito"
  // Adjust the path if necessary
 import { useMercadoPago } from "../components/useMercadopago"; // Adjust the path if necessary
+import Footer from '../components/Footer';
 
 export default function NosotrosPage() {
   // Use the useCarrito hook to get cart state and toggle function
@@ -46,7 +47,8 @@ export default function NosotrosPage() {
   };
 
   return (
-    <main>
+    <>
+      <main>
       
       <section className={styles["nosotros-hero"]}>
         <div className={styles["nosotros-hero-content"]}>
@@ -305,41 +307,9 @@ export default function NosotrosPage() {
         </div>
       )}
 
-      <footer className={styles["footer"]}>
-        <div className={styles["footer-container"]}>
-          <div className={styles["footer-section"] + ' ' + styles.logo}>
-            <Image
-              src="/images/logo.png"
-              alt="Logo"
-              width={100}
-              height={100}
-              className={styles["footer-logo"]}
-            />
-          </div>
-          <div className={styles["footer-section"]}>
-            <h3>Navegación</h3>
-            <ul>
-              <li><Link href="/nosotros">Nosotros</Link></li>
-              <li><Link href="/productos">Productos</Link></li>
-              <li><Link href="#">Contacto</Link></li>
-            </ul>
-          </div>
-          <div className={styles["footer-section"]}>
-            <h3>Síguenos</h3>
-            <ul>
-              <li><a href="https://facebook.com" target="_blank">Facebook</a></li>
-              <li><a href="https://wa.me/522380000000" target="_blank">WhatsApp</a></li>
-            </ul>
-          </div>
-          <div className={styles["footer-section"]}>
-            <h3>Contáctanos</h3>
-            <p>Calle del Sabor 123, Col. La Hogaza</p>
-            <p>75700 Tehuacán, Pue.</p>
-            <p>Tel: +52 238 123 4567</p>
-            <p>pedidos@elpandecadadia.com</p>
-          </div>
-        </div>
-      </footer>
+     
     </main>
+    <Footer />
+    </>
   );
 }

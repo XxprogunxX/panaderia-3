@@ -23,6 +23,12 @@ const nextConfig = {
         port: '',
         pathname: '/v0/b/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'img.itch.zone',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

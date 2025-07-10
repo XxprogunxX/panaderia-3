@@ -11,6 +11,7 @@ import { useCarrito } from "../components/CarritoContext";
 import { useMercadoPago } from "../components/useMercadopago"; 
 import footerStyles from "../footer.module.css";
 import styles from './productos.module.css';
+import Footer from '../components/Footer';
 
 interface Producto {
   nombre: string;
@@ -219,10 +220,9 @@ export default function Productos() {
           </div>
         )}
 
-        <footer className={footerStyles.footer}>
-          {/* Aquí tu footer */}
-        </footer>
+        
       </main>
+      <Footer />
     </div>
   );
 }

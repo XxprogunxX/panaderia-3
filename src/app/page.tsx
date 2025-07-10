@@ -10,6 +10,7 @@ import { db } from "./firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import OfertasCarousel from "./components/OfertasCarousel";
 import styles from './home.module.css';
+import Footer from './components/Footer';
 
 interface Producto {
   nombre: string;
@@ -247,56 +248,7 @@ const Home = () => {
         </div>
       )}
 
-      <footer className={styles.footer}>
-        <div className={styles["footer-container"]}>
-          <div className={styles["footer-section"] + ' ' + styles.logo}>
-            <Image
-              src="/images/logo.png"
-              alt="Logo"
-              width={100}
-              height={100}
-              className={styles["footer-logo"]}
-            />
-          </div>
-          <div className={styles["footer-section"]}>
-            <h3>Navegación</h3>
-            <ul>
-              <li>
-                <Link href="/nosotros">Nosotros</Link>
-              </li>
-              <li>
-                <Link href="/productos">Productos</Link>
-              </li>
-              <li>
-                <Link href="#">Contacto</Link>
-              </li>
-            </ul>
-          </div>
-          <div className={styles["footer-section"]}>
-            <h3>Síguenos</h3>
-            <ul>
-              <li>
-                <a href="https://facebook.com/NINDOCAFE" target="_blank">
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a href="https://wa.me/522380000000" target="_blank">
-                  WhatsApp
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className={styles["footer-section"]}>
-            <h3>Contáctanos</h3>
-            <p>Calle del Sabor 123, Col. La Hogaza</p>
-            <p>75700 Tehuacán, Pue.</p>
-            <p>Tel: +52 238 123 4567</p>
-            <p>pedidos@elpandecadadia.com</p>
-          </div>
-        </div>
-       <HelpPopup />
-      </footer>
+      <Footer />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './cafe.module.css';
+import Footer from '../components/Footer';
 
 
 export default function CafePage() {
@@ -32,16 +33,14 @@ export default function CafePage() {
           <div className={styles["cafe-hero-text"]}>
             <h1>El Arte del Café</h1>
             <p>Una experiencia sensorial en cada taza.</p>
-            <button className={styles["cafe-cta-button"]}>Comprar Ahora</button>
+            <Link href="/cafeproductos" className={styles["cafe-cta-button"]}>
+              Comprar Ahora
+            </Link>
           </div>
         </section>
         {/* Sección de enlaces de menú inferior */}
-        <section className={styles["cafe-info-nav-links"]}>
-          <Link href="#menu" className={styles["cafe-info-nav-link"]}>El Menú</Link>
-          <Link href="#info-cafeteria" className={styles["cafe-info-nav-link"]}>Información La Cafetería</Link>
-          <Link href="#ubicacion" className={styles["cafe-info-nav-link"]}>Ubicación</Link>
-          <Link href="#contacto" className={styles["cafe-info-nav-link"]}>Contacto</Link>
-        </section>
+        
+      
         <section id="productos" className={styles["cafe-productos"]}>
           <h2 className={styles["cafe-productos-titulo"]}>Nuestros Favoritos</h2>
           <div className={styles["cafe-productos-grid"]}>
@@ -143,11 +142,9 @@ export default function CafePage() {
             </article>
           </div>
         </section>
-        <section id="testimonios" className={styles["cafe-testimonios"] + ' ' + styles["cafe-fade-in"]}>
-          <h2>Lo que dicen nuestros clientes</h2>
-          <blockquote><p>“El mejor café que he probado. Su aroma es una delicia.”</p></blockquote>
-        </section>
+       
       </main>
+      <Footer />
     </>
   );
 }
