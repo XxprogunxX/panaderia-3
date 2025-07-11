@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
-import { getAuth, onAuthStateChanged, User, signOut } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User, signOut, createUserWithEmailAndPassword } from "firebase/auth";
 import "./panel.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -151,6 +151,14 @@ const PanelControl = () => {
   // Añadir estados para los campos temporales de nueva presentación
   const [nuevaPresentacionTamanio, setNuevaPresentacionTamanio] = useState("");
   const [nuevaPresentacionStock, setNuevaPresentacionStock] = useState("");
+  // Estado para nuevo usuario
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    email: "",
+    password: "",
+    displayName: "",
+    rol: "cliente"
+  });
+  const [creandoUsuario, setCreandoUsuario] = useState(false);
 
   // Refs para evitar dependencias problemáticas en useCallback
   // These refs are crucial for `useCallback` functions to always get the latest state without re-creating the function.
@@ -159,6 +167,7 @@ const PanelControl = () => {
   const nuevaCategoriaRef = useRef(nuevaCategoria);
   const usuarioEditandoRef = useRef(usuarioEditando);
   const nuevaGuiaRef = useRef(nuevaGuia);
+  const nuevoUsuarioRef = useRef(nuevoUsuario);
 
   // Update refs when state changes
   useEffect(() => {
@@ -180,6 +189,10 @@ const PanelControl = () => {
   useEffect(() => {
     nuevaGuiaRef.current = nuevaGuia;
   }, [nuevaGuia]);
+
+  useEffect(() => {
+    nuevoUsuarioRef.current = nuevoUsuario;
+  }, [nuevoUsuario]);
 
 
   // Funciones de utilidad - definidas antes de los useEffect que las usan
@@ -1058,6 +1071,96 @@ const PanelControl = () => {
     }
   }, [edicionUsuarioId, cargarUsuarios]);
 
+  // Crear nuevo usuario (solo para super admin)
+  const crearUsuario = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCargando(true);
+    setError(null);
+    
+    const usuario = nuevoUsuarioRef.current; // Use ref for latest state
+    
+    if (!usuario.email?.trim()) {
+      setError("Por favor ingresa un email válido");
+      setCargando(false);
+      return;
+    }
+
+    if (!usuario.password || usuario.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      setCargando(false);
+      return;
+    }
+
+    if (!usuario.displayName?.trim()) {
+      setError("Por favor ingresa un nombre para el usuario");
+      setCargando(false);
+      return;
+    }
+
+    try {
+      console.log("Creating new user with email:", usuario.email);
+      const auth = getAuth();
+      
+      // Crear usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        usuario.email.trim(), 
+        usuario.password
+      );
+      
+      const newUser = userCredential.user;
+      console.log("User created successfully:", newUser.uid);
+
+      // Guardar datos adicionales en Firestore
+      const userDataToSave = {
+        uid: newUser.uid,
+        email: newUser.email,
+        displayName: usuario.displayName.trim(),
+        photoURL: null,
+        emailVerified: false,
+        providerData: [],
+        rol: usuario.rol,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, "usuarios"), userDataToSave);
+      console.log("User data saved to Firestore successfully");
+
+      // Reset form
+      setNuevoUsuario({
+        email: "",
+        password: "",
+        displayName: "",
+        rol: "cliente"
+      });
+      
+      await cargarUsuarios(); // Reload users list
+      setError(null);
+      setCreandoUsuario(false); // Close form
+    } catch (error) {
+      console.error("Error al crear usuario:", error);
+      let errorMessage = "Error al crear usuario";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('email-already-in-use')) {
+          errorMessage = "El email ya está registrado";
+        } else if (error.message.includes('weak-password')) {
+          errorMessage = "La contraseña es muy débil";
+        } else if (error.message.includes('invalid-email')) {
+          errorMessage = "El email no es válido";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setCargando(false);
+    }
+  }, [cargarUsuarios]);
+
 
   // Función para marcar como completado y eliminar
   const marcarComoPagado = useCallback(async (pedidoId: string) => {
@@ -1834,6 +1937,96 @@ const PanelControl = () => {
           {activeTab === "usuarios" && (
             <div className="usuarios-tab">
               <h2>Gestión de Usuarios</h2>
+              
+              {/* Formulario para crear nuevo usuario - solo visible para super admin */}
+              {usuarioActual?.email === SUPER_ADMIN_EMAIL && (
+                <div className="crear-usuario-section">
+                  <div className="section-header">
+                    <h3>Crear Nuevo Usuario</h3>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => setCreandoUsuario(!creandoUsuario)}
+                      style={{ marginBottom: 10 }}
+                    >
+                      {creandoUsuario ? "Cancelar" : "Agregar Usuario"}
+                    </button>
+                  </div>
+                  
+                  {creandoUsuario && (
+                    <form onSubmit={crearUsuario} className="form">
+                      <div className="form-group">
+                        <label>Email *</label>
+                        <input
+                          type="email"
+                          value={nuevoUsuario.email}
+                          onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, email: e.target.value })}
+                          required
+                          placeholder="usuario@ejemplo.com"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Contraseña *</label>
+                        <input
+                          type="password"
+                          value={nuevoUsuario.password}
+                          onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, password: e.target.value })}
+                          required
+                          minLength={6}
+                          placeholder="Mínimo 6 caracteres"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Nombre Completo *</label>
+                        <input
+                          type="text"
+                          value={nuevoUsuario.displayName}
+                          onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, displayName: e.target.value })}
+                          required
+                          placeholder="Nombre del usuario"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Rol *</label>
+                        <select
+                          value={nuevoUsuario.rol}
+                          onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, rol: e.target.value })}
+                          required
+                        >
+                          <option value="cliente">Cliente</option>
+                          <option value="admin">Administrador</option>
+                        </select>
+                      </div>
+
+                      <div className="form-actions">
+                        <button type="submit" className="btn-primary" disabled={cargando}>
+                          Crear Usuario
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => {
+                            setCreandoUsuario(false);
+                            setNuevoUsuario({
+                              email: "",
+                              password: "",
+                              displayName: "",
+                              rol: "cliente"
+                            });
+                            setError(null);
+                          }}
+                          disabled={cargando}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
               
               {edicionUsuarioId && usuarioEditando && (
                 <form onSubmit={(e) => { e.preventDefault(); actualizarUsuario(); }} className="form">

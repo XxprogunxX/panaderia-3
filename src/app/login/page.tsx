@@ -6,7 +6,7 @@ import { FirebaseError } from 'firebase/app';
 import { auth } from '../firebaseConfig';
 import styles from './LoginForm.module.css';
 import Link from 'next/link';
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 const ADMIN_EMAILS = ["admin11@gmail.com"];
@@ -92,11 +92,23 @@ export default function LoginForm() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      if (!user.email || !ADMIN_EMAILS.includes(user.email)) {
+      // Consulta el documento del usuario en Firestore
+      const userDocRef = doc(db, "usuarios", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        setError("No se encontró información de usuario.");
         await auth.signOut();
-        setError("Tu cuenta no tiene permisos para acceder al panel de control. Solo los administradores pueden acceder.");
         return;
       }
+
+      const userData = userDocSnap.data();
+      if (userData.rol !== "admin") {
+        setError("Tu cuenta no tiene permisos para acceder al panel de control. Solo los administradores pueden acceder.");
+        await auth.signOut();
+        return;
+      }
+
       router.push('/paneldecontrol');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
