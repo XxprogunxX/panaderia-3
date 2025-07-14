@@ -1,12 +1,15 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, setDoc } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
 import { getAuth, onAuthStateChanged, User, signOut, createUserWithEmailAndPassword } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { getAuth as getAuthSecondary, signOut as signOutSecondary } from "firebase/auth";
 import "./panel.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { firebaseConfig } from "../firebaseConfig";
 
 // Configura Supabase - Usar variables de entorno en producción
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vvtqfedsnthxeqaejhzg.supabase.co';
@@ -107,6 +110,21 @@ interface FirestoreData {
 
 const SUPER_ADMIN_EMAIL = "admin11@gmail.com";
 
+// Inicializa una app secundaria solo si no existe
+declare global {
+  // eslint-disable-next-line no-var
+  var _secondaryApp: ReturnType<typeof initializeApp> | undefined;
+}
+
+let secondaryApp;
+if (!globalThis._secondaryApp) {
+  secondaryApp = initializeApp(firebaseConfig, "Secondary");
+  globalThis._secondaryApp = secondaryApp;
+} else {
+  secondaryApp = globalThis._secondaryApp;
+}
+const secondaryAuth = getAuthSecondary(secondaryApp);
+
 const PanelControl = () => {
   const router = useRouter();
   // useState hooks
@@ -159,6 +177,9 @@ const PanelControl = () => {
     rol: "cliente"
   });
   const [creandoUsuario, setCreandoUsuario] = useState(false);
+  // --- Estado y ref para el menú del avatar ---
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
 
   // Refs para evitar dependencias problemáticas en useCallback
   // These refs are crucial for `useCallback` functions to always get the latest state without re-creating the function.
@@ -194,6 +215,19 @@ const PanelControl = () => {
     nuevoUsuarioRef.current = nuevoUsuario;
   }, [nuevoUsuario]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+        setMenuAbierto(false);
+      }
+    }
+    if (menuAbierto) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuAbierto]);
 
   // Funciones de utilidad - definidas antes de los useEffect que las usan
   const cargarUsuarios = useCallback(async () => {
@@ -633,6 +667,7 @@ const PanelControl = () => {
         description: producto.descripcion.trim(),
         pic: imagenUrl, // Use the new or existing image URL
         updatedAt: new Date().toISOString(),
+        stock: Number(producto.stock), // <-- Se agrega el stock como número
         ...(!edicionId && { createdAt: new Date().toISOString() }) // Only add createdAt for new products
       };
 
@@ -1099,12 +1134,9 @@ const PanelControl = () => {
 
     try {
       console.log("Creating new user with email:", usuario.email);
-      const auth = getAuth();
-      
-      // Crear usuario en Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        usuario.email.trim(), 
+        secondaryAuth,
+        usuario.email.trim(),
         usuario.password
       );
       
@@ -1125,7 +1157,7 @@ const PanelControl = () => {
         lastLogin: new Date().toISOString()
       };
 
-      await addDoc(collection(db, "usuarios"), userDataToSave);
+      await setDoc(doc(db, "usuarios", newUser.uid), userDataToSave);
       console.log("User data saved to Firestore successfully");
 
       // Reset form
@@ -1139,6 +1171,7 @@ const PanelControl = () => {
       await cargarUsuarios(); // Reload users list
       setError(null);
       setCreandoUsuario(false); // Close form
+      await signOutSecondary(secondaryAuth);
     } catch (error) {
       console.error("Error al crear usuario:", error);
       let errorMessage = "Error al crear usuario";
@@ -1159,7 +1192,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [cargarUsuarios]);
+  }, [cargarUsuarios, secondaryAuth]);
 
 
   // Función para marcar como completado y eliminar
@@ -1400,27 +1433,113 @@ const PanelControl = () => {
           <h1>Panel de Control</h1>
           <p>Administra tus productos, categorías, cafés, usuarios y pedidos.</p>
           {usuarioActual && (
-            <div style={{marginTop: 10, fontSize: '14px', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16}}>
-              <span>
-                Conectado como: <strong>{usuarioActual.email}</strong>
-                {(usuarioActual.rol === "super_admin" || usuarioActual.email === SUPER_ADMIN_EMAIL) && (
-                  <span style={{marginLeft: 10, color: '#28a745'}}>👑 Super Admin</span>
-                )}
-                {usuarioActual.rol === "admin" && usuarioActual.email !== SUPER_ADMIN_EMAIL && (
-                  <span style={{marginLeft: 10, color: '#007bff'}}>⭐ Admin</span>
-                )}
-              </span>
-              <button
-                className="btn-cerrar-sesion"
-                style={{marginLeft: 20, padding: '8px 18px', borderRadius: 8, background: '#e24a4a', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer'}}
-                onClick={async () => {
-                  const auth = getAuth();
-                  await signOut(auth);
-                  router.replace('/login');
+            <div style={{
+              marginTop: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              width: '100%',
+              position: 'absolute',
+              top: 30,
+              right: 40,
+              zIndex: 10
+            }}>
+              <div
+                ref={avatarRef}
+                style={{
+                  position: 'relative',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center'
                 }}
               >
-                Cerrar sesión
-              </button>
+                {/* Avatar y nombre/rol */}
+                <div
+                  onClick={() => setMenuAbierto((v) => !v)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  {usuarioActual.photoURL ? (
+                    <img
+                      src={usuarioActual.photoURL}
+                      alt="Avatar"
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #fff',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: 22,
+                      border: '2px solid #fff',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                    }}>
+                      {(usuarioActual.displayName || usuarioActual.email || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span style={{
+                    marginLeft: 12,
+                    color: usuarioActual.rol === "super_admin" ? "#28a745" : "#007bff",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {usuarioActual.rol === "super_admin" ? "👑 Super Admin" : usuarioActual.rol === "admin" ? "⭐ Admin" : "Usuario"}
+                  </span>
+                </div>
+                {/* Dropdown menu */}
+                {menuAbierto && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 56,
+                    right: 0,
+                    background: '#fff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 8,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+                    minWidth: 160,
+                    zIndex: 100,
+                    padding: '8px 0'
+                  }}>
+                    <button
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        padding: '12px 20px',
+                        textAlign: 'left',
+                        color: '#e24a4a',
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: 'pointer'
+                      }}
+                      onClick={async () => {
+                        const auth = getAuth();
+                        await signOut(auth);
+                        router.replace('/login');
+                      }}
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </header>
@@ -1459,6 +1578,17 @@ const PanelControl = () => {
                     required
                     step="0.01"
                     min="4.00"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Stock *</label>
+                  <input
+                    type="number"
+                    value={nuevoProducto.stock || ''}
+                    onChange={(e) => setNuevoProducto({ ...nuevoProducto, stock: e.target.value })}
+                    required
+                    min="0"
                   />
                 </div>
 
@@ -1565,7 +1695,16 @@ const PanelControl = () => {
                           })}
                         </p>
                         <p className="categoria">Categoría: {producto.categoria}</p>
-                        <p className="categoria">Stock: {producto.stock}</p>
+                        <p
+                          className="categoria"
+                          style={{
+                            color: Number(producto.stock) <= 2 ? '#e24a4a' : undefined,
+                            fontWeight: Number(producto.stock) <= 2 ? 700 : undefined
+                          }}
+                        >
+                          Stock: {producto.stock}
+                          {Number(producto.stock) <= 2 && <span style={{ marginLeft: 6 }}>¡Stock bajo!</span>}
+                        </p>
                         <p className="categoria">Estado: {producto.estado}</p>
                         <p className="categoria">Marca: {producto.marca}</p>
                         <p className="categoria">Presentación: {producto.presentacion}</p>

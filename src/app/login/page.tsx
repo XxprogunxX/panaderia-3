@@ -60,19 +60,40 @@ export default function LoginForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const rolAsignado = ADMIN_EMAILS.includes(user.email || "") ? "admin" : "usuario";
-      await setDoc(doc(db, "usuarios", user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: username || null,
-        photoURL: user.photoURL || null,
-        emailVerified: user.emailVerified,
-        providerData: user.providerData,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        rol: rolAsignado
-      });
-      router.push('/');
+      
+      // Crear documento en Firestore
+      try {
+        await setDoc(doc(db, "usuarios", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: username || null,
+          photoURL: user.photoURL || null,
+          emailVerified: user.emailVerified,
+          providerData: user.providerData,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          rol: rolAsignado
+        });
+        
+        // Verificar que el documento se creó correctamente
+        const userDocRef = doc(db, "usuarios", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (!userDocSnap.exists()) {
+          throw new Error("No se pudo crear el documento del usuario en la base de datos");
+        }
+        
+        console.log("Usuario creado exitosamente:", user.uid, "Rol:", rolAsignado);
+        router.push('/');
+        
+      } catch (firestoreError) {
+        // Si falla la creación en Firestore, eliminar el usuario de Auth
+        console.error('Error al crear documento en Firestore:', firestoreError);
+        await user.delete();
+        setError('Error al crear el perfil del usuario. Por favor intenta nuevamente.');
+      }
+      
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
         setError(getErrorMessage(error));
@@ -92,23 +113,30 @@ export default function LoginForm() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      
+      console.log("Usuario autenticado:", user.uid, user.email);
+      
       // Consulta el documento del usuario en Firestore
       const userDocRef = doc(db, "usuarios", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
       if (!userDocSnap.exists()) {
-        setError("No se encontró información de usuario.");
+        console.error("Documento de usuario no encontrado para UID:", user.uid);
+        setError("No se encontró información de usuario. Esto puede ocurrir si el usuario fue creado pero no se guardó correctamente en la base de datos. Contacta al administrador.");
         await auth.signOut();
         return;
       }
 
       const userData = userDocSnap.data();
+      console.log("Datos del usuario encontrados:", userData);
+      
       if (userData.rol !== "admin") {
         setError("Tu cuenta no tiene permisos para acceder al panel de control. Solo los administradores pueden acceder.");
         await auth.signOut();
         return;
       }
 
+      console.log("Acceso concedido al panel de control para:", user.email);
       router.push('/paneldecontrol');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
