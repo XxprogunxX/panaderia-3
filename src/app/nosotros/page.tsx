@@ -7,7 +7,7 @@ import styles from "./nosotros.module.css";
 // import footerStyles from "./footer.module.css"; // Uncomment if you use a CSS Modules file for the footer
 
 // Import the hooks
-import { useCarrito } from "../components/usecarrito"
+import { useCarrito } from "../components/CarritoContext";
  // Adjust the path if necessary
 import { useMercadoPago } from "../components/useMercadopago"; // Adjust the path if necessary
 import Footer from '../components/Footer';

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCarrito } from '../components/usecarrito';
+import { useCarrito } from '../components/CarritoContext';
 import { useMercadoPago } from '../components/useMercadopago';
 import "../styles.css";
 import FormularioEnvio from '../components/FormularioEnvio';

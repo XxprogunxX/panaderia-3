@@ -1,3 +1,5 @@
+"use client";
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './cafe.module.css';
@@ -5,6 +7,7 @@ import Footer from '../components/Footer';
 
 
 export default function CafePage() {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <>
       <main className={styles["cafe-page"]} suppressHydrationWarning>
@@ -15,11 +18,28 @@ export default function CafePage() {
             <div className={styles["cafe-navbar-brand-container"]}> {/* NUEVO CONTENEDOR */}
               <Link href="/" className={styles["cafe-nav-link"] + ' ' + styles["cafe-logo-text"]}>Cafetería</Link> {/* El texto del nombre de la cafetería */}
             </div>
+            {/* Botón hamburguesa para móvil */}
+            <button
+              className={styles["cafe-hamburger"]}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Abrir menú"
+              type="button"
+            >
+              <span />
+              <span />
+              <span />
+            </button>
             {/* Links de navegación y (opcionalmente) el icono de búsqueda (parte derecha de la navbar) */}
-            <div className={styles["cafe-navbar-links-container"]}> {/* Renombrado para claridad */}
-              <Link href="/cafe" className={styles["cafe-nav-link"]}>Inicio</Link> {/* Corregí el enlace a "Inicio" */}
+            <div
+              className={
+                styles["cafe-navbar-links-container"] +
+                " " +
+                (menuOpen ? styles["cafe-navbar-links-open"] : "")
+              }
+            >
+              <Link href="/cafe" className={styles["cafe-nav-link"]}>Inicio</Link>
               <Link href="/cafeproductos" className={styles["cafe-nav-link"]}>Productos</Link>
-              <Link href="/" className={styles["cafe-nav-link"]}>Panadería</Link> {/* Asumo que tienes una página /panaderia */}
+              <Link href="/" className={styles["cafe-nav-link"]}>Panadería</Link>
               <a href="#testimonios" className={styles["cafe-nav-link"]}>Testimonios</a>
               <Image
                 src="/images/logo-cafe.png"

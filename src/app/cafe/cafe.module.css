@@ -1,3 +1,26 @@
+.cafe-page, .cafe-hero, .cafe-productos, .cafe-informacion, .cafe-productos-grid, .cafe-info-cards-container {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+@media (max-width: 900px) {
+  .cafe-info-card, .cafe-left-image, .cafe-right-image {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  .cafe-producto-card {
+    max-width: 98vw;
+    overflow-x: hidden;
+  }
+  .cafe-productos-grid {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+
 /* Importar fuentes de Google Fonts (debes añadir esto en tu HTML en la sección <head> o usar @import en la primera línea del CSS si lo prefieres) */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;600&display=swap');
 
@@ -161,30 +184,40 @@
 /* Media query para móviles, ajustar el logo y links */
 @media (max-width: 768px) {
   .cafe-navbar {
-    padding: 15px 20px;
-    flex-direction: column; /* Apila el brand y los links */
-    justify-content: center; /* Centra en columna */
-    gap: 15px; /* Espacio entre el brand y los links apilados */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 10px;
   }
-
   .cafe-navbar-brand-container {
-    justify-content: center; /* Centra el logo y el texto en móvil */
+    justify-content: center;
     width: 100%;
+    display: flex;
   }
-
-  .cafe-logo-text {
-    font-size: 2rem; /* Ajusta el tamaño del texto del logo en móvil */
-  }
-
   .cafe-navbar-links-container {
-    flex-direction: column; /* Apila los links */
-    gap: 15px;
-    width: 100%;
-  }
-
-  /* Ocultar icono de búsqueda en móviles si se prefiere un menú de hamburguesa */
-  .cafe-search-icon {
     display: none;
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    flex-direction: column;
+    gap: 0;
+    width: 90vw;
+    max-width: 340px;
+    box-shadow: 0 8px 32px rgba(185,147,108,0.18);
+    padding: 20px 0;
+    z-index: 15;
+    border-radius: 0 0 20px 20px;
+    align-items: center;
+    text-align: center;
+  }
+  .cafe-navbar-links-open {
+    display: flex;
+  }
+  .cafe-navbar-logo-image {
+    margin: 0 auto 10px auto;
   }
 }
 
@@ -1531,5 +1564,51 @@
   
   .cafe-cta-content h2 {
     font-size: 2rem;
+  }
+}
+
+.cafe-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 38px;
+  height: 38px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 20;
+  padding: 0;
+}
+.cafe-hamburger span {
+  display: block;
+  height: 4px;
+  width: 28px;
+  background: #5a4432;
+  border-radius: 2px;
+  transition: 0.3s;
+}
+.cafe-hamburger span:not(:last-child) {
+  margin-bottom: 5px;
+}
+.cafe-hamburger:focus {
+  outline: 2px solid #b9936c;
+}
+@media (max-width: 768px) {
+  .cafe-hamburger {
+    display: flex;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .cafe-producto-card {
+    max-width: 95vw;
+    padding: 0.5rem;
+  }
+  .cafe-producto-img {
+    width: 120px;
+    height: 120px;
   }
 }

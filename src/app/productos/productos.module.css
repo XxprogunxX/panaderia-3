@@ -60,6 +60,78 @@
   border-color: #B6894B;
 }
 
+/* Submenú de categorías */
+.categoriasMenu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+.categoriaBtn {
+  padding: 0.6rem 1.2rem;
+  background: white;
+  border:2px solid #D4A373;
+  border-radius: 25px;
+  color: #4A3B31;
+  font-weight: 600;
+  font-size:0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.categoriaBtn:hover {
+  background: #D4A373;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.categoriaBtn.activo {
+  background: #D4A373;
+  color: white;
+  box-shadow: 0 4px 12px rgba(212, 163, 115, 0.18);
+}
+
+.limpiarBtn {
+  padding: 0.6rem 1.2rem;
+  background: #f87;
+  border:2px solid #B6894B;
+  border-radius: 25px;
+  color: #4A3B31;
+  font-weight: 600;
+  font-size:0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.limpiarBtn:hover {
+  background: #B6894B;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive para categorías */
+@media (max-width: 768px) {
+  .categoriasMenu {
+    gap: 0.5rem;
+    padding: 0.1rem;
+  }
+  
+  .categoriaBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .limpiarBtn {
+    padding: 0.5rem 1rem;
+    font-size:0.8rem;
+  }
+}
+
 /* Categorías */
 .categoriasProductos {
   padding: 3rem 2rem;
@@ -177,6 +249,79 @@
   cursor: not-allowed;
 }
 
+/* Controles de cantidad */
+.cantidadContainer {
+  margin: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cantidadContainer label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4A3B31;
+  margin-bottom: 0.3rem;
+}
+
+.cantidadControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #D4A373;
+  border-radius: 15px;
+  padding: 0.3rem;
+}
+
+.btnCantidad {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #D4A373;
+  color: white;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btnCantidad:hover:not(:disabled) {
+  background: #b977;
+}
+
+.btnCantidad:disabled {
+  background: #e0c3;
+  cursor: not-allowed;
+}
+
+.cantidadInput {
+  width: 50px;
+  height: 32px;
+  border: none;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4A3B31;
+  background: transparent;
+  outline: none;
+}
+
+.cantidadInput::-webkit-outer-spin-button,
+.cantidadInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cantidadInput[type=number] {
+  -moz-appearance: textfield;
+}
+
 /* No resultados */
 .noResultados {
   text-align: center;
@@ -185,34 +330,362 @@
   color: #999;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
+/* Responsive Design */
+
+/* Tablets (768124px) */
+@media (max-width: 1024px) {
+  .productosHero {
+    min-height: 50vh;
+    padding: 4rem 1rem 2rem;
+  }
+
   .productosHero h1 {
-    font-size: 2rem;
-    padding: 0.4em 1em;
+    font-size: 2.8rem;
+    padding: 0.5em 1.2em;
+  }
+
+  .productosHero p {
+    font-size: 1.05rem;
+    margin: 1em 0 2rem;
+  }
+
+  .buscador {
+    max-width: 450px;
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .categoriasMenu {
+    max-width: 700px;
+    gap: 0.7rem;
+  }
+
+  .categoriaBtn {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .productosGrid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+  }
+
+  .card {
+    max-width: 250px;
+  }
+
+  .imagenContainer {
+    width: 110px;
+    height: 110px;
+    margin-top: 25px;
+  }
+
+  .cardContent h3 {
+    font-size: 1rem;
+  }
+
+  .descripcion {
+    font-size: 0.9rem;
+  }
+
+  .precio {
+    font-size: 1rem;
+  }
+
+  .btnPedir {
+    padding: 0.7rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablets pequeñas y móviles grandes (481- 768px) */
+@media (max-width: 768px) {
+  .productosHero {
+    min-height: 45vh;
+    padding: 3rem 1rem 2rem;
+  }
+
+  .productosHero h1 {
+    font-size: 2.4em;
+    padding: 0.4em;
   }
 
   .productosHero p {
     font-size: 1rem;
+    margin: 0.8rem 0 1.8rem;
   }
 
   .buscador {
-    max-width: 90%;
+    max-width: 400px;
+    padding: 0.8rem;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .categoriasMenu {
+    max-width: 600px;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .categoriaBtn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .limpiarBtn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .categoriasProductos {
+    padding: 2rem 1rem;
+  }
+
+  .productosGrid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    max-width: 300px;
+    margin: 0 auto 2rem auto;
   }
 
   .card {
+    max-width: 230px;
+  }
+
+  .imagenContainer {
+    width: 100px;
+    height: 100px;
+    margin-top: 25px;
+  }
+
+  .cardContent {
+    padding: 0.6rem;
+  }
+
+  .cardContent h3 {
+    font-size: 0.95rem;
+    margin-top: 0.6rem;
+  }
+
+  .descripcion {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .precio {
+    font-size: 0.95rem;
+  }
+
+  .btnPedir {
+    padding: 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .cantidadContainer {
+    margin: 0.6rem;
+  }
+
+  .cantidadContainer label {
+    font-size: 0.8rem;
+  }
+
+  .btnCantidad {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .cantidadInput {
+    width: 45px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Móviles (320- 480px) */
+@media (max-width: 480px) {
+  .productosHero {
+    min-height: 40vh;
+    padding: 2.5em 0.8rem 1.5rem;
+  }
+
+  .productosHero h1 {
+    font-size: 2rem;
+    padding: 0.3em 0.8em;
+  }
+
+  .productosHero p {
+    font-size: 0.9rem;
+    margin: 0.65rem 0 1.5rem;
+    padding: 0.5rem;
+  }
+
+  .buscador {
     max-width: 95%;
+    padding: 0.7rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .categoriasMenu {
+    max-width: 95%;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+    padding: 0.5rem;
+  }
+
+  .categoriaBtn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-width: 1.5px;
+  }
+
+  .limpiarBtn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-width: 1.5px;
+  }
+
+  .categoriasProductos {
+    padding: 1.5rem 0.8rem;
   }
 
   .productosGrid {
     grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
+    gap: 1rem;
+    max-width: 300px;
+    margin: 0 auto 2rem auto;
   }
-  .categoriaTitulo {
-    text-align: center;
+
+  .card {
+    max-width: 100%;
+    border-radius: 18px;
   }
-  .categoriasProductos {
-    text-align: center;
+
+  .imagenContainer {
+    width: 90px;
+    height: 90px;
+    margin-top: 20px;
+  }
+
+  .cardContent {
+    padding: 0.5rem;
+  }
+
+  .cardContent h3 {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .descripcion {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .precio {
+    font-size: 0.9rem;
+  }
+
+  .btnPedir {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    border-radius: 18px;
+  }
+
+  .cantidadContainer {
+    margin: 0.5rem;
+  }
+
+  .cantidadContainer label {
+    font-size: 0.75rem;
+  }
+
+  .cantidadControls {
+    gap: 0.3rem;
+    padding: 0.2rem;
+    border-radius: 12px;
+  }
+
+  .btnCantidad {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+
+  .cantidadInput {
+    width: 40px;
+    height: 26px;
+    font-size: 0.8rem;
+  }
+
+  .noResultados {
+    font-size: 1rem;
+    margin-top: 1.5rem;
+    padding: 0 1rem;
+  }
+}
+
+/* Móviles muy pequeños (menos de 320px) */
+@media (max-width: 320px) {
+  .productosHero h1 {
+    font-size: 1.8rem;
+    padding: 0.25em 0.6em;
+  }
+
+  .productosHero p {
+    font-size: 0.85rem;
+  }
+
+  .buscador {
+    max-width: 98%;
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .categoriasMenu {
+    max-width: 98%;
+    gap: 0.3rem;
+  }
+
+  .categoriaBtn {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.7rem;
+  }
+
+  .limpiarBtn {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.7rem;
+  }
+
+  .productosGrid {
+    max-width: 280px;
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+
+  .imagenContainer {
+    width: 80px;
+    height: 80px;
+  }
+
+  .cardContent h3 {
+    font-size: 0.85rem;
+  }
+
+  .descripcion {
+    font-size: 0.75rem;
+  }
+
+  .precio {
+    font-size: 0.85rem;
+  }
+
+  .btnPedir {
+    padding: 0.55rem;
+    font-size: 0.8rem;
   }
 }

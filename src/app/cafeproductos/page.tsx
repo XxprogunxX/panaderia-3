@@ -8,7 +8,7 @@ import footerStyles from "../footer.module.css";
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
-import { useCarrito } from "../components/usecarrito";
+import { useCarrito } from '../components/CarritoContext';
 
 interface PresentacionCafe {
   tamanio: string;
@@ -198,7 +198,7 @@ export default function Cafe() {
                         imagen: cafe.imagenUrl,
                         precio: cafe.precio,
                         categoria: "Café"
-                      })}
+                      }, 1)}
                     >
                       Añadir al carrito
                     </button>

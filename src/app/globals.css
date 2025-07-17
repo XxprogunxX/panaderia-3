@@ -14,11 +14,9 @@ body {
 }
 
 html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Asegurar que el body tenga el tamaño correcto */
