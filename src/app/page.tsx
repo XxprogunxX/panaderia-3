@@ -244,7 +244,7 @@ const Home = () => {
                 </p>
                 
                 {/* Controles de cantidad */}
-                {producto.stock > 0 && (
+                {producto.stock !== undefined && producto.stock > 0 && (
                   <div style={{
                     display: "flex",
                     flexDirection: "column",
