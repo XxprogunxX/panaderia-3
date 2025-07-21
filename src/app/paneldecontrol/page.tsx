@@ -573,8 +573,8 @@ const PanelControl = () => {
         throw new Error("Solo se permiten imágenes JPEG, PNG o WebP");
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error("La imagen no puede ser mayor a 5MB");
+      if (file.size > 20 * 1024 * 1024) {
+        throw new Error("La imagen no puede ser mayor a 20MB");
       }
 
       const fileExt = file.name.split('.').pop();

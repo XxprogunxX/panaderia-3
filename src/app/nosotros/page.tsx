@@ -181,50 +181,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className={styles["testimonios-section"]}>
-        <div className={styles["testimonios-container"]}>
-          <h2>Lo que dicen nuestros clientes</h2>
-          <div className={styles["testimonios-grid"]}>
-            <div className={styles["testimonio-card"]}>
-              <div className={styles["testimonio-texto"]}>
-                &quot;El mejor pan de muerto que he probado en mi vida. Sabe exactamente como el que hacía mi abuela&quot;
-              </div>
-              <div className={styles["testimonio-autor"]}>
-                <Image
-                  src="/images/cliente1.jpg"
-                  alt="Cliente María"
-                  width={60}
-                  height={60}
-                  className={styles["testimonio-foto"]}
-                />
-                <div>
-                  <p className={styles["testimonio-nombre"]}>María González</p>
-                  <p className={styles["testimonio-desc"]}>Clienta desde 2005</p>
-                </div>
-              </div>
-            </div>
-            <div className={styles["testimonio-card"]}>
-              <div className={styles["testimonio-texto"]}>
-                &quot;No hay mejor manera de empezar el día que con un café y una concha recién horneada&quot;
-              </div>
-              <div className={styles["testimonio-autor"]}>
-                <Image
-                  src="/images/cliente2.jpg"
-                  alt="Cliente Roberto"
-                  width={60}
-                  height={60}
-                  className={styles["testimonio-foto"]}
-                />
-                <div>
-                  <p className={styles["testimonio-nombre"]}>Roberto Torres</p>
-                  <p className={styles["testimonio-desc"]}>Cliente frecuente</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      
      <section className={styles["visitanos-section"]}>
   <div className={styles["visitanos-container"]}>
     <div className={styles["visitanos-info"]}>

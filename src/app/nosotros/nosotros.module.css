@@ -1216,3 +1216,22 @@
     gap: 1.2rem;
   }
 }
+
+@media (max-width: 600px) {
+  .nosotros-hero,
+  .historia-section,
+  .valores-section,
+  .testimonios-section,
+  .visitanos-section {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  .galeria-scroll-wrapper,
+  .galeria-scroll-track,
+  .galeria-custom {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    overflow-x: auto !important;
+  }
+}
