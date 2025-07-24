@@ -100,7 +100,6 @@ export default function Cafe() {
           <Link href="/cafe" className="nav-link">Inicio</Link>
           <Link href="/cafeproductos" className="nav-link">Productos</Link>
           <Link href="/" className="nav-link">Panadería</Link>
-          <a href="#testimonios" className="nav-link">Testimonios</a>
 
           <Image
             src="/images/logo-cafe.png"
