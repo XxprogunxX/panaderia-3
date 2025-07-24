@@ -16,7 +16,7 @@ export default function CafePage() {
           <nav className={styles["cafe-navbar"]}>
             {/* Contenedor para el logo y el nombre de la cafetería (parte izquierda de la navbar) */}
             <div className={styles["cafe-navbar-brand-container"]}> {/* NUEVO CONTENEDOR */}
-              <Link href="/" className={styles["cafe-nav-link"] + ' ' + styles["cafe-logo-text"]}>Cafetería</Link> {/* El texto del nombre de la cafetería */}
+              <Link href="/cafeproductos" className={styles["cafe-nav-link"] + ' ' + styles["cafe-logo-text"]}>Cafetería</Link> {/* El texto del nombre de la cafetería */}
             </div>
             {/* Botón hamburguesa para móvil */}
             <button
