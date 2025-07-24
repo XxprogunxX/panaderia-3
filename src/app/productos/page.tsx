@@ -196,8 +196,8 @@ const limpiarFiltros = () => {
         <section className={styles.categoriasProductos}>
           {productosFiltrados.length > 0 ? (
             <div className={styles.productosGrid}>
-              {productosFiltrados.map((producto) => (
-                <div key={producto.nombre} className={styles.card}>
+              {productosFiltrados.map((producto, idx) => (
+                <div key={`${producto.nombre}-${idx}`} className={styles.card}>
                   <div className={styles.imagenContainer}>
                     {esImagenExterna(producto.imagen) ? (
                       <Image
