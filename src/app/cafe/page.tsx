@@ -40,7 +40,6 @@ export default function CafePage() {
               <Link href="/cafe" className={styles["cafe-nav-link"]}>Inicio</Link>
               <Link href="/cafeproductos" className={styles["cafe-nav-link"]}>Productos</Link>
               <Link href="/" className={styles["cafe-nav-link"]}>Panadería</Link>
-              <a href="#testimonios" className={styles["cafe-nav-link"]}>Testimonios</a>
               <Image
                 src="/images/logo-cafe.png"
                 alt="Logo de la Cafetería"
