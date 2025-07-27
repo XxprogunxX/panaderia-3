@@ -16,13 +16,19 @@ body {
 html, body {
   width: 100vw;
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
 }
 
 /* Asegurar que el body tenga el tamaño correcto */
 body {
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+}
+
+/* Prevenir scroll horizontal en todos los elementos */
+* {
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 /* Reset específico para formularios */
@@ -62,13 +68,81 @@ img {
   box-sizing: border-box;
 }
 
-@media (max-width: 600px) {
+/* Prevenir scroll horizontal específicamente en móviles */
+@media (max-width: 768px) {
   html, body {
     max-width: 100vw !important;
     overflow-x: hidden !important;
+    position: relative;
   }
+  
   * {
-    box-sizing: border-box !important;
     max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Asegurar que los contenedores principales no excedan el ancho */
+  main, section, div {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Estilos para el carrito en la navegación */
+.nav-carrito {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-carrito:hover {
+  background-color: rgba(198, 142, 77, 0.1);
+}
+
+/* Mostrar carrito en navegación solo en PC */
+@media (min-width: 769px) {
+  .nav-carrito {
+    display: flex !important;
+  }
+}
+
+/* Ocultar carrito en navegación en móvil */
+@media (max-width: 768px) {
+  .nav-carrito {
+    display: none !important;
+  }
+}
+
+/* Ocultar elementos del carrito en el header en móvil */
+@media (max-width: 768px) {
+  /* Ajusta estos selectores según la estructura real de tu header */
+  header .carrito,
+  header [data-carrito],
+  header .cart,
+  header .shopping-cart,
+  nav .carrito,
+  nav [data-carrito],
+  nav .cart,
+  nav .shopping-cart {
+    display: none !important;
+  }
+}
+
+/* Mostrar elementos del carrito en el header en PC */
+@media (min-width: 769px) {
+  header .carrito,
+  header [data-carrito],
+  header .cart,
+  header .shopping-cart,
+  nav .carrito,
+  nav [data-carrito],
+  nav .cart,
+  nav .shopping-cart {
+    display: flex !important;
   }
 }

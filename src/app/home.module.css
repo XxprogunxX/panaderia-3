@@ -113,6 +113,7 @@
 .productos-main {
   background-color: #fffaf4;
   padding: 4rem 1rem;
+  overflow: visible;
 }
 
 .productos-hero {
@@ -164,6 +165,7 @@
   padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .producto-imagen-container {
@@ -184,93 +186,157 @@
 }
 
 .producto-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fcf6ef;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(212, 163, 115, 0.10);
+  border: none;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
-  border: 1px solid #f0f0f0;
-  min-height: 400px;
+  align-items: center;
+  padding: 2rem 1.2rem 1.5rem 1.2rem;
+  position: relative;
+  transition: box-shadow 0.2s;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
-.producto-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+.producto-imagen-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  background: #fff6e6;
+  border-radius: 16px;
+  margin: -3.5rem auto 1rem auto;
+  box-shadow: 0 2px 8px rgba(212, 163, 115, 0.10);
+  overflow: hidden;
 }
 
-.producto-card:hover .producto-imagen {
-  transform: scale(1.05);
+.producto-imagen {
+  width: 70px !important;
+  height: 70px !important;
+  object-fit: cover;
+  border-radius: 12px !important;
 }
 
 .producto-card-content {
-  padding: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  flex: 1;
-  background: #ffffff;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  background: transparent;
   text-align: center;
+  flex: 1;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .producto-card-content h3 {
-  font-size: 1.3rem;
-  color: #333;
-  margin: 0;
-  font-weight: 600;
-  line-height: 1.3;
-  min-height: auto;
-  text-align: center;
-  overflow: visible;
-}
-
-.producto-card .descripcion {
-  color: #666;
-  font-size: 1rem;
-  margin: 0.5rem 0;
-  line-height: 1.5;
-  min-height: auto;
-  overflow: visible;
-  text-align: center;
-}
-
-.producto-card .precio {
-  color: #c68e4d;
-  font-size: 1.6rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin: 0.8rem 0;
-  text-align: center;
+  color: #3d2c1e;
+  margin: 0.7rem 0 0.2rem 0;
+}
+
+.descripcion {
+  color: #a08a6a;
+  font-size: 1rem;
+  margin: 0 0 0.2rem 0;
+  font-weight: 400;
+}
+
+.precio {
+  color: #c68e4d;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0.2rem 0 0.5rem 0;
+}
+
+.stock {
+  color: #6e4b32;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.cantidad-label {
+  color: #a08a6a;
+  font-size: 0.98rem;
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+}
+
+.cantidad-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
+  background: #fff;
+  border-radius: 2rem;
+  padding: 0.2rem 0.7rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(212, 163, 115, 0.10);
+  gap: 0.7rem;
 }
 
-.producto-card .precio::before {
-  content: "$";
+.cantidad-btn {
   font-size: 1.2rem;
-  color: #8b7355;
+  padding: 0.2rem 0.9rem;
+  border-radius: 50%;
+  border: none;
+  background: #f7e0c3;
+  color: #c68e4d;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  outline: none;
+  border: 2px solid #f7e0c3;
+}
+.cantidad-btn:active, .cantidad-btn:focus {
+  background: #c68e4d;
+  color: #fff;
+  border: 2px solid #c68e4d;
+}
+
+.cantidad-num {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #6e4b32;
+  background: transparent;
+  border: none;
 }
 
 .btn-pedir {
   width: 100%;
-  background-color: #c68e4d;
-  color: white;
+  min-width: unset;
+  max-width: 100%;
+  height: auto;
+  padding: 1rem 0.8rem;
+  font-size: 1.1rem;
+  border-radius: 14px;
+  margin: 0.7rem 0 0 0;
+  background: linear-gradient(90deg, #d4a373 60%, #b6894b 100%);
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(212, 163, 115, 0.15);
   border: none;
-  padding: 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: background 0.2s, box-shadow 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1rem;
+  white-space: normal;
+  overflow: hidden;
+  word-break: break-word;
+  line-height: 1.2;
 }
 
 .btn-pedir::before {
@@ -406,12 +472,40 @@
     padding: 0.5rem 1rem;
   }
   .productos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     max-width: 800px;
-    gap: 1rem;
+    gap: 1.5rem;
+    padding: 1.5rem;
   }
   .producto-card {
-    min-height: 360px;
+    min-height: 420px;
+    padding: 2.5rem 1.5rem 2rem 1.5rem;
+  }
+  
+  .producto-imagen-container {
+    width: 100px;
+    height: 100px;
+    margin: -4rem auto 1.5rem auto;
+  }
+  
+  .producto-imagen {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .btn-pedir {
+    font-size: 2rem !important;
+    padding: 1.2rem 0.8rem !important;
+    margin: 1.5rem 0 0 0 !important;
+    border-radius: 12px !important;
+    min-height: 4.5rem !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1 !important;
+    
+  }
+
+  .btn-pedir::before {
+    font-size: 1.5rem !important;
   }
 }
 
@@ -430,146 +524,421 @@
   .intro p {
     font-size: 1rem;
   }
-} 
-
-@media (max-width: 700px) {
+  
+  .productos-main {
+    padding: 4rem 0.5rem 6rem 0.5rem;
+    overflow: visible;
+  }
+  
   .productos-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
-    padding: 0.5rem;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: 2rem 1rem;
+    overflow: visible;
   }
+  
   .producto-card {
-    min-height: 320px;
-    padding: 0.5rem;
+    height: auto !important;
+    min-height: 600px !important;
+    padding: 3rem 2rem 2rem 2rem !important;
+    margin: 0 auto;
+    max-width: 350px;
+    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    position: relative !important;
   }
-  .producto-imagen-container {
-    height: 140px;
-  }
+  
   .producto-card-content {
-    padding: 0.7rem;
-    gap: 0.5rem;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.2rem !important;
+    width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
   }
+  
   .btn-pedir {
-    padding: 0.7rem;
-    font-size: 0.95rem;
+    font-size: 1.2rem !important;
+    padding: 1.5rem 1rem !important;
+    margin: 1.5rem 0 0 0 !important;
+    border-radius: 12px !important;
+    min-height: 70px !important;
+    width: 100% !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .btn-pedir::before {
+    font-size: 1.2rem !important;
   }
 }
 
 @media (max-width: 480px) {
+  .hero {
+    padding: 4rem 1rem;
+  }
+  
+  .intro h1 {
+    font-size: 2.2rem;
+  }
+  
+  .productos-main {
+    padding: 4rem 0.5rem 8rem 0.5rem;
+  }
+  
   .productos-grid {
-    grid-template-columns: 1fr;
-    gap: 1.1rem;
-    padding: 0.2rem;
+    padding: 1.5rem 0.5rem;
+    gap: 4rem;
   }
+  
   .producto-card {
-    min-height: 220px;
-    padding: 0.1rem;
-    border-radius: 10px;
-    margin-bottom: 0.7rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    min-height: 580px !important;
+    padding: 2.5rem 1.5rem 2rem 1.5rem !important;
+    max-width: 320px;
   }
-  .producto-imagen-container {
-    height: 90px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    overflow: hidden;
-  }
-  .producto-imagen {
-    border-top-left-radius: 10px !important;
-    border-top-right-radius: 10px !important;
-    border-bottom-left-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-  }
+  
   .producto-card-content {
-    padding: 0.3rem 0.5rem 0.7rem 0.5rem;
-    gap: 0.2rem;
+    padding-bottom: 2.5rem !important;
   }
+  
+  .producto-imagen-container {
+    width: 100px;
+    height: 100px;
+    margin: -4rem auto 1.5rem auto;
+  }
+  
+  .producto-imagen {
+    width: 90px !important;
+    height: 90px !important;
+  }
+  
   .producto-card-content h3 {
+    font-size: 1.3rem;
+  }
+  
+  .descripcion {
     font-size: 1rem;
-    margin: 0.2rem 0 0.1rem 0;
   }
-  .producto-card .precio {
-    font-size: 1rem;
-    margin: 0.3rem 0;
+  
+  .precio {
+    font-size: 1.2rem;
   }
-  .producto-card .descripcion {
-    font-size: 0.9rem;
-    margin: 0.2rem 0;
+  
+  .stock {
+    font-size: 1.1rem;
   }
-  .producto-card .stock {
-    font-size: 0.85rem;
-    margin-bottom: 0.3rem;
+  
+  .cantidad-controls {
+    padding: 0.4rem 1rem;
+    gap: 1rem;
   }
+  
+  .cantidad-btn {
+    font-size: 1.3rem;
+    padding: 0.4rem 1rem;
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .cantidad-num {
+    min-width: 35px;
+    font-size: 1.2rem;
+  }
+  
   .btn-pedir {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    padding: 1rem 0;
-    font-size: 1.08rem;
-    border-radius: 12px;
-    width: 100%;
-    margin: 0.7rem 0 0 0;
-    background: linear-gradient(90deg, #d4a373 60%, #b6894b 100%);
-    color: #fff;
-    font-weight: 700;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(212, 163, 115, 0.13);
-    border: none;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: background 0.2s, box-shadow 0.2s;
+    font-size: 1.1rem !important;
+    padding: 1.4rem 0.8rem !important;
+    min-height: 65px !important;
   }
-  .btn-pedir:disabled {
-    background: #e0c3a0;
-    color: #fff;
-    opacity: 0.8;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-  .btn-pedir .icono-carrito {
-    font-size: 1.3em;
-    width: 1.3em;
-    height: 1.3em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.2em;
+  
+  .btn-pedir::before {
+    font-size: 1.1rem !important;
   }
 }
 
-/* Responsive para controles de cantidad */
-@media (max-width: 700px) {
-  .producto-card-content label,
-  .producto-card-content input,
-  .producto-card-content button {
-    font-size: 0.9rem !important;
+@media (max-width: 420px) {
+  .productos-main {
+    padding: 4rem 0.5rem 10rem 0.5rem;
   }
-  .producto-card-content input {
-    width: 38px !important;
-    height: 28px !important;
+  
+  .producto-card {
+    min-height: 560px !important;
+    padding: 2rem 1.2rem 2rem 1.2rem !important;
+    max-width: 300px;
   }
-  .producto-card-content button {
-    width: 26px !important;
-    height: 26px !important;
+  
+  .btn-pedir {
+    font-size: 1rem !important;
+    padding: 1.3rem 0.7rem !important;
+    min-height: 60px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .producto-card {
+    min-height: 540px !important;
+    padding: 2rem 1rem 2rem 1rem !important;
+    max-width: 280px;
+  }
+  
+  .producto-imagen-container {
+    width: 80px;
+    height: 80px;
+    margin: -3.5rem auto 1.2rem auto;
+  }
+  
+  .producto-imagen {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  
+  .producto-card-content h3 {
+    font-size: 1.2rem;
+  }
+  
+  .descripcion {
+    font-size: 0.95rem;
+  }
+  
+  .precio {
+    font-size: 1.15rem;
+  }
+  
+  .cantidad-controls {
+    padding: 0.3rem 0.8rem;
+    gap: 0.8rem;
+  }
+  
+  .cantidad-btn {
+    font-size: 1.2rem;
+    padding: 0.3rem 0.8rem;
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  .cantidad-num {
+    min-width: 30px;
+    font-size: 1.1rem;
+  }
+  
+  .btn-pedir {
+    font-size: 0.95rem !important;
+    padding: 1.2rem 0.6rem !important;
+    min-height: 55px !important;
+  }
+  
+  .btn-pedir::before {
     font-size: 1rem !important;
   }
 }
-@media (max-width: 480px) {
-  .producto-card-content label,
-  .producto-card-content input,
-  .producto-card-content button {
-    font-size: 0.85rem !important;
+
+/* Responsive para controles de cantidad SOLAMENTE */
+@media (max-width: 700px) {
+  .cantidad-btn {
+    font-size: 0.9rem !important;
+    width: 38px !important;
+    height: 28px !important;
   }
-  .producto-card-content input {
+}
+
+@media (max-width: 480px) {
+  .cantidad-btn {
+    font-size: 0.85rem !important;
     width: 32px !important;
     height: 22px !important;
   }
+}
+
+/* Elimina completamente estas reglas: */
+/* 
+@media (max-width: 480px) {
   .producto-card-content button {
     width: 22px !important;
     height: 22px !important;
     font-size: 0.9rem !important;
+  }
+}
+*/
+
+/* Y asegúrate de que el botón principal tenga prioridad */
+@media (max-width: 480px) {
+  .btn-pedir {
+    font-size: 1.1rem !important;
+    padding: 1.4rem 0.8rem !important;
+    min-height: 65px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+} 
+
+.carrito-flotante {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #C68E4D;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  /* Ocultar por defecto en PC */
+  display: none;
+}
+
+.carrito-flotante:hover {
+  transform: scale(1.1);
+}
+
+.carrito-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.carrito {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* Responsive para el carrito - mantener visible en móvil */
+@media (max-width: 480px) {
+  .carrito-flotante {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    bottom: 15px;
+    right: 15px;
+  }
+}
+
+/* Mostrar solo en móviles y tablets */
+@media (max-width: 768px) {
+  .carrito-flotante {
+    display: flex !important;
+  }
+}
+
+/* Asegurar que se oculte en pantallas grandes (PC/Desktop) */
+@media (min-width: 769px) {
+  .carrito-flotante {
+    display: none !important;
+  }
+} 
+
+/* Estilos para el carrito en la navegación */
+.nav-carrito {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-carrito:hover {
+  background-color: rgba(198, 142, 77, 0.1);
+}
+
+/* Mostrar carrito en navegación solo en PC */
+@media (min-width: 769px) {
+  .nav-carrito {
+    display: flex !important;
+  }
+}
+
+/* Ocultar carrito en navegación en móvil */
+@media (max-width: 768px) {
+  .nav-carrito {
+    display: none !important;
+  }
+} 
+
+/* Prevenir scroll horizontal */
+.hero,
+.productos-main,
+.productos-grid,
+.heroContent {
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Responsive específico para eliminar scroll horizontal */
+@media (max-width: 768px) {
+  .hero {
+    padding: 4rem 1rem;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  
+  .heroContent {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  .videoWrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  
+  .productos-main {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    padding: 4rem 0.5rem;
+  }
+  
+  .productos-grid {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    padding: 1rem 0.5rem;
+  }
+  
+  .producto-card {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+/* Específico para móviles muy pequeños */
+@media (max-width: 480px) {
+  .hero {
+    padding: 2rem 0.5rem;
+  }
+  
+  .heroContent {
+    gap: 1rem;
+  }
+  
+  .productos-main {
+    padding: 2rem 0.25rem;
+  }
+  
+  .productos-grid {
+    padding: 1rem 0.25rem;
   }
 } 

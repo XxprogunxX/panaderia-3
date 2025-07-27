@@ -70,15 +70,9 @@ const Header = () => {
             <li><Link href="/nosotros" onClick={closeMenu}>Nosotros</Link></li>
             <li><Link href="/login" onClick={closeMenu}>Login</Link></li>
             <li>
-              <button onClick={toggleCarrito} className="btn-carrito-toggle">
-                <span className="icono-carrito">🛒</span>
-                <span>Carrito</span>
-                {productos.length > 0 && (
-                  <span className="notificacion-carrito">
-                    {productos.reduce((sum, p) => sum + p.cantidad, 0)}
-                  </span>
-                )}
-              </button>
+              <div className="nav-carrito" onClick={toggleCarrito}>
+                🛒 Carrito ({productos.reduce((sum, p) => sum + p.cantidad, 0)})
+              </div>
             </li>
           </ul>
         </nav>

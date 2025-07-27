@@ -3,14 +3,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import HelpPopup from "./components/bolita-de-ayuda/bolita";
+// import HelpPopup from "./components/bolita-de-ayuda/bolita"; // Eliminada
 import { db } from "./firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import OfertasCarousel from "./components/OfertasCarousel";
 import styles from './home.module.css';
 import Footer from './components/Footer';
+import CarritoFlotante from './components/CarritoFlotante';
+import { useCarrito } from './components/CarritoContext';
 
 interface Producto {
   nombre: string;
@@ -31,12 +33,13 @@ interface VentasProductos {
 }
 
 const Home = () => {
+  const router = useRouter();
+  const { carrito, agregarProducto, eliminarProducto, total } = useCarrito();
   const [productosPopulares, setProductosPopulares] = useState<Producto[]>([]);
-  const [carrito, setCarrito] = useState<
-    { nombre: string; precio: number; cantidad: number }[]
-  >([]);
   const [mostrarCarrito, setMostrarCarrito] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  // Estado para cantidades por producto
+  const [cantidades, setCantidades] = useState<{ [nombre: string]: number }>({});
 
   // Verificar si estamos en el cliente
   useEffect(() => {
@@ -99,28 +102,75 @@ const Home = () => {
     cargarProductosPopulares();
   }, [isClient]);
 
-  function agregarAlCarrito(producto: { nombre: string; precio: number }) {
-    setCarrito((prev) => {
-      const existe = prev.find((p) => p.nombre === producto.nombre);
-      if (existe) {
-        return prev.map((p) =>
-          p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
-        );
-      } else {
-        return [...prev, { ...producto, cantidad: 1 }];
-      }
-    });
+  // Función para agregar al carrito usando el contexto
+  function agregarAlCarrito(producto: { nombre: string; precio: number }, cantidad: number = 1) {
+    // Agregar cada unidad individualmente si es necesario
+    for (let i = 0; i < cantidad; i++) {
+      agregarProducto({
+        nombre: producto.nombre,
+        precio: producto.precio,
+        cantidad: 1
+      });
+    }
+    setCantidades((prev) => ({ ...prev, [producto.nombre]: 1 }));
+    alert(`¡${producto.nombre} agregado al carrito!`);
   }
 
   function eliminarDelCarrito(nombre: string) {
-    setCarrito((prev) => prev.filter((p) => p.nombre !== nombre));
+    // Encontrar el índice del producto y eliminarlo
+    const indice = carrito.findIndex(item => item.nombre === nombre);
+    if (indice !== -1) {
+      eliminarProducto(indice);
+    }
   }
 
+  // Función para mostrar/ocultar carrito
   function toggleCarrito() {
     setMostrarCarrito(!mostrarCarrito);
   }
 
-  const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+  // Función para actualizar cantidad en carrito (personalizada)
+  function modificarCantidad(nombre: string, nuevaCantidad: number) {
+    if (nuevaCantidad <= 0) {
+      eliminarDelCarrito(nombre);
+      return;
+    }
+    
+    // Encontrar el producto actual
+    const productoActual = carrito.find(item => item.nombre === nombre);
+    if (!productoActual) return;
+    
+    const diferenciaCantidar = nuevaCantidad - productoActual.cantidad;
+    
+    if (diferenciaCantidar > 0) {
+      // Agregar más productos
+      for (let i = 0; i < diferenciaCantidar; i++) {
+        agregarProducto({
+          nombre: productoActual.nombre,
+          precio: productoActual.precio,
+          cantidad: 1
+        });
+      }
+    } else if (diferenciaCantidar < 0) {
+      // Eliminar productos
+      for (let i = 0; i < Math.abs(diferenciaCantidar); i++) {
+        const indice = carrito.findIndex(item => item.nombre === nombre);
+        if (indice !== -1) {
+          eliminarProducto(indice);
+        }
+      }
+    }
+  }
+
+  function procederAlCheckout() {
+    if (carrito.length === 0) {
+      alert('Tu carrito está vacío. Agrega algunos productos antes de proceder al pago.');
+      return;
+    }
+    
+    setMostrarCarrito(false);
+    router.push('/checkout');
+  }
 
   // Mostrar estado de carga mientras se hidrata
   if (!isClient) {
@@ -143,7 +193,7 @@ const Home = () => {
               <span className={styles.anahuac}>El Pan de Cada Día</span>
             </h1>
             <p>
-            Descubre "El Pan de Cada Día", tu destino para deleitarte con pan tradicional horneado en horno de tabique rojo. Explora recetas de pan dulce, repostería, pasteles y galletas, cada una elaborada con cariño y técnicas ancestrales. Celebra el sabor auténtico y el aroma casero que transformarán tus momentos en delicias inolvidables.
+            Descubre "El Pan de Cada Día", tu destino para deleitarte con pan tradicional horneado en horno de tabique rojo. Explora recetas de pan dulce, repostería, pasteles y galletas, cada una elaborada con cariño y técnicas ancestrales. Celebra el sabor auténtico y el aroma casero que transformarán tus momentos en delicias inolvidables.
             </p>
             <Link href="/productos">
               <button className={styles.ctaButton}>Explora nuestro catálogo</button>
@@ -159,12 +209,9 @@ const Home = () => {
                 muted
                 playsInline
               >
-                <source src="/video/panaderia.mp4" type="video/mp4" />
+                <source src="/video/1313.webm" type="video/mp4" />
                 Tu navegador no soporta el video.
               </video>
-              <div className={styles.videoOverlayText}>
-                <h2>¡Tradición y sabor en cada bocado!</h2>
-              </div>
             </div>
           </div>
         </div>
@@ -180,32 +227,65 @@ const Home = () => {
         <div className={styles["productos-grid"]}>
           {productosPopulares.map((producto, index) => (
             <div key={index} className={styles["producto-card"]}>
-              {producto.imagen && (
-                <div className={styles["producto-imagen-container"]}>
-                  <Image
-                    src={producto.imagen}
-                    alt={producto.nombre}
-                    width={400}
-                    height={300}
-                    style={{ objectFit: 'cover' }}
-                    className={styles["producto-imagen"]}
-                    priority={index < 3}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
-                    }}
-                  />
-                </div>
-              )}
+              <div className={styles["producto-imagen-container"]}>
+                <Image
+                  src={producto.imagen || "/images/default.jpg"}
+                  alt={producto.nombre}
+                  width={70}
+                  height={70}
+                  className={styles["producto-imagen"]}
+                  priority={index < 3}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== '/images/default.jpg') target.src = '/images/default.jpg';
+                  }}
+                />
+              </div>
               <div className={styles["producto-card-content"]}>
                 <h3>{producto.nombre}</h3>
                 <p className={styles.descripcion}>{producto.descripcion}</p>
-                <p className={styles.precio}>{producto.precio} MXN</p>
+                <p className={styles.precio}>${producto.precio} MXN</p>
+                {typeof producto.cantidadTotal === 'number' && (
+                  <div className={styles.stock}>Stock disponible: {producto.cantidadTotal}</div>
+                )}
+                <div className={styles["cantidad-label"]}>Cantidad:</div>
+                <div className={styles["cantidad-controls"]}>
+                  <button
+                    className={styles["cantidad-btn"]}
+                    onClick={() => setCantidades((prev) => ({ ...prev, [producto.nombre]: Math.max(1, (prev[producto.nombre] || 1) - 1) }))}
+                  >
+                    −
+                  </button>
+                  <span className={styles["cantidad-num"]}>{cantidades[producto.nombre] || 1}</span>
+                  <button
+                    className={styles["cantidad-btn"]}
+                    onClick={() => setCantidades((prev) => ({ ...prev, [producto.nombre]: (prev[producto.nombre] || 1) + 1 }))}
+                  >
+                    +
+                  </button>
+                </div>
                 <button
                   className={styles["btn-pedir"]}
-                  onClick={() => agregarAlCarrito(producto)}
+                  onClick={() => agregarAlCarrito(producto, cantidades[producto.nombre] || 1)}
+                  style={{
+                    width: '100%',
+                    minHeight: '60px',
+                    padding: '15px 10px',
+                    fontSize: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    border: 'none',
+                    borderRadius: '12px',
+                    backgroundColor: '#d4a373',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box'
+                  }}
                 >
-                  Añadir al carrito
+                  🛒 Añadir al carrito ({cantidades[producto.nombre] || 1})
                 </button>
               </div>
             </div>
@@ -213,40 +293,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Carrito overlay */}
-      {mostrarCarrito && (
-        <div className="carrito-overlay" onClick={toggleCarrito}>
-          <div className="carrito" onClick={(e) => e.stopPropagation()}>
-            <h2>Tu Carrito</h2>
-            {carrito.length === 0 ? (
-              <p>Tu carrito está vacío.</p>
-            ) : (
-              <ul>
-                {carrito.map(({ nombre, precio, cantidad }) => (
-                  <li key={nombre} className="carrito-item">
-                    <span>
-                      {nombre} x {cantidad}
-                    </span>
-                    <span>${precio * cantidad} MXN</span>
-                    <button
-                      className="btn-eliminar"
-                      onClick={() => eliminarDelCarrito(nombre)}
-                    >
-                      Eliminar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="carrito-total">
-              <strong>Total: </strong>${total} MXN
-            </div>
-            <button className="btn-cerrar" onClick={toggleCarrito}>
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Eliminé <HelpPopup /> */}
+
+      {/* Componente del carrito flotante reutilizable */}
+      <CarritoFlotante />
 
       <Footer />
     </main>

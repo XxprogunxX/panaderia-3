@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCarrito } from '../components/CarritoContext';
 import { useMercadoPago } from '../components/useMercadopago';
 import "../styles.css";
 import FormularioEnvio from '../components/FormularioEnvio';
@@ -25,21 +24,36 @@ interface ItemPago {
   unit_price: number;
 }
 
+interface ItemCarrito {
+  nombre: string;
+  precio: number;
+  cantidad: number;
+}
+
 export default function Checkout() {
   const router = useRouter();
-  const { carrito, total } = useCarrito();
+  const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { cargandoPago, handlePagar } = useMercadoPago();
 
   const mpPublicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
 
   useEffect(() => {
-    if (carrito.length === 0) {
-      router.push('/productos');
-    } else {
+    // Leer carrito del localStorage
+    const carritoItems = localStorage.getItem('carritoItems');
+    const carritoTotal = localStorage.getItem('carritoTotal');
+    
+    if (carritoItems && carritoTotal) {
+      const items = JSON.parse(carritoItems);
+      setCarrito(items);
+      setTotal(parseFloat(carritoTotal));
       setIsLoading(false);
+    } else {
+      // Si no hay carrito, redirigir a productos
+      router.push('/productos');
     }
-  }, [carrito, router]);
+  }, [router]);
 
   const handleSubmit = async (datosEnvio: DatosEnvio) => {
     const itemsParaPago: ItemPago[] = carrito.map(({ nombre, cantidad, precio }) => ({
