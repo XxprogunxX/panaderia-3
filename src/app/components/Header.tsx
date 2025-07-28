@@ -33,9 +33,7 @@ const Header = () => {
         <div className="logo-link-header">
           <Image src="/images/logo.png" alt="Logo" width={60} height={60} className="logo-img" />
           <h1 className="logo">Panadería El Pan de Cada Día</h1>
-        </div>
-        {/* Botón hamburguesa solo visible en móvil y cuando el menú está cerrado */}
-        {!menuAbierto && (
+          {/* Botón hamburguesa al lado del texto */}
           <button
             className={`hamburger${menuAbierto ? " open" : ""}`}
             onClick={toggleMenu}
@@ -45,7 +43,7 @@ const Header = () => {
             <span />
             <span />
           </button>
-        )}
+        </div>
         {/* Overlay oscuro cuando el menú está abierto */}
         {menuAbierto && (
           <div

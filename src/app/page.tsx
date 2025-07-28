@@ -285,7 +285,7 @@ const Home = () => {
                     boxSizing: 'border-box'
                   }}
                 >
-                  🛒 Añadir al carrito ({cantidades[producto.nombre] || 1})
+                  Añadir al carrito ({cantidades[producto.nombre] || 1})
                 </button>
               </div>
             </div>
