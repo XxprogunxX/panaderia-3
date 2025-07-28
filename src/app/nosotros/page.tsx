@@ -11,6 +11,7 @@ import { useCarrito } from "../components/CarritoContext";
  // Adjust the path if necessary
 import { useMercadoPago } from "../components/useMercadopago"; // Adjust the path if necessary
 import Footer from '../components/Footer';
+import CarritoFlotante from '../components/CarritoFlotante';
 
 export default function NosotrosPage() {
   // Use the useCarrito hook to get cart state and toggle function
@@ -264,7 +265,9 @@ export default function NosotrosPage() {
         </div>
       )}
 
-     
+      {/* Bolita del carrito solo en móvil */}
+      <CarritoFlotante />
+
     </main>
     <Footer />
     </>

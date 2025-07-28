@@ -12,6 +12,7 @@ import { useMercadoPago } from "../components/useMercadopago";
 import footerStyles from "../footer.module.css";
 import styles from './productos.module.css';
 import Footer from '../components/Footer';
+import CarritoFlotante from '../components/CarritoFlotante';
 
 interface Producto {
   nombre: string;
@@ -330,6 +331,7 @@ const limpiarFiltros = () => {
 
         
       </main>
+      <CarritoFlotante />
       <Footer />
     </div>
   );
