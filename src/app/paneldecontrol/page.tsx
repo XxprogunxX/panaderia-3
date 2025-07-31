@@ -1779,9 +1779,41 @@ const PanelControl = () => {
               </div>
               {!notificacionesPermitidas && typeof window !== 'undefined' && "Notification" in window && Notification.permission === "default" && (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', opacity: 0.8, fontStyle: 'italic' }}>
-                    Se solicitarán permisos automáticamente cuando sea necesario
-                  </span>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const permission = await Notification.requestPermission();
+                        if (permission === "granted") {
+                          setNotificacionesPermitidas(true);
+                          setError(null);
+                        } else {
+                          setError("Los permisos de notificación fueron denegados.");
+                        }
+                      } catch (error) {
+                        console.error("Error al solicitar permisos:", error);
+                        setError("Error al activar notificaciones.");
+                      }
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                      fontWeight: 'bold'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0056b3';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#007bff';
+                    }}
+                  >
+                    🔔 Activar
+                  </button>
                 </div>
               )}
 
