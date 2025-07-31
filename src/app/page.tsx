@@ -77,23 +77,52 @@ const Home = () => {
         // Convertir a array y ordenar por cantidad
         const productosOrdenados = Object.values(ventasProductos)
           .sort((a, b) => b.cantidadTotal - a.cantidadTotal)
-          .slice(0, 3);
+          .slice(0, 5);
 
-        // Obtener información adicional de los productos
+        // Obtener información adicional de los productos y filtrar solo los disponibles
         const productosRef = collection(db, "productos");
         const productosSnap = await getDocs(productosRef);
         
+        // Crear un mapa de productos disponibles con su información completa
+        const productosDisponiblesMap = new Map();
+        
         productosSnap.forEach((doc) => {
           const producto = doc.data();
-          const productoPopular = productosOrdenados.find(p => p.nombre === producto.product);
-          if (productoPopular) {
-            productoPopular.imagen = producto.pic;
-            productoPopular.descripcion = producto.description;
-            productoPopular.precio = producto.price;
+          const stock = producto.stock || 0;
+          
+          // Solo incluir productos que tienen stock > 0
+          if (stock > 0) {
+            productosDisponiblesMap.set(producto.product, {
+              nombre: producto.product,
+              cantidadTotal: stock,
+              imagen: producto.pic || "",
+              precio: producto.price || 0,
+              descripcion: producto.description || ""
+            });
           }
         });
 
-        setProductosPopulares(productosOrdenados);
+        // Combinar con los productos populares (que tienen ventas)
+        const productosFinales: (Producto & { ventas: number })[] = [];
+        
+        // Primero agregar productos populares que están disponibles
+        productosOrdenados.forEach(productoPopular => {
+          const productoDisponible = productosDisponiblesMap.get(productoPopular.nombre);
+          if (productoDisponible) {
+            productosFinales.push({
+              ...productoDisponible,
+              ventas: productoPopular.cantidadTotal // Mantener el conteo de ventas para ordenamiento
+            });
+          }
+        });
+
+        // Ordenar por ventas (productos más vendidos primero)
+        productosFinales.sort((a, b) => b.ventas - a.ventas);
+        
+        // Tomar solo los primeros 5
+        const productosTop5 = productosFinales.slice(0, 5);
+
+        setProductosPopulares(productosTop5);
       } catch (error) {
         console.error("Error al cargar productos populares:", error);
       }

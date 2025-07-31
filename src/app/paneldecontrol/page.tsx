@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, setDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, setDoc, onSnapshot } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
 import { getAuth, onAuthStateChanged, User, signOut, createUserWithEmailAndPassword } from "firebase/auth";
 import { initializeApp } from "firebase/app";
@@ -180,6 +180,186 @@ const PanelControl = () => {
   // --- Estado y ref para el menú del avatar ---
   const [menuAbierto, setMenuAbierto] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
+  
+  // Estados para notificaciones
+  const [notificacionesPermitidas, setNotificacionesPermitidas] = useState(false);
+  const [pedidosConocidos, setPedidosConocidos] = useState<Set<string>>(new Set());
+  const [esHTTPS, setEsHTTPS] = useState(false);
+
+
+
+  const mostrarNotificacionNuevoPedido = useCallback(async (pedido: Pedido) => {
+    const totalProductos = pedido.productos.reduce((sum, prod) => sum + prod.cantidad, 0);
+    const cliente = pedido.datosEnvio?.nombre || "Cliente";
+    const total = pedido.total.toFixed(2);
+    const mensaje = `${cliente} ha realizado un pedido por $${total} MXN (${totalProductos} productos)`;
+
+    // Verificar si el navegador soporta notificaciones
+    if (!("Notification" in window)) {
+      // Fallback a notificación en página
+      mostrarNotificacionEnPagina(mensaje, pedido.id);
+      return;
+    }
+
+    // Si los permisos no están concedidos, intentar solicitarlos automáticamente
+    if (Notification.permission === "default") {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          setNotificacionesPermitidas(true);
+        }
+      } catch (error) {
+        console.error("Error al solicitar permisos de notificación:", error);
+      }
+    }
+
+    // Intentar mostrar notificación de escritorio si está disponible
+    if (Notification.permission === "granted") {
+      const notificacion = new Notification("🛒 Nuevo Pedido Recibido", {
+        body: mensaje,
+        icon: "/images/logo.png",
+        tag: `pedido-${pedido.id}`,
+        requireInteraction: true
+      });
+
+      // Manejar clics en la notificación
+      notificacion.onclick = () => {
+        window.focus();
+        setActiveTab("pedidos");
+        // Hacer scroll al pedido específico si es necesario
+        const pedidoElement = document.querySelector(`[data-pedido-id="${pedido.id}"]`);
+        if (pedidoElement) {
+          pedidoElement.scrollIntoView({ behavior: 'smooth' });
+        }
+        notificacion.close();
+      };
+
+      // Auto-cerrar después de 10 segundos
+      setTimeout(() => {
+        notificacion.close();
+      }, 10000);
+    } else {
+      // Mostrar notificación en la página como alternativa
+      mostrarNotificacionEnPagina(mensaje, pedido.id);
+    }
+  }, [notificacionesPermitidas]);
+
+  // Función para mostrar notificaciones en la página (funciona sin HTTPS)
+  const mostrarNotificacionEnPagina = useCallback((mensaje: string, pedidoId: string) => {
+    // Crear elemento de notificación
+    const notificacion = document.createElement('div');
+    notificacion.id = `notificacion-${pedidoId}`;
+    notificacion.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        z-index: 9999;
+        max-width: 350px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        animation: slideInNotification 0.4s ease-out;
+        border-left: 4px solid #fff;
+      ">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+          <span style="font-size: 24px;">🛒</span>
+          <h4 style="margin: 0; font-size: 16px; font-weight: 600;">Nuevo Pedido Recibido</h4>
+          <button onclick="document.getElementById('notificacion-${pedidoId}').remove()" style="
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: auto;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+          " onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'" onmouseout="this.style.backgroundColor='transparent'">×</button>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.4; opacity: 0.95;">${mensaje}</p>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button onclick="
+            document.getElementById('notificacion-${pedidoId}').remove();
+            window.location.hash = 'pedidos';
+            document.querySelector('[data-pedido-id=\\'${pedidoId}\\']')?.scrollIntoView({behavior: 'smooth'});
+          " style="
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+          " onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'">Ver Pedido</button>
+          <button onclick="document.getElementById('notificacion-${pedidoId}').remove()" style="
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+          " onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'" onmouseout="this.style.backgroundColor='transparent'">Cerrar</button>
+        </div>
+      </div>
+    `;
+
+    // Agregar estilos CSS para la animación
+    if (!document.getElementById('notification-styles')) {
+      const styles = document.createElement('style');
+      styles.id = 'notification-styles';
+      styles.textContent = `
+        @keyframes slideInNotification {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `;
+      document.head.appendChild(styles);
+    }
+
+    // Agregar la notificación al DOM
+    document.body.appendChild(notificacion);
+
+    // Auto-remover después de 8 segundos
+    setTimeout(() => {
+      if (notificacion.parentElement) {
+        notificacion.style.animation = 'slideInNotification 0.3s ease-in reverse';
+        setTimeout(() => {
+          if (notificacion.parentElement) {
+            notificacion.remove();
+          }
+        }, 300);
+      }
+    }, 8000);
+
+    // Reproducir sonido de notificación si está disponible
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      audio.volume = 0.3;
+      audio.play().catch(() => {
+        // Silenciar error si no se puede reproducir
+      });
+    } catch (error) {
+      // Silenciar error si no se puede crear audio
+    }
+  }, []);
 
   // Refs para evitar dependencias problemáticas en useCallback
   // These refs are crucial for `useCallback` functions to always get the latest state without re-creating the function.
@@ -483,7 +663,7 @@ const PanelControl = () => {
           };
           guiaEnvio?: string;
         };
-        lista.push({
+        const pedido = {
           id: docSnapshot.id,
           productos: data.productos || [],
           total: data.total || 0,
@@ -499,7 +679,10 @@ const PanelControl = () => {
             estado: ''
           },
           guiaEnvio: data.guiaEnvio || ''
-        });
+        };
+        lista.push(pedido);
+        // Agregar a pedidos conocidos para evitar notificaciones duplicadas
+        setPedidosConocidos(prev => new Set([...prev, docSnapshot.id]));
       });
       // Sort orders by creation date, most recent first
       setPedidos(lista.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()));
@@ -509,6 +692,78 @@ const PanelControl = () => {
       setError(`Error al cargar pedidos: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, []);
+
+  // Función para escuchar nuevos pedidos en tiempo real
+  const escucharNuevosPedidos = useCallback(() => {
+    if (!usuarioActual) return;
+
+    console.log("Setting up real-time listener for new orders...");
+    
+    const unsubscribe = onSnapshot(collection(db, "pedidos"), (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data() as {
+            productos?: { nombre: string; cantidad: number; precio: number }[];
+            total?: number;
+            estado?: string;
+            fechaCreacion?: string;
+            datosEnvio?: {
+              nombre: string;
+              email: string;
+              telefono: string;
+              direccion: string;
+              codigoPostal: string;
+              ciudad: string;
+              estado: string;
+              instrucciones?: string;
+            };
+            guiaEnvio?: string;
+          };
+
+          const nuevoPedido: Pedido = {
+            id: change.doc.id,
+            productos: data.productos || [],
+            total: data.total || 0,
+            estado: data.estado || 'pendiente',
+            fechaCreacion: data.fechaCreacion || '',
+            datosEnvio: data.datosEnvio || {
+              nombre: '',
+              email: '',
+              telefono: '',
+              direccion: '',
+              codigoPostal: '',
+              ciudad: '',
+              estado: ''
+            },
+            guiaEnvio: data.guiaEnvio || ''
+          };
+
+          // Verificar si es un pedido nuevo (no conocido previamente)
+          setPedidosConocidos(prev => {
+            if (!prev.has(change.doc.id)) {
+              // Es un pedido nuevo, mostrar notificación
+              console.log("Nuevo pedido detectado:", nuevoPedido);
+              mostrarNotificacionNuevoPedido(nuevoPedido);
+              return new Set([...prev, change.doc.id]);
+            }
+            return prev;
+          });
+
+          // Actualizar la lista de pedidos
+          setPedidos(prev => {
+            const pedidosActualizados = [...prev, nuevoPedido];
+            return pedidosActualizados.sort((a, b) => 
+              new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+            );
+          });
+        }
+      });
+    }, (error) => {
+      console.error("Error en listener de pedidos:", error);
+    });
+
+    return unsubscribe;
+  }, [usuarioActual, mostrarNotificacionNuevoPedido]);
 
   const cargarDatosIniciales = useCallback(async () => {
     setCargando(true);
@@ -1330,6 +1585,61 @@ const PanelControl = () => {
     }
   }, [checkingAuth, usuarioActual, cargarDatosIniciales]); // Added cargarDatosIniciales as a dependency
 
+  // Effect para verificar HTTPS y estado de notificaciones
+  useEffect(() => {
+    if (usuarioActual && !checkingAuth) {
+      console.log("🔔 Verificando estado de notificaciones para usuario admin...");
+      
+      // Verificar si estamos en HTTPS
+      const esHTTPSActual = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      setEsHTTPS(esHTTPSActual);
+      
+      // Verificar estado del navegador
+      const navegadorSoportaNotificaciones = typeof window !== 'undefined' && "Notification" in window;
+      const estadoPermisos = navegadorSoportaNotificaciones ? Notification.permission : "no_support";
+      
+      console.log("🔍 Estado notificaciones:", {
+        navegadorSoporta: navegadorSoportaNotificaciones,
+        permisos: estadoPermisos,
+        esHTTPS: esHTTPSActual
+      });
+      
+      // Verificar si el navegador soporta notificaciones
+      if (!navegadorSoportaNotificaciones) {
+        console.error("❌ Navegador no soporta notificaciones");
+        setNotificacionesPermitidas(false);
+        return;
+      }
+      
+      // Verificar el estado actual de los permisos
+      if (estadoPermisos === "granted") {
+        console.log("✅ Permisos de notificación ya concedidos");
+        setNotificacionesPermitidas(true);
+      } else if (estadoPermisos === "denied") {
+        console.log("❌ Permisos de notificación denegados previamente");
+        setNotificacionesPermitidas(false);
+      } else {
+        console.log("⏳ Permisos de notificación no solicitados aún");
+        setNotificacionesPermitidas(false);
+      }
+    }
+  }, [usuarioActual, checkingAuth]);
+
+  // Effect para escuchar nuevos pedidos en tiempo real
+  useEffect(() => {
+    if (usuarioActual && notificacionesPermitidas) {
+      console.log("👂 Setting up real-time order listener...");
+      const unsubscribe = escucharNuevosPedidos();
+      
+      return () => {
+        console.log("🔇 Cleaning up real-time order listener...");
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    }
+  }, [usuarioActual, notificacionesPermitidas, escucharNuevosPedidos]);
+
   // Manejar carga de imágenes para prevenir bug visual
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1432,6 +1742,51 @@ const PanelControl = () => {
         <header className="panel-header">
           <h1>Panel de Control</h1>
           <p>Administra tus productos, categorías, cafés, usuarios y pedidos.</p>
+          
+          {/* Indicador de estado de notificaciones */}
+          {usuarioActual && (
+            <div style={{
+              position: 'absolute',
+              top: 20,
+              left: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 12px',
+              borderRadius: 6,
+              backgroundColor: notificacionesPermitidas ? '#d4edda' : '#f8d7da',
+              border: `1px solid ${notificacionesPermitidas ? '#c3e6cb' : '#f5c6cb'}`,
+              color: notificacionesPermitidas ? '#155724' : '#721c24',
+              fontSize: '14px',
+              fontWeight: 500,
+              maxWidth: '400px'
+            }}>
+              <span style={{ fontSize: '16px' }}>
+                {notificacionesPermitidas ? '🔔' : '🔕'}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span>
+                  {notificacionesPermitidas ? 'Notificaciones activas' : 'Notificaciones desactivadas'}
+                </span>
+                {!notificacionesPermitidas && (
+                  <span style={{ fontSize: '12px', opacity: 0.8 }}>
+                    {typeof window !== 'undefined' && "Notification" in window && Notification.permission === "denied"
+                      ? `🔕 Permisos bloqueados ${!esHTTPS ? '⚠️ No HTTPS' : ''}`
+                      : `🔔 Recibirás alertas de nuevos pedidos ${!esHTTPS ? '✅ Funciona sin HTTPS' : ''}`
+                    }
+                  </span>
+                )}
+              </div>
+              {!notificacionesPermitidas && typeof window !== 'undefined' && "Notification" in window && Notification.permission === "default" && (
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', opacity: 0.8, fontStyle: 'italic' }}>
+                    Se solicitarán permisos automáticamente cuando sea necesario
+                  </span>
+                </div>
+              )}
+
+            </div>
+          )}
           {usuarioActual && (
             <div style={{
               marginTop: 10,
@@ -2310,6 +2665,55 @@ const PanelControl = () => {
           {activeTab === "pedidos" && (
             <div className="pedidos-tab">
               <h2>Gestión de Pedidos</h2>
+              
+              {/* Botón de prueba para notificaciones */}
+              {notificacionesPermitidas && (
+                <div style={{
+                  marginBottom: 20,
+                  padding: '12px',
+                  backgroundColor: '#e3f2fd',
+                  borderRadius: 6,
+                  border: '1px solid #2196f3'
+                }}>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#1976d2' }}>🔔 Prueba de Notificaciones</h4>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#424242' }}>
+                    Haz clic en el botón para probar las notificaciones de escritorio:
+                  </p>
+                  <button
+                    onClick={() => {
+                      const pedidoPrueba: Pedido = {
+                        id: 'test-' + Date.now(),
+                        productos: [{ nombre: 'Producto de Prueba', cantidad: 1, precio: 50 }],
+                        total: 50,
+                        estado: 'pendiente',
+                        fechaCreacion: new Date().toISOString(),
+                        datosEnvio: {
+                          nombre: 'Cliente de Prueba',
+                          email: 'test@example.com',
+                          telefono: '1234567890',
+                          direccion: 'Dirección de prueba',
+                          codigoPostal: '12345',
+                          ciudad: 'Ciudad de prueba',
+                          estado: 'Estado de prueba'
+                        }
+                      };
+                      mostrarNotificacionNuevoPedido(pedidoPrueba);
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#2196f3',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Probar Notificación
+                  </button>
+                </div>
+              )}
+              
               <div className="pedidos-lista">
                 <h3>Lista de Pedidos ({pedidos.length})</h3>
                 {pedidos.length === 0 ? (
@@ -2317,7 +2721,7 @@ const PanelControl = () => {
                 ) : (
                   <div className="pedidos-grid">
                     {pedidos.map((pedido) => (
-                      <div key={pedido.id} className="pedido-card">
+                      <div key={pedido.id} className="pedido-card" data-pedido-id={pedido.id}>
                         <div className="pedido-header">
                           <span className={`estado-pedido ${pedido.estado === 'pagado' ? 'completado' : pedido.estado === 'pendiente' ? 'pendiente' : 'cancelado'}`}>{pedido.estado === 'pagado' ? 'Pagado' : pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}</span>
                           <span className="fecha-pedido">{new Date(pedido.fechaCreacion).toLocaleString()}</span>
