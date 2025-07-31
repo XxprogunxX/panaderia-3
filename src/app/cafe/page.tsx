@@ -14,22 +14,19 @@ export default function CafePage() {
         <section className={styles["cafe-hero"]}>
           {/* Navbar ajustado para el diseño de la imagen */}
           <nav className={styles["cafe-navbar"]}>
-            {/* Contenedor para el logo y el nombre de la cafetería (parte izquierda de la navbar) */}
-            <div className={styles["cafe-navbar-brand-container"]}> {/* NUEVO CONTENEDOR */}
-              <Link href="/cafe" className={styles["cafe-nav-link"] + ' ' + styles["cafe-logo-text"]}>Cafetería</Link> {/* El texto del nombre de la cafetería */}
+            {/* Contenedor para el logo y el nombre de la cafetería (centro de la navbar) */}
+            <div className={styles["cafe-navbar-brand-container"]}>
+              <Link href="/cafe" className={styles["cafe-nav-link"] + ' ' + styles["cafe-logo-text"]}>Cafetería</Link>
+              {/* Logo NINDÓ CAFÉ para móvil */}
+              <div className={styles["cafe-mobile-logo"]}>
+                <div className={styles["cafe-mobile-deer"]}>🦌</div>
+                <div className={styles["cafe-mobile-brand"]}>
+                  <span className={styles["cafe-mobile-brand-name"]}>NINDÓ CAFÉ</span>
+                  <span className={styles["cafe-mobile-brand-tagline"]}>EL QUE TE HACE VOLAR</span>
+                </div>
+              </div>
             </div>
-            {/* Botón hamburguesa para móvil */}
-            <button
-              className={styles["cafe-hamburger"]}
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Abrir menú"
-              type="button"
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-            {/* Links de navegación y (opcionalmente) el icono de búsqueda (parte derecha de la navbar) */}
+            {/* Links de navegación (ocultos en móvil) */}
             <div
               className={
                 styles["cafe-navbar-links-container"] +
@@ -40,22 +37,26 @@ export default function CafePage() {
               <Link href="/cafe" className={styles["cafe-nav-link"]}>Inicio</Link>
               <Link href="/cafeproductos" className={styles["cafe-nav-link"]}>Productos</Link>
               <Link href="/" className={styles["cafe-nav-link"]}>Panadería</Link>
-              <Image
-                src="/images/logo-cafe.png"
-                alt="Logo de la Cafetería"
-                width={50}
-                height={50}
-                className={styles["cafe-navbar-logo-image"]}
-              />
             </div>
+            {/* Botón hamburguesa separado (derecha de la navbar) */}
+            <button
+              className={styles["cafe-hamburger"]}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Abrir menú"
+              type="button"
+            >
+              <span />
+              <span />
+              <span />
+            </button>
           </nav>
           <div className={styles["cafe-hero-text"]}>
             <h1>El Arte del Café</h1>
             <p>Una experiencia sensorial en cada taza.</p>
-            <Link href="/cafeproductos" className={styles["cafe-cta-button"]}>
-              Comprar Ahora
-            </Link>
           </div>
+          <Link href="/cafeproductos" className={styles["cafe-cta-button"]}>
+            Comprar Ahora
+          </Link>
         </section>
         {/* Sección de enlaces de menú inferior */}
         
@@ -159,6 +160,20 @@ export default function CafePage() {
                 <Image src="/images/sabor cafe.jpeg" alt="Perfil de sabor" width={500} height={300} />
               </div>
             </article>
+          </div>
+        </section>
+        
+        {/* Logo de NINDÓ CAFÉ en la parte inferior */}
+        <section className={styles["cafe-logo-section"]}>
+          <div className={styles["cafe-logo-container"]}>
+            <div className={styles["cafe-logo-image"]}>
+              {/* Aquí puedes agregar la imagen del logo del ciervo */}
+              <div className={styles["cafe-deer-logo"]}>🦌</div>
+            </div>
+            <div className={styles["cafe-logo-text"]}>
+              <h3 className={styles["cafe-brand-name"]}>NINDÓ CAFÉ</h3>
+              <p className={styles["cafe-brand-tagline"]}>EL QUE TE HACE VOLAR</p>
+            </div>
           </div>
         </section>
        

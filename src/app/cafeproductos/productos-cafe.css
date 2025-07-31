@@ -142,57 +142,20 @@ body {
 }
 
 /* === Barra de navegación === */
+/* Navbar styles - ahora usando los estilos de cafe.module.css */
 .navbar {
-  width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 20px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  background-color: white;
+  /* Los estilos del navbar ahora vienen de cafe.module.css */
+  display: none; /* Ocultamos el navbar anterior */
 }
 
-.navbar-brand-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.navbar-logo-image {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-}
-
-.logo-text {
-  font-family: 'Playfair Display', serif;
-  color: #4b3a2f;
-  font-size: 2.2rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.navbar-links-container {
-  display: flex;
-  gap: 30px;
-  align-items: center;
-}
-
+/* Navbar components - ahora usando los estilos de cafe.module.css */
+.navbar-brand-container,
+.navbar-logo-image,
+.logo-text,
+.navbar-links-container,
 .nav-link {
-  font-family: 'Montserrat', sans-serif;
-  color: #5a4432;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-  color: #8d6e63;
+  /* Los estilos ahora vienen de cafe.module.css */
+  display: none;
 }
 
 /* === Contenido del Hero === */
@@ -860,18 +823,8 @@ body {
     font-size: 1rem;
   }
 
+  /* Los estilos del navbar ahora vienen de cafe.module.css */
   .navbar {
-    padding: 15px 20px;
-    justify-content: center;
-  }
-
-  .navbar-container {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .navbar-container .nav-link,
-  .navbar-container .search-icon {
     display: none;
   }
 
@@ -1024,4 +977,12 @@ body {
 .badge-otro {
   background: #e0e0e0;
   color: #333;
+}
+
+/* === Footer === */
+.footer {
+  background: linear-gradient(135deg, #4A3B31 60%, #7c5e3c 100%);
+  padding: 3rem 2rem;
+  margin-top: 4rem;
+  border-top: 1px solid #e7e7e7;
 }
