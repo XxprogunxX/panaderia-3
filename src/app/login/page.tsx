@@ -1,13 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { auth } from '../firebaseConfig';
 import styles from './LoginForm.module.css';
 import Link from 'next/link';
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { useAuth } from '../components/AuthContext';
 
 const ADMIN_EMAILS = ["admin11@gmail.com"];
 
@@ -48,6 +49,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [mobileForm, setMobileForm] = useState<'login' | 'register'>('login');
   const router = useRouter();
+  const { signIn } = useAuth();
 
   // Detecta si es móvil
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
@@ -111,17 +113,14 @@ export default function LoginForm() {
     setError('');
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      console.log("Usuario autenticado:", user.uid, user.email);
+      await signIn(email, password);
       
       // Consulta el documento del usuario en Firestore
-      const userDocRef = doc(db, "usuarios", user.uid);
+      const userDocRef = doc(db, "usuarios", auth.currentUser?.uid || '');
       const userDocSnap = await getDoc(userDocRef);
 
       if (!userDocSnap.exists()) {
-        console.error("Documento de usuario no encontrado para UID:", user.uid);
+        console.error("Documento de usuario no encontrado para UID:", auth.currentUser?.uid);
         setError("No se encontró información de usuario. Esto puede ocurrir si el usuario fue creado pero no se guardó correctamente en la base de datos. Contacta al administrador.");
         await auth.signOut();
         return;
@@ -136,7 +135,7 @@ export default function LoginForm() {
         return;
       }
 
-      console.log("Acceso concedido al panel de control para:", user.email);
+      console.log("Acceso concedido al panel de control para:", auth.currentUser?.email);
       router.push('/paneldecontrol');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {

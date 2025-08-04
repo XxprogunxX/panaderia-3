@@ -4,7 +4,7 @@ import './styles.css';
 import { ReactNode } from 'react';
 import HeaderConditional from './components/HeaderConditional';
 import { CarritoProvider } from './components/CarritoContext';
-
+import { AuthProvider } from './components/AuthContext';
 
 export const metadata = {
   title: 'Panadería El Pan de Cada Día',
@@ -19,10 +19,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body>
-        <CarritoProvider>
-          <HeaderConditional />
-          {children}
-        </CarritoProvider>
+        <AuthProvider>
+          <CarritoProvider>
+            <HeaderConditional />
+            {children}
+          </CarritoProvider>
+        </AuthProvider>
       </body>
     </html>
   );

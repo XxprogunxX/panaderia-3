@@ -3,13 +3,15 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, setDoc, onSnapshot } from "firebase/firestore";
 import { createClient } from '@supabase/supabase-js';
-import { getAuth, onAuthStateChanged, User, signOut, createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, User, signOut, getAuth as getAuthSecondary, signOut as signOutSecondary } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import { getAuth as getAuthSecondary, signOut as signOutSecondary } from "firebase/auth";
 import "./panel.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { firebaseConfig } from "../firebaseConfig";
+import { useAuth } from '../components/AuthContext';
+import { useSessionExpiration } from '../components/useSessionExpiration';
+import { SessionExpirationWarning } from '../components/SessionExpirationWarning';
 
 // Configura Supabase - Usar variables de entorno en producción
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vvtqfedsnthxeqaejhzg.supabase.co';
@@ -127,6 +129,9 @@ const secondaryAuth = getAuthSecondary(secondaryApp);
 
 const PanelControl = () => {
   const router = useRouter();
+  const { user, loading: authLoading, userRole, signOut } = useAuth();
+  const { extendSession } = useSessionExpiration();
+  
   // useState hooks
   const [usuarioActual, setUsuarioActual] = useState<Usuario | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -1497,93 +1502,69 @@ const PanelControl = () => {
   }, [cargarPedidos]);
 
 
-  // Primary Authentication Effect
+  // Simplified Authentication Effect using AuthContext
   useEffect(() => {
-    console.log("🔍 Starting authentication check via onAuthStateChanged...");
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      console.log("👤 Auth state changed. User:", user?.email || "No authenticated user");
-      try {
-        if (!user) {
-          console.warn("No authenticated user found. Redirecting to login.");
-          setUsuarioActual(null); // Explicitly clear user
-          router.replace("/login");
-          return; // Crucial: exit early if no user
-        }
+    if (authLoading) {
+      console.log("🔄 AuthContext still loading...");
+      return;
+    }
 
-        // If it's the super admin by email (highest privilege)
-        if (user.email === SUPER_ADMIN_EMAIL) {
-          console.log("👑 User is SUPER_ADMIN_EMAIL. Granting access.");
-          setUsuarioActual({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            emailVerified: user.emailVerified,
-            providerData: user.providerData,
-            rol: "super_admin" // Explicitly set role for super admin
-          });
-          // Also save/update this user in Firestore with their proper data
-          await guardarUsuario(user);
-          return; // Exit here, super admin has immediate access
-        }
+    if (!user) {
+      console.log("❌ No user authenticated. Redirecting to login.");
+      setUsuarioActual(null);
+      router.replace("/login");
+      return;
+    }
 
-        // Consult Firestore for role if not super admin email
-        console.log("🔍 Querying Firestore for user role for UID:", user.uid);
-        const userQuery = await getDocs(query(collection(db, "usuarios"), where("uid", "==", user.uid)));
+    // Check if user has admin role
+    if (userRole === "admin" || userRole === "super_admin" || user.email === SUPER_ADMIN_EMAIL) {
+      console.log("✅ User authenticated with admin role:", userRole);
+      setUsuarioActual({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+        providerData: user.providerData,
+        rol: user.email === SUPER_ADMIN_EMAIL ? "super_admin" : userRole || "admin"
+      });
+      setCheckingAuth(false);
+    } else {
+      console.log("❌ User does not have admin role. Redirecting to login.");
+      setUsuarioActual(null);
+      router.replace("/login");
+    }
+  }, [user, userRole, authLoading, router]);
 
-        if (!userQuery.empty) {
-          const userDoc = userQuery.docs[0];
-          const data = userDoc.data() as FirestoreData;
-          console.log("📋 User document found in Firestore. Data:", data);
-
-          if (data.rol === "admin") {
-            console.log("✅ User has 'admin' role. Setting usuarioActual.");
-            setUsuarioActual({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              emailVerified: user.emailVerified,
-              providerData: user.providerData,
-              rol: "admin" // Explicitly set role
-            });
-            // Also save/update this user in Firestore with their proper data
-            await guardarUsuario(user);
-          } else {
-            console.warn(`User ${user.email} (UID: ${user.uid}) does not have 'admin' role. Redirecting.`);
-            setUsuarioActual(null); // Ensure user state is cleared
-            router.replace("/login");
-          }
-        } else {
-          console.warn(`User ${user.email} (UID: ${user.uid}) not found in Firestore 'usuarios' collection. Redirecting.`);
-          setUsuarioActual(null); // Ensure user state is cleared
-          router.replace("/login");
-        }
-      } catch (error) {
-        console.error("🚨 Critical Error during authentication or role verification:", error);
-        setError(`Error de autenticación: ${error instanceof Error ? error.message : String(error)}. Por favor, intenta de nuevo.`);
-        setUsuarioActual(null); // Clear user state on error
-        router.replace("/login"); // Redirect on critical error
-      } finally {
-        console.log("🏁 Authentication check complete. Setting checkingAuth(false).");
-        setCheckingAuth(false); // Always set to false here to dismiss initial loading overlay
-      }
-    });
-
-    return () => unsubscribe(); // Cleanup the listener
-  }, [router, guardarUsuario]); // Added guardarUsuario as a dependency for this effect
-
-  // Effect to load initial data *after* authentication check is done AND a user is authenticated
+  // Effect to load initial data after authentication
   useEffect(() => {
     if (!checkingAuth && usuarioActual) {
       console.log("✅ Auth check complete and user authenticated. Starting initial data fetch.");
-      cargarDatosIniciales(); // This includes all other data loading
-    } else if (!checkingAuth && !usuarioActual) {
-      console.log("❌ Auth check complete, but no admin user authenticated. No data fetch initiated.");
-      // The user would have been redirected by the auth effect
+      cargarDatosIniciales();
     }
-  }, [checkingAuth, usuarioActual, cargarDatosIniciales]); // Added cargarDatosIniciales as a dependency
+  }, [checkingAuth, usuarioActual, cargarDatosIniciales]);
+
+  // Effect para extender la sesión cuando el usuario interactúa
+  useEffect(() => {
+    if (!usuarioActual) return;
+
+    const handleUserActivity = () => {
+      extendSession();
+    };
+
+    // Eventos que indican actividad del usuario
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleUserActivity, { passive: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserActivity);
+      });
+    };
+  }, [usuarioActual, extendSession]);
 
   // Effect para verificar HTTPS y estado de notificaciones
   useEffect(() => {
@@ -1918,7 +1899,7 @@ const PanelControl = () => {
                       }}
                       onClick={async () => {
                         const auth = getAuth();
-                        await signOut(auth);
+                        await signOut();
                         router.replace('/login');
                       }}
                     >
@@ -2840,6 +2821,9 @@ const PanelControl = () => {
           )}
         </main>
       </div>
+      
+      {/* Componente de advertencia de expiración de sesión */}
+      <SessionExpirationWarning onExtendSession={extendSession} />
     </div>
   );
 };
