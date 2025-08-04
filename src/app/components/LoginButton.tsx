@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
 import styles from './LoginButton.module.css';
 
 interface LoginButtonProps {
@@ -12,39 +13,68 @@ interface LoginButtonProps {
 }
 
 export default function LoginButton({ onClick, children, className }: LoginButtonProps) {
-  const { user, userRole, loading: authLoading } = useAuth();
+  const { user, userRole, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (onClick) {
-      onClick();
-    }
-
-    // Si el usuario ya está autenticado, redirigir según su rol
-    if (user && !authLoading) {
-      e.preventDefault();
-      
-      if (userRole === 'admin' || userRole === 'super_admin') {
-        console.log('🔄 Usuario administrador autenticado, redirigiendo a sesión activa');
-        router.push('/sesion-activa');
-      } else {
-        console.log('🔄 Usuario normal autenticado, redirigiendo a página principal');
-        router.push('/');
+  // Cerrar menú cuando se hace clic fuera de él
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
       }
-    }
-    // Si no está autenticado, el enlace normal funcionará (ir a /login)
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowMenu(!showMenu);
   };
 
-  // Si el usuario está autenticado, mostrar avatar circular
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const handlePanelControl = () => {
+    setShowMenu(false);
+    if (onClick) onClick();
+    
+    if (userRole === 'admin' || userRole === 'super_admin') {
+      console.log('🔄 Usuario administrador, redirigiendo a sesión activa');
+      router.push('/sesion-activa');
+    } else {
+      console.log('🔄 Usuario normal, redirigiendo a página principal');
+      router.push('/');
+    }
+  };
+
+  const handleCerrarSesion = async () => {
+    setShowMenu(false);
+    try {
+      await signOut();
+      console.log('👋 Sesión cerrada exitosamente');
+      router.push('/');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+    }
+  };
+
+  // Si el usuario está autenticado, mostrar avatar con menú
   if (user && !authLoading) {
     const userInitial = user.email?.charAt(0).toUpperCase() || 'U';
     const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
 
     return (
-      <div className={styles.avatarContainer}>
+      <div className={styles.avatarContainer} ref={menuRef}>
         <button 
-          onClick={handleClick}
-          className={styles.avatarButton}
+          onClick={handleAvatarClick}
+          className={`${styles.avatarButton} ${showMenu ? styles.active : ''}`}
           title={`${displayName} (${userRole === 'admin' || userRole === 'super_admin' ? 'Administrador' : 'Usuario'})`}
         >
           {user.photoURL ? (
@@ -61,6 +91,58 @@ export default function LoginButton({ onClick, children, className }: LoginButto
             </div>
           )}
         </button>
+
+        {/* Menú desplegable */}
+        {showMenu && (
+          <div className={styles.dropdownMenu} onClick={handleMenuClick}>
+            <div className={styles.menuHeader}>
+              <div className={styles.menuAvatar}>
+                {user.photoURL ? (
+                  <Image
+                    src={user.photoURL}
+                    alt={displayName}
+                    width={32}
+                    height={32}
+                    className={styles.menuAvatarImage}
+                  />
+                ) : (
+                  <div className={styles.menuAvatarInitial}>
+                    {userInitial}
+                  </div>
+                )}
+              </div>
+              <div className={styles.menuUserInfo}>
+                <div className={styles.menuUserName}>{displayName}</div>
+                <div className={styles.menuUserEmail}>{user.email}</div>
+                <div className={styles.menuUserRole}>
+                  {userRole === 'admin' || userRole === 'super_admin' ? 'Administrador' : 'Usuario'}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.menuDivider}></div>
+
+            <div className={styles.menuOptions}>
+              {(userRole === 'admin' || userRole === 'super_admin') && (
+                <button 
+                  onClick={handlePanelControl}
+                  className={styles.menuOption}
+                >
+                  <span className={styles.menuIcon}>⚙️</span>
+                  Panel de Control
+                </button>
+              )}
+              
+              <button 
+                onClick={handleCerrarSesion}
+                className={`${styles.menuOption} ${styles.menuOptionLogout}`}
+              >
+                <span className={styles.menuIcon}>🚪</span>
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -69,7 +151,7 @@ export default function LoginButton({ onClick, children, className }: LoginButto
   return (
     <Link 
       href="/login" 
-      onClick={handleClick}
+      onClick={onClick}
       className={className}
     >
       {children}

@@ -2,7 +2,7 @@
 
 ## 📋 Descripción
 
-Se ha implementado un avatar circular en el navbar que reemplaza el botón de "Login" cuando el usuario está autenticado. Este avatar muestra la foto del usuario o sus iniciales, y mantiene la funcionalidad de redirección inteligente según el rol del usuario.
+Se ha implementado un avatar circular en el navbar que reemplaza el botón de "Login" cuando el usuario está autenticado. Este avatar muestra la foto del usuario o sus iniciales, y al hacer clic despliega un menú con opciones para acceder al panel de control o cerrar sesión.
 
 ## 🎯 Características Principales
 
@@ -23,9 +23,10 @@ Se ha implementado un avatar circular en el navbar que reemplaza el botón de "L
 - Muestra un círculo con:
   - **Foto del usuario** (si tiene una)
   - **Inicial del email** (si no tiene foto)
-- Al hacer clic:
-  - **Administradores** → Redirige a `/sesion-activa`
-  - **Usuarios normales** → Redirige a `/` (página principal)
+- **Al hacer clic en el avatar** → Se despliega un menú con:
+  - **Información del usuario** (nombre, email, rol)
+  - **Panel de Control** (solo para administradores)
+  - **Cerrar Sesión**
 
 ## 🛠️ Componentes Implementados
 
@@ -33,54 +34,92 @@ Se ha implementado un avatar circular en el navbar que reemplaza el botón de "L
 ```typescript
 // Verifica estado de autenticación
 // Muestra avatar o texto "Login" según corresponda
-// Maneja redirección inteligente
+// Maneja menú desplegable con opciones
+// Gestiona cierre de sesión
 ```
 
-### 2. **Estilos del Avatar** (`/components/LoginButton.module.css`)
+### 2. **Estilos del Avatar y Menú** (`/components/LoginButton.module.css`)
 ```css
 // Diseño del círculo con gradiente
-// Efectos hover y animaciones
-// Responsive design
+// Menú desplegable con animaciones
+// Efectos hover y responsive design
 ```
 
-## 🎨 Diseño del Avatar
+## 🎨 Diseño del Avatar y Menú
 
-### **Características Visuales:**
+### **Características Visuales del Avatar:**
 - **Tamaño:** 40px × 40px (35px en tablets, 32px en móviles)
 - **Borde:** 2px sólido dorado (`#C68E4D`)
 - **Fondo:** Gradiente azul (`#87CEEB` a `#4682B4`)
 - **Letra:** Blanca, negrita, con sombra
 - **Efectos:** Hover scale 1.05x, sombra aumentada
 
+### **Características del Menú Desplegable:**
+- **Posición:** Se despliega hacia abajo desde el avatar
+- **Ancho:** 280px mínimo (responsive)
+- **Fondo:** Blanco con sombra elegante
+- **Animación:** Slide down suave (0.2s)
+- **Z-index:** 1000 para estar sobre otros elementos
+
+### **Estructura del Menú:**
+1. **Header del Usuario:**
+   - Avatar pequeño (32px)
+   - Nombre del usuario
+   - Email del usuario
+   - Rol (Administrador/Usuario)
+
+2. **Divisor:** Línea separadora
+
+3. **Opciones:**
+   - **Panel de Control** (solo administradores) ⚙️
+   - **Cerrar Sesión** 🚪
+
 ### **Estados:**
 - **Normal:** Círculo azul con inicial o foto
 - **Hover:** Escala 1.05x, borde blanco, fondo dorado claro
+- **Activo:** Borde blanco, fondo dorado más intenso
 - **Clic:** Escala 0.95x (feedback táctil)
 
 ## 🔧 Funcionalidades Técnicas
 
-### **Verificación de Autenticación:**
+### **Gestión del Menú:**
 ```typescript
-if (user && !authLoading) {
-  // Mostrar avatar
-  const userInitial = user.email?.charAt(0).toUpperCase() || 'U';
-  const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
-} else {
-  // Mostrar enlace "Login"
-}
+const [showMenu, setShowMenu] = useState(false);
+const menuRef = useRef<HTMLDivElement>(null);
+
+// Cerrar menú cuando se hace clic fuera de él
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setShowMenu(false);
+    }
+  };
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => document.removeEventListener('mousedown', handleClickOutside);
+}, []);
 ```
 
-### **Redirección Inteligente:**
+### **Acceso al Panel de Control:**
 ```typescript
-const handleClick = (e: React.MouseEvent) => {
-  if (user && !authLoading) {
-    e.preventDefault();
-    
-    if (userRole === 'admin' || userRole === 'super_admin') {
-      router.push('/sesion-activa');
-    } else {
-      router.push('/');
-    }
+const handlePanelControl = () => {
+  setShowMenu(false);
+  if (userRole === 'admin' || userRole === 'super_admin') {
+    router.push('/sesion-activa');
+  } else {
+    router.push('/');
+  }
+};
+```
+
+### **Cierre de Sesión:**
+```typescript
+const handleCerrarSesion = async () => {
+  setShowMenu(false);
+  try {
+    await signOut();
+    router.push('/');
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error);
   }
 };
 ```
@@ -89,14 +128,17 @@ const handleClick = (e: React.MouseEvent) => {
 
 ### **Desktop (>768px):**
 - Avatar: 40px × 40px
+- Menú: 280px mínimo
 - Inicial: 1.2rem
 
 ### **Tablet (≤768px):**
 - Avatar: 35px × 35px
+- Menú: 260px mínimo
 - Inicial: 1rem
 
 ### **Móvil (≤480px):**
 - Avatar: 32px × 32px
+- Menú: 240px mínimo
 - Inicial: 0.9rem
 
 ## 🚀 Beneficios
@@ -104,25 +146,25 @@ const handleClick = (e: React.MouseEvent) => {
 ### **Para el Usuario:**
 - ✅ **Identificación visual** inmediata del estado de autenticación
 - ✅ **Acceso rápido** al panel de control (administradores)
+- ✅ **Cierre de sesión** fácil y accesible
+- ✅ **Información personal** visible en el menú
 - ✅ **Experiencia personalizada** con foto o inicial
-- ✅ **Feedback visual** claro sobre el rol del usuario
 
 ### **Para el Sistema:**
 - ✅ **Interfaz más limpia** sin redundancia de botones
 - ✅ **Mejor UX** con indicadores visuales claros
 - ✅ **Consistencia** con el diseño general de la aplicación
 - ✅ **Escalabilidad** para futuras funcionalidades
+- ✅ **Gestión de sesiones** más intuitiva
 
 ## 🔄 Flujo de Interacción
 
 ```
-Usuario → Clic en Avatar/Login → Verificar Estado
+Usuario → Clic en Avatar → Menú Desplegable
     ↓
-¿Autenticado? → NO → Ir a /login
-    ↓ SÍ
-¿Es Admin? → NO → Ir a / (página principal)
-    ↓ SÍ
-Ir a /sesion-activa
+¿Qué opción? → Panel de Control → /sesion-activa (admin) o / (usuario)
+    ↓
+Cerrar Sesión → Cierra sesión → Redirige a /
 ```
 
 ## 🎯 Casos de Uso
@@ -135,13 +177,16 @@ Ir a /sesion-activa
 ### **Escenario 2: Usuario Normal Autenticado**
 1. Usuario ve círculo con inicial en navbar
 2. Hace clic en el círculo
-3. Es redirigido a la página principal
+3. Ve menú con su información y opciones
+4. Puede cerrar sesión o ir a página principal
 
 ### **Escenario 3: Administrador Autenticado**
 1. Usuario ve círculo con inicial en navbar
 2. Hace clic en el círculo
-3. Es redirigido a `/sesion-activa`
-4. Ve el círculo grande y hace clic para acceder al panel
+3. Ve menú con su información y opciones
+4. Puede:
+   - Ir al Panel de Control → `/sesion-activa`
+   - Cerrar sesión → Redirige a `/`
 
 ## 🔧 Integración con el Sistema
 
@@ -150,10 +195,25 @@ Ir a /sesion-activa
 - ✅ **Integrado con** el contexto de autenticación
 - ✅ **Mantiene** la funcionalidad de roles
 - ✅ **Respetando** el diseño existente del navbar
+- ✅ **Gestión de eventos** para cerrar menú automáticamente
 
 ### **Archivos Modificados:**
-- `src/app/components/LoginButton.tsx` - Lógica del avatar
-- `src/app/components/LoginButton.module.css` - Estilos del avatar
+- `src/app/components/LoginButton.tsx` - Lógica del avatar y menú
+- `src/app/components/LoginButton.module.css` - Estilos del avatar y menú
 - `src/app/components/Header.tsx` - Integración en el navbar
 
-Esta implementación mejora significativamente la experiencia del usuario al proporcionar un indicador visual claro del estado de autenticación y un acceso más intuitivo a las funcionalidades del sistema. 
+## 🎨 Detalles de UX
+
+### **Animaciones:**
+- **Apertura del menú:** Slide down suave
+- **Hover en opciones:** Cambio de color de fondo
+- **Hover en avatar:** Escala y cambio de borde
+- **Cierre automático:** Al hacer clic fuera del menú
+
+### **Accesibilidad:**
+- **Tooltip** en el avatar con información del usuario
+- **Iconos** para identificar opciones rápidamente
+- **Contraste** adecuado en todos los elementos
+- **Navegación por teclado** compatible
+
+Esta implementación mejora significativamente la experiencia del usuario al proporcionar un acceso intuitivo y organizado a todas las funcionalidades relacionadas con la autenticación, manteniendo un diseño limpio y profesional. 
