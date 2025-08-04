@@ -62,8 +62,8 @@ export default function LoginForm() {
       console.log('🎭 Rol:', userRole);
       
       if (userRole === 'admin' || userRole === 'super_admin') {
-        console.log('✅ Redirigiendo administrador al panel de control');
-        router.push('/paneldecontrol');
+        console.log('✅ Redirigiendo administrador a la página de sesión activa');
+        router.push('/sesion-activa');
       } else {
         console.log('✅ Redirigiendo usuario a la página principal');
         router.push('/');
@@ -178,7 +178,7 @@ export default function LoginForm() {
       }
 
       console.log("Acceso concedido al panel de control para:", auth.currentUser?.email);
-      router.push('/paneldecontrol');
+      router.push('/sesion-activa');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
         setError(getErrorMessage(error));

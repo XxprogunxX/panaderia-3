@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import Carrito from "./Carrito";
 import { useCarrito } from "./CarritoContext";
+import LoginButton from "./LoginButton";
 
 const Header = () => {
   const { productos } = useCarrito();
@@ -66,7 +67,7 @@ const Header = () => {
             <li><Link href="/productos" onClick={closeMenu}>Productos</Link></li>
             <li><Link href="/cafe" onClick={closeMenu}>Cafe</Link></li>
             <li><Link href="/nosotros" onClick={closeMenu}>Nosotros</Link></li>
-            <li><Link href="/login" onClick={closeMenu}>Login</Link></li>
+            <li><LoginButton onClick={closeMenu}>Login</LoginButton></li>
             <li>
               <div className="nav-carrito" onClick={toggleCarrito}>
                 🛒 Carrito ({productos.reduce((sum, p) => sum + p.cantidad, 0)})

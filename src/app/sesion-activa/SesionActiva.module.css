@@ -1,0 +1,175 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #20B2AA 0%, #008B8B 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.content {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 40px;
+}
+
+.title {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 300;
+}
+
+.circleContainer {
+  margin: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.activeCircle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid white;
+  background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  outline: none;
+}
+
+.activeCircle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.activeCircle:active {
+  transform: scale(0.98);
+}
+
+.activeCircle:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.circleInner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.letter {
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.clickMessage {
+  color: white;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+.info {
+  margin-top: 40px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sessionInfo {
+  color: white;
+  font-size: 0.9rem;
+  margin: 0 0 10px 0;
+  opacity: 0.8;
+}
+
+.roleInfo {
+  color: white;
+  font-size: 0.9rem;
+  margin: 0;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.loadingMessage {
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.loading .letter {
+  opacity: 0.5;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+}
+
+.spinnerInner {
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .activeCircle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .letter {
+    font-size: 2.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+} 
