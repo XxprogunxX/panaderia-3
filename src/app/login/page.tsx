@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
@@ -49,10 +49,52 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [mobileForm, setMobileForm] = useState<'login' | 'register'>('login');
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, user, userRole, loading: authLoading } = useAuth();
 
   // Detecta si es móvil
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
+
+  // Verificar si el usuario ya está autenticado y redirigir
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('🔄 Usuario ya autenticado, verificando rol...');
+      console.log('👤 Usuario:', user.email);
+      console.log('🎭 Rol:', userRole);
+      
+      if (userRole === 'admin' || userRole === 'super_admin') {
+        console.log('✅ Redirigiendo administrador al panel de control');
+        router.push('/paneldecontrol');
+      } else {
+        console.log('✅ Redirigiendo usuario a la página principal');
+        router.push('/');
+      }
+    }
+  }, [user, userRole, authLoading, router]);
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <div className="login-page">
+        <div className={styles.container}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '100vh',
+            fontSize: '18px',
+            color: '#666'
+          }}>
+            Verificando sesión...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si el usuario ya está autenticado, no mostrar el formulario
+  if (user) {
+    return null; // El useEffect se encargará de la redirección
+  }
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
