@@ -1,15 +1,8 @@
-.avatarContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
 .avatarButton {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  border: 2px solid #C68E4D;
+  border: 2px solid #F4E8D4;
   background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -19,25 +12,48 @@
   outline: none;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   padding: 0;
+  /* Mejorar experiencia táctil */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* Asegurar que sea perfectamente circular */
+  min-width: 45px;
+  min-height: 45px;
+  max-width: 45px;
+  max-height: 45px;
+  /* Posicionamiento independiente */
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .avatarButton:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  border-color: #F4E8D4;
-  background-color: rgba(198, 142, 77, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-color: #C68E4D;
+  background: linear-gradient(135deg, #98D8F8 0%, #5A9BC8 100%);
 }
 
 .avatarButton.active {
-  border-color: #F4E8D4;
-  background-color: rgba(198, 142, 77, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border-color: #C68E4D;
+  background: linear-gradient(135deg, #98D8F8 0%, #5A9BC8 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .avatarButton:active {
   transform: scale(0.95);
+}
+
+/* Mejorar feedback táctil en móviles */
+@media (hover: none) and (pointer: coarse) {
+  .avatarButton:hover {
+    transform: none;
+  }
+  
+  .avatarButton:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #98D8F8 0%, #5A9BC8 100%);
+  }
 }
 
 .avatarImage {
@@ -49,10 +65,16 @@
 
 .avatarInitial {
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   user-select: none;
+  /* Asegurar que el texto esté centrado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 /* Menú desplegable */
@@ -99,7 +121,14 @@
   align-items: center;
   justify-content: center;
   margin-right: 12px;
-  border: 2px solid #C68E4D;
+  border: 2px solid #F4E8D4;
+  /* Asegurar que sea perfectamente circular */
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .menuAvatarImage {
@@ -111,9 +140,15 @@
 
 .menuAvatarInitial {
   color: white;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: bold;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  /* Asegurar que el texto esté centrado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .menuUserInfo {
@@ -171,6 +206,10 @@
   font-size: 0.95rem;
   font-weight: 500;
   text-align: left;
+  /* Mejorar experiencia táctil */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 44px; /* Tamaño mínimo recomendado para touch */
 }
 
 .menuOption:hover {
@@ -182,6 +221,26 @@
   color: #DC3545;
 }
 
+/* Mejorar feedback táctil en móviles */
+@media (hover: none) and (pointer: coarse) {
+  .menuOption:hover {
+    background-color: transparent;
+  }
+  
+  .menuOption:active {
+    background-color: rgba(198, 142, 77, 0.1);
+  }
+  
+  .menuOptionLogout:hover {
+    background-color: transparent;
+  }
+  
+  .menuOptionLogout:active {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #DC3545;
+  }
+}
+
 .menuIcon {
   margin-right: 12px;
   font-size: 1.1rem;
@@ -189,75 +248,326 @@
   text-align: center;
 }
 
+/* Overlay para móviles */
+.menuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .avatarButton {
-    width: 35px;
-    height: 35px;
+    width: 42px;
+    height: 42px;
+    border-width: 2px;
+    border-color: #F4E8D4;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    /* Asegurar que sea perfectamente circular */
+    min-width: 42px;
+    min-height: 42px;
+    max-width: 42px;
+    max-height: 42px;
   }
   
   .avatarInitial {
-    font-size: 1rem;
+    font-size: 1.4rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 
   .dropdownMenu {
-    min-width: 260px;
-    right: -10px;
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: 320px;
+    margin: 0 auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    background: #4A3B31;
+    border: 1px solid rgba(244, 232, 212, 0.2);
+  }
+
+  .menuHeader {
+    padding: 16px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(135deg, #5A4B41 0%, #4A3B31 100%);
+    border-bottom: 1px solid rgba(244, 232, 212, 0.1);
   }
 
   .menuAvatar {
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+    border: 2px solid #F4E8D4;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    /* Asegurar que sea perfectamente circular */
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
   }
 
   .menuAvatarInitial {
+    font-size: 1.3rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .menuUserName {
     font-size: 1rem;
+    margin-bottom: 2px;
+    color: #F4E8D4;
+  }
+
+  .menuUserEmail {
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+    color: #C68E4D;
+  }
+
+  .menuUserRole {
+    font-size: 0.8rem;
+    color: #87CEEB;
+  }
+
+  .menuOption {
+    padding: 14px 16px;
+    font-size: 1rem;
+    border-radius: 0;
+    min-height: 48px;
+    color: #F4E8D4;
+    background: #4A3B31;
+    border-bottom: 1px solid rgba(244, 232, 212, 0.1);
+  }
+
+  .menuOption:hover {
+    background-color: rgba(244, 232, 212, 0.1);
+  }
+
+  .menuOption:first-child {
+    border-radius: 0;
+  }
+
+  .menuOption:last-child {
+    border-radius: 0 0 16px 16px;
+    border-bottom: none;
+  }
+
+  .menuOptionLogout:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #FF6B6B;
   }
 }
 
 @media (max-width: 480px) {
   .avatarButton {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+    border-color: #F4E8D4;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    /* Asegurar que sea perfectamente circular */
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
   }
   
   .avatarInitial {
-    font-size: 0.9rem;
+    font-size: 1.3rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 
   .dropdownMenu {
-    min-width: 240px;
-    right: -15px;
+    top: 55px;
+    right: 8px;
+    left: 8px;
+    max-width: 300px;
+    border-radius: 12px;
+    background: #4A3B31;
+    border: 1px solid rgba(244, 232, 212, 0.2);
+  }
+
+  .menuHeader {
+    padding: 14px;
+    border-radius: 12px 12px 0 0;
+    background: linear-gradient(135deg, #5A4B41 0%, #4A3B31 100%);
+    border-bottom: 1px solid rgba(244, 232, 212, 0.1);
+  }
+
+  .menuAvatar {
+    width: 36px;
+    height: 36px;
+    margin-right: 10px;
+    border: 2px solid #F4E8D4;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    /* Asegurar que sea perfectamente circular */
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 36px;
+    max-height: 36px;
+  }
+
+  .menuAvatarInitial {
+    font-size: 1.2rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .menuUserName {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    color: #F4E8D4;
+  }
+
+  .menuUserEmail {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+    color: #C68E4D;
+  }
+
+  .menuUserRole {
+    font-size: 0.75rem;
+    color: #87CEEB;
+  }
+
+  .menuOption {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    color: #F4E8D4;
+    background: #4A3B31;
+    border-bottom: 1px solid rgba(244, 232, 212, 0.1);
+  }
+
+  .menuOption:hover {
+    background-color: rgba(244, 232, 212, 0.1);
+  }
+
+  .menuOption:last-child {
+    border-radius: 0 0 12px 12px;
+    border-bottom: none;
+  }
+
+  .menuOptionLogout:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #FF6B6B;
+  }
+
+  .menuIcon {
+    margin-right: 10px;
+    font-size: 1rem;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 360px) {
+  .avatarButton {
+    width: 38px;
+    height: 38px;
+    border-color: #F4E8D4;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    /* Asegurar que sea perfectamente circular */
+    min-width: 38px;
+    min-height: 38px;
+    max-width: 38px;
+    max-height: 38px;
+  }
+  
+  .avatarInitial {
+    font-size: 1.2rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .dropdownMenu {
+    top: 50px;
+    right: 5px;
+    left: 5px;
+    max-width: 280px;
+    background: #4A3B31;
+    border: 1px solid rgba(244, 232, 212, 0.2);
   }
 
   .menuHeader {
     padding: 12px;
+    background: linear-gradient(135deg, #5A4B41 0%, #4A3B31 100%);
+    border-bottom: 1px solid rgba(244, 232, 212, 0.1);
   }
 
   .menuAvatar {
     width: 32px;
     height: 32px;
-    margin-right: 10px;
+    margin-right: 8px;
+    border: 2px solid #F4E8D4;
+    background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    /* Asegurar que sea perfectamente circular */
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 32px;
+    max-height: 32px;
   }
 
   .menuAvatarInitial {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 
   .menuUserName {
     font-size: 0.9rem;
+    color: #F4E8D4;
   }
 
   .menuUserEmail {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    color: #C68E4D;
   }
 
   .menuUserRole {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    color: #87CEEB;
   }
 
   .menuOption {
     padding: 10px 12px;
     font-size: 0.9rem;
+    color: #F4E8D4;
+    background: #4A3B31;
+    border-bottom: 1px solid rgba(244, 232, 212, 0.1);
+  }
+
+  .menuOption:hover {
+    background-color: rgba(244, 232, 212, 0.1);
+  }
+
+  .menuOptionLogout:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #FF6B6B;
   }
 } 

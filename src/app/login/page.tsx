@@ -171,14 +171,14 @@ export default function LoginForm() {
       const userData = userDocSnap.data();
       console.log("Datos del usuario encontrados:", userData);
       
-      if (userData.rol !== "admin") {
-        setError("Tu cuenta no tiene permisos para acceder al panel de control. Solo los administradores pueden acceder.");
-        await auth.signOut();
-        return;
+      // Redirigir según el rol del usuario
+      if (userData.rol === "admin" || userData.rol === "super_admin") {
+        console.log("Acceso concedido al panel de control para:", auth.currentUser?.email);
+        router.push('/sesion-activa');
+      } else {
+        console.log("Usuario cliente autenticado:", auth.currentUser?.email);
+        router.push('/');
       }
-
-      console.log("Acceso concedido al panel de control para:", auth.currentUser?.email);
-      router.push('/sesion-activa');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
         setError(getErrorMessage(error));

@@ -137,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => unsubscribeSnapshot();
-  }, [user, userRole]);
+  }, [user, userRole]); // userRole is a dependency to prevent infinite loops if it changes
 
   const signIn = async (email: string, password: string) => {
     try {

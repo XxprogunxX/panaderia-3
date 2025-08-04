@@ -18,22 +18,42 @@ export default function LoginButton({ onClick, children, className }: LoginButto
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Detectar si es móvil
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
   // Cerrar menú cuando se hace clic fuera de él
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowMenu(false);
       }
     };
 
+    // Agregar listeners para mouse y touch
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
 
-  const handleAvatarClick = (e: React.MouseEvent) => {
+  // Cerrar menú al hacer scroll en móvil
+  useEffect(() => {
+    if (isMobile && showMenu) {
+      const handleScroll = () => {
+        setShowMenu(false);
+      };
+
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [isMobile, showMenu]);
+
+  const handleAvatarClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setShowMenu(!showMenu);
   };
 
@@ -46,10 +66,8 @@ export default function LoginButton({ onClick, children, className }: LoginButto
     if (onClick) onClick();
     
     if (userRole === 'admin' || userRole === 'super_admin') {
-      console.log('🔄 Usuario administrador, redirigiendo a sesión activa');
       router.push('/sesion-activa');
     } else {
-      console.log('🔄 Usuario normal, redirigiendo a página principal');
       router.push('/');
     }
   };
@@ -58,7 +76,6 @@ export default function LoginButton({ onClick, children, className }: LoginButto
     setShowMenu(false);
     try {
       await signOut();
-      console.log('👋 Sesión cerrada exitosamente');
       router.push('/');
     } catch (error) {
       console.error('❌ Error al cerrar sesión:', error);
@@ -71,11 +88,13 @@ export default function LoginButton({ onClick, children, className }: LoginButto
     const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
 
     return (
-      <div className={styles.avatarContainer} ref={menuRef}>
+      <div ref={menuRef} style={{ position: 'relative', display: 'inline-block' }}>
         <button 
           onClick={handleAvatarClick}
+          onTouchEnd={handleAvatarClick}
           className={`${styles.avatarButton} ${showMenu ? styles.active : ''}`}
           title={`${displayName} (${userRole === 'admin' || userRole === 'super_admin' ? 'Administrador' : 'Usuario'})`}
+          aria-label={`Menú de ${displayName}`}
         >
           {user.photoURL ? (
             <Image
@@ -94,54 +113,67 @@ export default function LoginButton({ onClick, children, className }: LoginButto
 
         {/* Menú desplegable */}
         {showMenu && (
-          <div className={styles.dropdownMenu} onClick={handleMenuClick}>
-            <div className={styles.menuHeader}>
-              <div className={styles.menuAvatar}>
-                {user.photoURL ? (
-                  <Image
-                    src={user.photoURL}
-                    alt={displayName}
-                    width={32}
-                    height={32}
-                    className={styles.menuAvatarImage}
-                  />
-                ) : (
-                  <div className={styles.menuAvatarInitial}>
-                    {userInitial}
+          <>
+            {/* Overlay para móviles */}
+            {isMobile && (
+              <div 
+                className={styles.menuOverlay}
+                onClick={() => setShowMenu(false)}
+                aria-hidden="true"
+              />
+            )}
+            
+            <div className={styles.dropdownMenu} onClick={handleMenuClick}>
+              <div className={styles.menuHeader}>
+                <div className={styles.menuAvatar}>
+                  {user.photoURL ? (
+                    <Image
+                      src={user.photoURL}
+                      alt={displayName}
+                      width={32}
+                      height={32}
+                      className={styles.menuAvatarImage}
+                    />
+                  ) : (
+                    <div className={styles.menuAvatarInitial}>
+                      {userInitial}
+                    </div>
+                  )}
+                </div>
+                <div className={styles.menuUserInfo}>
+                  <div className={styles.menuUserName}>{displayName}</div>
+                  <div className={styles.menuUserEmail}>{user.email}</div>
+                  <div className={styles.menuUserRole}>
+                    {userRole === 'admin' || userRole === 'super_admin' ? 'Administrador' : 'Usuario'}
                   </div>
-                )}
-              </div>
-              <div className={styles.menuUserInfo}>
-                <div className={styles.menuUserName}>{displayName}</div>
-                <div className={styles.menuUserEmail}>{user.email}</div>
-                <div className={styles.menuUserRole}>
-                  {userRole === 'admin' || userRole === 'super_admin' ? 'Administrador' : 'Usuario'}
                 </div>
               </div>
-            </div>
 
-            <div className={styles.menuDivider}></div>
+              <div className={styles.menuDivider}></div>
 
-            <div className={styles.menuOptions}>
-              {(userRole === 'admin' || userRole === 'super_admin') && (
+              <div className={styles.menuOptions}>
+                {(userRole === 'admin' || userRole === 'super_admin') && (
+                  <button 
+                    onClick={handlePanelControl}
+                    className={styles.menuOption}
+                    aria-label="Ir al panel de control"
+                  >
+                    <span className={styles.menuIcon}>⚙️</span>
+                    Panel de Control
+                  </button>
+                )}
+                
                 <button 
-                  onClick={handlePanelControl}
-                  className={styles.menuOption}
+                  onClick={handleCerrarSesion}
+                  className={`${styles.menuOption} ${styles.menuOptionLogout}`}
+                  aria-label="Cerrar sesión"
                 >
-                  <span className={styles.menuIcon}>⚙️</span>
-                  Panel de Control
+                  <span className={styles.menuIcon}>🚪</span>
+                  Cerrar Sesión
                 </button>
-              )}
-              
-              <button 
-                onClick={handleCerrarSesion}
-                className={`${styles.menuOption} ${styles.menuOptionLogout}`}
-              >
-                <span className={styles.menuIcon}>🚪</span>
-                Cerrar Sesión
-              </button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     );
