@@ -1347,6 +1347,7 @@ const PanelControl = () => {
           displayName: usuario.displayName?.trim() || null,
           photoURL: usuario.photoURL,
           emailVerified: usuario.emailVerified,
+          rol: usuario.rol || "cliente", // Agregar actualización del rol
           // Do not update providerData here unless it's explicitly managed
           updatedAt: new Date().toISOString()
         });

@@ -10,7 +10,7 @@ import {
   signOut as firebaseSignOut
 } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 interface AuthContextType {
@@ -19,6 +19,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   userRole: string | null;
+  refreshUserRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +36,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Función para refrescar el rol del usuario
+  const refreshUserRole = async () => {
+    if (!user) return;
+    
+    try {
+      const userDocRef = doc(db, "usuarios", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const newRole = userData.rol || null;
+        
+        if (newRole !== userRole) {
+          console.log('🔄 Rol actualizado:', userRole, '→', newRole);
+          setUserRole(newRole);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error al refrescar rol del usuario:', error);
+    }
+  };
 
   useEffect(() => {
     // Configurar persistencia local (sesión dura hasta que se cierre manualmente o expire)
@@ -92,6 +115,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  // Escuchar cambios en tiempo real en el documento del usuario
+  useEffect(() => {
+    if (!user) return;
+
+    const userDocRef = doc(db, "usuarios", user.uid);
+    
+    // Suscribirse a cambios en tiempo real en el documento del usuario
+    const unsubscribeSnapshot = onSnapshot(userDocRef, (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        const newRole = userData.rol || null;
+        
+        if (newRole !== userRole) {
+          console.log('🔄 Rol actualizado en tiempo real:', userRole, '→', newRole);
+          setUserRole(newRole);
+        }
+      }
+    }, (error) => {
+      console.error('❌ Error al escuchar cambios del usuario:', error);
+    });
+
+    return () => unsubscribeSnapshot();
+  }, [user, userRole]);
+
   const signIn = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -117,7 +164,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signIn,
     signOut,
-    userRole
+    userRole,
+    refreshUserRole
   };
 
   return (
