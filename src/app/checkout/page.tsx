@@ -111,6 +111,39 @@ export default function Checkout() {
 
           <h2>Datos de Envío</h2>
           <FormularioEnvio onSubmit={handleSubmit} isLoading={cargandoPago} />
+          
+          {/* Botón de pago simulado para testing */}
+          <div style={{ marginTop: '20px', padding: '20px', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+            <h3 style={{ margin: '0 0 10px 0', color: '#0c4a6e' }}>🛠️ Modo Testing</h3>
+            <p style={{ margin: '0 0 15px 0', color: '#0369a1', fontSize: '14px' }}>
+              Si el pago normal no funciona, puedes usar este botón para simular un pago exitoso y probar el flujo completo.
+            </p>
+            <button 
+              onClick={async () => {
+                const datosEnvio = {
+                  nombre: 'Usuario Test',
+                  email: 'test@example.com',
+                  telefono: '1234567890',
+                  direccion: 'Dirección de prueba',
+                  codigoPostal: '12345',
+                  ciudad: 'Ciudad Test',
+                  estado: 'Estado Test'
+                };
+                await handleSubmit(datosEnvio);
+              }}
+              style={{
+                background: '#0ea5e9',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Simular Pago Exitoso
+            </button>
+          </div>
         </div>
       </div>
     </>

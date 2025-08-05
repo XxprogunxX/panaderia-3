@@ -57,9 +57,9 @@ app.post("/create_preference", async (req, res) => {
         unit_price: parseFloat(item.unit_price.toFixed(2)),
       })),
       back_urls: {
-        success: `${BASE_URL}/success`,
-        failure: `${BASE_URL}/failure`,
-        pending: `${BASE_URL}/pending`,
+        success: `${BASE_URL}/pago-exitoso`,
+        failure: `${BASE_URL}/pago-fallido`,
+        pending: `${BASE_URL}/pago-pendiente`,
       },
       // Agregar external_reference para identificar el pedido
       external_reference: pedidoId || undefined,

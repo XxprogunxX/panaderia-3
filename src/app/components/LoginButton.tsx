@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import styles from './LoginButton.module.css';
 
+
 interface LoginButtonProps {
   onClick?: () => void;
   children: React.ReactNode;
@@ -82,6 +83,23 @@ export default function LoginButton({ onClick, children, className }: LoginButto
     }
   };
 
+  const handleEditarPerfil = () => {
+    setShowMenu(false);
+    router.push('/perfil');
+  };
+
+  const handleHistorialCompras = () => {
+    setShowMenu(false);
+    router.push('/historial');
+  };
+
+  const handleDireccionesGuardadas = () => {
+    setShowMenu(false);
+    router.push('/direcciones');
+  };
+
+
+
   // Si el usuario está autenticado, mostrar avatar con menú
   if (user && !authLoading) {
     const userInitial = user.email?.charAt(0).toUpperCase() || 'U';
@@ -152,6 +170,33 @@ export default function LoginButton({ onClick, children, className }: LoginButto
               <div className={styles.menuDivider}></div>
 
               <div className={styles.menuOptions}>
+                <button 
+                  onClick={handleEditarPerfil}
+                  className={styles.menuOption}
+                  aria-label="Editar perfil"
+                >
+                  <span className={styles.menuIcon}>👤</span>
+                  Editar Perfil
+                </button>
+
+                <button 
+                  onClick={handleDireccionesGuardadas}
+                  className={styles.menuOption}
+                  aria-label="Gestionar direcciones"
+                >
+                  <span className={styles.menuIcon}>📍</span>
+                  Mis Direcciones
+                </button>
+
+                <button 
+                  onClick={handleHistorialCompras}
+                  className={styles.menuOption}
+                  aria-label="Ver historial de compras"
+                >
+                  <span className={styles.menuIcon}>📋</span>
+                  Historial de Compras
+                </button>
+
                 {(userRole === 'admin' || userRole === 'super_admin') && (
                   <button 
                     onClick={handlePanelControl}
@@ -181,12 +226,16 @@ export default function LoginButton({ onClick, children, className }: LoginButto
 
   // Si no está autenticado, mostrar el enlace normal
   return (
-    <Link 
-      href="/login" 
-      onClick={onClick}
-      className={className}
-    >
-      {children}
-    </Link>
+    <>
+      <Link 
+        href="/login" 
+        onClick={onClick}
+        className={className}
+      >
+        {children}
+      </Link>
+
+
+    </>
   );
 } 
