@@ -170,33 +170,39 @@ export default function LoginButton({ onClick, children, className }: LoginButto
               <div className={styles.menuDivider}></div>
 
               <div className={styles.menuOptions}>
-                <button 
-                  onClick={handleEditarPerfil}
-                  className={styles.menuOption}
-                  aria-label="Editar perfil"
-                >
-                  <span className={styles.menuIcon}>👤</span>
-                  Editar Perfil
-                </button>
+                {/* Solo mostrar opciones de usuario para usuarios normales */}
+                {!(userRole === 'admin' || userRole === 'super_admin') && (
+                  <>
+                    <button 
+                      onClick={handleEditarPerfil}
+                      className={styles.menuOption}
+                      aria-label="Editar perfil"
+                    >
+                      <span className={styles.menuIcon}>👤</span>
+                      Editar Perfil
+                    </button>
 
-                <button 
-                  onClick={handleDireccionesGuardadas}
-                  className={styles.menuOption}
-                  aria-label="Gestionar direcciones"
-                >
-                  <span className={styles.menuIcon}>📍</span>
-                  Mis Direcciones
-                </button>
+                    <button 
+                      onClick={handleDireccionesGuardadas}
+                      className={styles.menuOption}
+                      aria-label="Gestionar direcciones"
+                    >
+                      <span className={styles.menuIcon}>📍</span>
+                      Mis Direcciones
+                    </button>
 
-                <button 
-                  onClick={handleHistorialCompras}
-                  className={styles.menuOption}
-                  aria-label="Ver historial de compras"
-                >
-                  <span className={styles.menuIcon}>📋</span>
-                  Historial de Compras
-                </button>
+                    <button 
+                      onClick={handleHistorialCompras}
+                      className={styles.menuOption}
+                      aria-label="Ver historial de compras"
+                    >
+                      <span className={styles.menuIcon}>📋</span>
+                      Historial de Compras
+                    </button>
+                  </>
+                )}
 
+                {/* Solo mostrar panel de control para administradores */}
                 {(userRole === 'admin' || userRole === 'super_admin') && (
                   <button 
                     onClick={handlePanelControl}
