@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../components/AuthContext';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
-export default function PagoExitosoPage() {
+function PagoExitosoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -235,5 +235,41 @@ export default function PagoExitosoPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '40px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        textAlign: 'center',
+        maxWidth: '500px',
+        width: '100%'
+      }}>
+        <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⏳</div>
+        <h2 style={{ color: '#1f2937', marginBottom: '16px' }}>Cargando...</h2>
+        <p style={{ color: '#6b7280' }}>Preparando la página de confirmación de pago.</p>
+      </div>
+    </div>
+  );
+}
+
+export default function PagoExitosoPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PagoExitosoContent />
+    </Suspense>
   );
 } 
