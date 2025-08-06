@@ -162,14 +162,12 @@ const CarritoFlotante = () => {
                   >
                     Seguir Comprando
                   </button>
-                  <Link href="/checkout" className={styles.checkoutLink}>
-                    <button
-                      onClick={procederAlCheckout}
-                      className={styles.checkoutButton}
-                    >
-                      Proceder al Pago
-                    </button>
-                  </Link>
+                  <button
+                    onClick={procederAlCheckout}
+                    className={styles.checkoutButton}
+                  >
+                    Proceder al Pago
+                  </button>
                 </div>
               </>
             )}

@@ -86,6 +86,7 @@ function PagoExitosoContent() {
       localStorage.removeItem('pedidoPendiente');
       localStorage.removeItem('carritoItems');
       localStorage.removeItem('carritoTotal');
+      localStorage.removeItem('carrito');
 
       setLoading(false);
 

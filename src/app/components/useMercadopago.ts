@@ -67,9 +67,10 @@ export function useMercadoPago() {
         fechaPago: new Date().toISOString()
       });
 
-      // Limpiar el carrito
+      // Limpiar el carrito del localStorage (para compatibilidad)
       localStorage.removeItem('carritoItems');
       localStorage.removeItem('carritoTotal');
+      localStorage.removeItem('carrito');
 
       // Mostrar mensaje de éxito
       alert("¡Pago simulado exitoso! Tu pedido ha sido procesado.");
