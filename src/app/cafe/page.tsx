@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './cafe.module.css';
@@ -7,49 +7,10 @@ import Footer from '../components/Footer';
 
 
 export default function CafePage() {
-  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <>
       <main className={styles["cafe-page"]} suppressHydrationWarning>
         <section className={styles["cafe-hero"]}>
-          {/* Navbar ajustado para el diseño de la imagen */}
-          <nav className={styles["cafe-navbar"]}>
-            {/* Contenedor para el logo y el nombre de la cafetería (centro de la navbar) */}
-            <div className={styles["cafe-navbar-brand-container"]}>
-              <Link href="/cafe" className={styles["cafe-nav-link"] + ' ' + styles["cafe-logo-text"]}>Cafetería</Link>
-              {/* Logo NINDÓ CAFÉ para móvil */}
-              <div className={styles["cafe-mobile-logo"]}>
-                <div className={styles["cafe-mobile-deer"]}>🦌</div>
-                <div className={styles["cafe-mobile-brand"]}>
-                  <span className={styles["cafe-mobile-brand-name"]}>NINDÓ CAFÉ</span>
-                  <span className={styles["cafe-mobile-brand-tagline"]}>EL QUE TE HACE VOLAR</span>
-                </div>
-              </div>
-            </div>
-            {/* Links de navegación (ocultos en móvil) */}
-            <div
-              className={
-                styles["cafe-navbar-links-container"] +
-                " " +
-                (menuOpen ? styles["cafe-navbar-links-open"] : "")
-              }
-            >
-              <Link href="/cafe" className={styles["cafe-nav-link"]}>Inicio</Link>
-              <Link href="/cafeproductos" className={styles["cafe-nav-link"]}>Productos</Link>
-              <Link href="/" className={styles["cafe-nav-link"]}>Panadería</Link>
-            </div>
-            {/* Botón hamburguesa separado (derecha de la navbar) */}
-            <button
-              className={styles["cafe-hamburger"]}
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Abrir menú"
-              type="button"
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-          </nav>
           <div className={styles["cafe-hero-text"]}>
             <h1>El Arte del Café</h1>
             <p>Una experiencia sensorial en cada taza.</p>
@@ -163,19 +124,7 @@ export default function CafePage() {
           </div>
         </section>
         
-        {/* Logo de NINDÓ CAFÉ en la parte inferior */}
-        <section className={styles["cafe-logo-section"]}>
-          <div className={styles["cafe-logo-container"]}>
-            <div className={styles["cafe-logo-image"]}>
-              {/* Aquí puedes agregar la imagen del logo del ciervo */}
-              <div className={styles["cafe-deer-logo"]}>🦌</div>
-            </div>
-            <div className={styles["cafe-logo-text"]}>
-              <h3 className={styles["cafe-brand-name"]}>NINDÓ CAFÉ</h3>
-              <p className={styles["cafe-brand-tagline"]}>EL QUE TE HACE VOLAR</p>
-            </div>
-          </div>
-        </section>
+
        
       </main>
       <Footer />

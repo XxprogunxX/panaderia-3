@@ -106,7 +106,7 @@ export default function LoginButton({ onClick, children, className }: LoginButto
     const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
 
     return (
-      <div ref={menuRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <div ref={menuRef} style={{ position: 'relative', display: 'inline-block', zIndex: 10000 }}>
         <button 
           onClick={handleAvatarClick}
           onTouchEnd={handleAvatarClick}
