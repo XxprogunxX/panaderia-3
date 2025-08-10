@@ -1,4 +1,4 @@
- "use client";
+"use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "../firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, setDoc, onSnapshot } from "firebase/firestore";
@@ -88,6 +88,23 @@ type Pedido = {
     instrucciones?: string;
   };
   guiaEnvio?: string;
+};
+
+// Tipos para estadísticas de ventas
+type ProductoVentas = {
+  nombre: string;
+  cantidadTotal: number;
+  ingresosTotales: number;
+  imagenUrl?: string;
+  precioPromedio: number;
+};
+
+type EstadisticasVentas = {
+  productosMasVendidos: ProductoVentas[];
+  ventasTotales: number;
+  totalPedidos: number;
+  promedioPorPedido: number;
+  productosUnicos: number;
 };
 
 // Definir tipo para los documentos agrupados por UID
@@ -190,6 +207,16 @@ const PanelControl = () => {
   const [notificacionesPermitidas, setNotificacionesPermitidas] = useState(false);
   const [pedidosConocidos, setPedidosConocidos] = useState<Set<string>>(new Set());
   const [esHTTPS, setEsHTTPS] = useState(false);
+
+  // Estados para estadísticas de ventas
+  const [estadisticasVentas, setEstadisticasVentas] = useState<EstadisticasVentas>({
+    productosMasVendidos: [],
+    ventasTotales: 0,
+    totalPedidos: 0,
+    promedioPorPedido: 0,
+    productosUnicos: 0
+  });
+  const [cargandoEstadisticas, setCargandoEstadisticas] = useState(false);
 
 
 
@@ -958,7 +985,7 @@ const PanelControl = () => {
     } finally {
       setCargando(false);
     }
-  }, [edicionId, subirImagen, cargarProductos]); // Added cargarProductos to dependencies
+  }, [edicionId, subirImagen, cargarProductos]);
 
   // Manejar envío de formulario de café
   const manejarSubmitCafe = useCallback(async (e: React.FormEvent) => {
@@ -1655,6 +1682,133 @@ const PanelControl = () => {
     return () => clearTimeout(timer);
   }, [productos, cafes, activeTab]); // Added activeTab to re-run on tab change
 
+  // Función para calcular estadísticas de ventas
+  const calcularEstadisticasVentas = useCallback(async () => {
+    setCargandoEstadisticas(true);
+    try {
+      console.log(`📊 Calculando estadísticas con ${pedidos.length} pedidos totales`);
+      
+      // Incluir todos los pedidos para estadísticas (no solo completados)
+      // Los pedidos completados se eliminan de la BD, así que incluimos todos los existentes
+      const pedidosParaEstadisticas = pedidos;
+      
+      console.log(`📊 Estados de pedidos encontrados:`, 
+        [...new Set(pedidos.map(p => p.estado))]);
+
+      // Crear mapa para contar ventas por producto
+      const ventasPorProducto = new Map<string, ProductoVentas>();
+
+      // Procesar cada pedido
+      pedidosParaEstadisticas.forEach(pedido => {
+        console.log(`📊 Procesando pedido ${pedido.id} con estado: ${pedido.estado}`);
+        pedido.productos.forEach(producto => {
+          const nombre = producto.nombre;
+          const cantidad = producto.cantidad;
+          const precio = producto.precio;
+          const ingresos = cantidad * precio;
+
+          // Verificar que el producto existe actualmente en la base de datos
+          const productoExiste = productos.some(p => p.nombre === nombre);
+          
+          if (!productoExiste) {
+            console.log(`📊 Producto "${nombre}" no existe en la BD actual, omitiendo de estadísticas`);
+            return; // Saltar este producto
+          }
+
+          if (ventasPorProducto.has(nombre)) {
+            const existente = ventasPorProducto.get(nombre)!;
+            existente.cantidadTotal += cantidad;
+            existente.ingresosTotales += ingresos;
+            existente.precioPromedio = existente.ingresosTotales / existente.cantidadTotal;
+          } else {
+            ventasPorProducto.set(nombre, {
+              nombre,
+              cantidadTotal: cantidad,
+              ingresosTotales: ingresos,
+              precioPromedio: precio
+            });
+          }
+        });
+      });
+
+      // Convertir a array y ordenar por cantidad vendida
+      const productosMasVendidos = Array.from(ventasPorProducto.values())
+        .sort((a, b) => b.cantidadTotal - a.cantidadTotal)
+        .slice(0, 10); // Top 10 productos
+
+      // Buscar imágenes de los productos
+      const productosConImagenes = productosMasVendidos.map(producto => {
+        const productoEncontrado = productos.find(p => p.nombre === producto.nombre);
+        return {
+          ...producto,
+          imagenUrl: productoEncontrado?.imagenUrl
+        };
+      });
+
+      // Calcular métricas generales
+      const ventasTotales = pedidosParaEstadisticas.reduce((sum: number, pedido: Pedido) => sum + pedido.total, 0);
+      const totalPedidos = pedidosParaEstadisticas.length;
+      const promedioPorPedido = totalPedidos > 0 ? ventasTotales / totalPedidos : 0;
+      const productosUnicos = ventasPorProducto.size;
+
+      setEstadisticasVentas({
+        productosMasVendidos: productosConImagenes,
+        ventasTotales,
+        totalPedidos,
+        promedioPorPedido,
+        productosUnicos
+      });
+
+    } catch (error) {
+      console.error("Error calculando estadísticas:", error);
+      setError("Error al calcular estadísticas de ventas");
+    } finally {
+      setCargandoEstadisticas(false);
+    }
+  }, [pedidos, productos]);
+
+  // Effect para calcular estadísticas cuando se carguen los pedidos
+  useEffect(() => {
+    if (pedidos.length > 0 && productos.length > 0) {
+      calcularEstadisticasVentas();
+    }
+  }, [pedidos, productos, calcularEstadisticasVentas]);
+
+  // Función para formatear números como moneda
+  const formatearMoneda = (cantidad: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(cantidad);
+  };
+
+  // Función para crear gráfica de barras simple
+  const crearGraficaBarras = (productos: ProductoVentas[], maxBarras: number = 5) => {
+    const topProductos = productos.slice(0, maxBarras);
+    const maxCantidad = Math.max(...topProductos.map(p => p.cantidadTotal));
+
+    return (
+      <div className="grafica-barras">
+        {topProductos.map((producto, index) => {
+          const porcentaje = maxCantidad > 0 ? (producto.cantidadTotal / maxCantidad) * 100 : 0;
+          return (
+            <div key={producto.nombre} className="barra-item">
+              <div className="barra-info">
+                <span className="barra-nombre">{producto.nombre}</span>
+                <span className="barra-cantidad">{producto.cantidadTotal} unidades</span>
+              </div>
+              <div className="barra-container">
+                <div 
+                  className="barra-progreso" 
+                  style={{ width: `${porcentaje}%` }}
+                ></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   // --- Conditional Rendering for Loading and Access Denied ---
   if (checkingAuth) {
@@ -1688,6 +1842,12 @@ const PanelControl = () => {
   return (
     <div className="container">
       <nav className="tabs">
+        <button
+          className={activeTab === "estadisticas" ? "active" : ""}
+          onClick={() => setActiveTab("estadisticas")}
+        >
+          📊 Estadísticas
+        </button>
         <button
           onClick={() => setActiveTab("productos")}
           className={activeTab === "productos" ? "active" : ""}
@@ -2814,10 +2974,117 @@ const PanelControl = () => {
 
           {activeTab === "estadisticas" && (
             <div className="estadisticas-tab">
-              <h2>Estadísticas</h2>
-              <div className="estadisticas-contenido">
-                <p>Aquí irán las estadísticas del negocio</p>
-              </div>
+              <h2>📊 Estadísticas de Ventas</h2>
+              
+              {cargandoEstadisticas ? (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p>Calculando estadísticas...</p>
+                </div>
+              ) : (
+                <div className="estadisticas-contenido">
+                  {/* Métricas principales */}
+                  <div className="metricas-principales">
+                    <div className="metrica-card">
+                      <div className="metrica-icono">💰</div>
+                      <div className="metrica-info">
+                        <h3>Ventas Totales</h3>
+                        <p className="metrica-valor">{formatearMoneda(estadisticasVentas.ventasTotales)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="metrica-card">
+                      <div className="metrica-icono">📦</div>
+                      <div className="metrica-info">
+                        <h3>Total Pedidos</h3>
+                        <p className="metrica-valor">{estadisticasVentas.totalPedidos}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="metrica-card">
+                      <div className="metrica-icono">📈</div>
+                      <div className="metrica-info">
+                        <h3>Promedio por Pedido</h3>
+                        <p className="metrica-valor">{formatearMoneda(estadisticasVentas.promedioPorPedido)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="metrica-card">
+                      <div className="metrica-icono">🍞</div>
+                      <div className="metrica-info">
+                        <h3>Productos Únicos</h3>
+                        <p className="metrica-valor">{estadisticasVentas.productosUnicos}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gráfica de productos más vendidos */}
+                  <div className="seccion-grafica">
+                    <h3>🏆 Productos Más Vendidos</h3>
+                    {estadisticasVentas.productosMasVendidos.length > 0 ? (
+                      <>
+                        {crearGraficaBarras(estadisticasVentas.productosMasVendidos, 5)}
+                        
+                        <div className="productos-detalle">
+                          <h4>Detalle de Productos</h4>
+                          <div className="productos-grid">
+                            {estadisticasVentas.productosMasVendidos.slice(0, 6).map((producto, index) => (
+                              <div key={producto.nombre} className="producto-venta-card">
+                                <div className="producto-imagen-container">
+                                  {producto.imagenUrl ? (
+                                    <Image
+                                      src={producto.imagenUrl}
+                                      alt={producto.nombre}
+                                      width={80}
+                                      height={80}
+                                      className="producto-imagen"
+                                      style={{ objectFit: 'cover' }}
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="placeholder-imagen">🍞</div>
+                                  )}
+                                </div>
+                                <div className="producto-info">
+                                  <h5>{producto.nombre}</h5>
+                                  <p className="producto-cantidad">
+                                    <strong>{producto.cantidadTotal}</strong> unidades vendidas
+                                  </p>
+                                  <p className="producto-ingresos">
+                                    {formatearMoneda(producto.ingresosTotales)}
+                                  </p>
+                                  <p className="producto-precio-promedio">
+                                    Precio promedio: {formatearMoneda(producto.precioPromedio)}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="sin-datos">
+                        <p>📊 No hay datos de ventas disponibles</p>
+                        <p>Los productos aparecerán aquí una vez que se completen las primeras ventas.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Información adicional */}
+                  <div className="info-adicional">
+                    <h3>ℹ️ Información</h3>
+                    <ul>
+                      <li>Las estadísticas incluyen todos los pedidos en el sistema</li>
+                      <li>Los productos se ordenan por cantidad total vendida</li>
+                      <li>Las imágenes se muestran cuando están disponibles</li>
+                      <li>Los datos se actualizan automáticamente</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
